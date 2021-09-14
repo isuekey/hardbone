@@ -1,0 +1,89 @@
+* 第一章
+* 第二章
+* 第三章
+* 第四章
+* 第五章 记号约定
+** 5.1句法与词法（语句的与词汇的语法）
+*** 5.1.1上下文无关语法（context-free grammar 可能就是通用的语法描述约定）
+  "context-free grammar"由若干"productions"组成。每个产出在"left-hand side"
+有一个抽象标记记为"nonterminal", 在"right-hand side"有由若干（或零）个标记（
+"nonterminal"或"terminal"）构成的序列。各个语法的"terminal"用特定字母描述。
+形式如NXn, X属于{N,T},n为非负整数
+  "chain product"是只有一个"right-side nonterminal"和若干（或零）个"terminal"
+构成的序列组成的产出。（就是一定还有一个left-hand side nontermial）。
+  一个语句从开始由仅一个区分出的称为"goal symbol"的"nontermimal"和一个给定
+的语法描述（context-free grammar)构成。语句具体指明一个"language"，即一组可数
+的"terminal symbol"序列（数学意义上的可数：有限的或无限的）。这个序列可以
+通过将语句中所有的"production left-hand side nonterminal"替换为
+"production right-hand side"的方式，递归获得。
+**** 这里其实蕴含了序的概念。这是按照输入顺序进行语法组织的。
+*** 5.1.2词汇与正则的语法
+  ECMAScript的"lexical grammar"在12章详解。本语法与它的"terminal symbols"的Unicode
+编码一致，符合11.1定义的源码字符规则。定义了若干产出，从"goal symbol"开始有
+InputElementDiv, InputElementTemplateTail, InputElementRegExp, 
+InputElementRegExpOrTemplateTail，这些产出描述了如何将输入的字符码转换为
+输入元素
+  除了空白符与注释的输入元素组成了ECMAScript的句法语法的"termial symbols"，
+称为ECMAScript tokens。这些token是保留词、标识符、文本和ECMAScript语言符号。
+同时换行符通常不被认为是token，尽管是输入元素流的一部分，引导进程自动插入
+分好。简单的空白符和单行注释是被舍弃的，不会出现在句法语法的输入元素
+流中。多行注释（就是/*...*/形式的注释，与占用几行无关）中如果没有换行符，
+会被舍弃掉；如果含有一个或多个换行符，将被替换为一个换行符的，然后作为
+语句语法输入元素流的一部分
+  ECMAScript的RegExp语法在22.2.1中给出。该文法还将源字符定义的代码点作为
+"terminal symbols"其终结符。从"goal symbol Pattern"开始定义了若干产出描述了
+如何将字符码转换为正则表达式。
+  词汇与正则语法的产出用两个冒号"::"作为分隔符号。词汇与正则语法共享部分
+产出。
+*** 5.1.3 数字语法
+  还有一种语法是将字符串转换成数字值。这个语法与词汇语法中处理数字的部分
+内容相似。语法的"terminal symbol"是源码。在7.1.4.1中详细描述。
+  数字语法的产出用三个冒号":::"作为符号来标志。
+*** 5.1.4 语句语法
+  ECMAScript的语句语法在13至16章给出。这语法有被词汇语法定义为
+"terminal symbols"的"ECMAScript tokens"。它定义了一套产出，从两个"goal symbol 
+Script and Module"的某个开始，描述了token序列如何沟组成ECMAScript程序的
+语句的正确的独立的组件。
+  当一个编码流被解析成ECMAScript的"Script"或者"Module"时，它先通过反复运用
+词法语法转换成输入元素流，这个输入元素流在被解析成一个单独的语句语法的
+运用。如果输入流的全部token不能被解析成一个单独的"goal nontermial Script 或
+Module"，这个输入流就在语句语法上错了。
+  当解析成功后，构造出了一个"parse tree"，他是一个有根的树结构，每个节点
+都是"Parse Node"。每个解析节点在语法上是一个"symbol"的实例，他代表一串从
+那个"symbol"派生出的源文本。这个解析树的根节点，则代表全部的源文本，是解
+析的"goal symbol"的实例。如果某个解析节点是一个"nonterminal"的实例，他同时也
+是某个将其"nonterminal"作为"left-hand side"的产出的实例。而且他有可数的子元
+素，每个子元素对应产出的"right-hand side"的一个"symbol"，每个子元素是解析
+节点，是相应"symbol"的实例。
+  每次调用解析都是实例出新的解析节点，在每次解析间不重用节点，即使是同样
+的源文本。解析节点当且仅当在相同解析调用中，同一个语法"symbol"的实例，代表
+相同源文本串的时候才被认为是相同的解析节点。
+**** 备注1 多次解析相同字符串导致不同的解析节点。例如：
+let str = "1 + 1";
+eval(str)
+eval(str)
+每次调用eval将str的值转换成ECMAScript源码，然后执行具有隔离的解析树的独立的
+解析。这些树是截然不同的即使这些解析操作的源文本来自相同的字符值。
+**** 备注2 解析树是本规范的方式，实现没有必要一定用相似的数据结构
+  语句语法的产出使用一个冒号作为符号进行区别。
+  13-16章出现的句法语法不是被"ECMAScript Script or Module"正确接受全部的内容。
+某些额外的"token"同样被正确接受，即，那些仅当分号放在特定位置（例如换行符
+前）才被语法描述的"token"。此外，某些本语法描述的"token"序列，如果换行符
+出现在某些“尴尬”位置后，就不被认为可接受的。
+  在某些场景内，为了规避歧义，句法语法使用笼统产出，也就是说允许"token"序列
+不能组成有效的"ECMAScript Script or Module"。举例来说，这个技术被用在对象字面
+量与对象结构模式上。在相应的案例中，提供了一个更严格的补充语法，用于进一
+步限制这个可接受的"token"序列。典型的，有个"early error"规则会定义一个错误
+条件如果"P不能覆盖N"，P是解析节点（普通的产出实例），而N是从补充来的
+"nonterminal"。这样原本被P匹配的"token"序列被用N再次解析作为"goal symbol"。（
+如果N用了语法性质的参数，他们就会被设置成相同的值，如果P是起初就解析的）
+如果"token"序列不能作为一个N的实例来解析，且没有"token"剩下，会导致错误发
+生。
+  后来，算法会使用"N被P覆盖"语句访问这个解析的结果。既然任何解析失败会
+被"early error"规则侦测到，这就总是一个解析节点（一个N实例对应一个给定P）。
+*** 5.1.5 语法符号
+  终端符号用等宽加黑（这里我也不知道如何表示）字体表示，无论是在语法产出
+还是在文档规范里，只要文字直接表示一个终端符号。这会像所写的一样出现在脚
+本。以这种方式指明的全部终端符代码符都被认为是恰当的Unicode代码，包含基本
+的拉丁字符，而不是
+* 第六章
