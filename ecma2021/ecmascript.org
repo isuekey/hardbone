@@ -1,3 +1,9 @@
+* 待办
+** 将来会使用LaTex进行处理.
+* 约定
+** 若干 表示一个或者多个
+** 可数 表示零个、一个或者多个
+** 所有英文为原文内容，作为专用词汇表示特定含义
 * 第一章
 * 第二章
 * 第三章
@@ -5,12 +11,13 @@
 * 第五章 记号约定
 ** 5.1句法与词法（语句的与词汇的语法）
 *** 5.1.1上下文无关语法（context-free grammar 可能就是通用的语法描述约定）
-  "context-free grammar"由若干"productions"组成。每个产出在"left-hand side"
-有一个抽象标记记为"nonterminal", 在"right-hand side"有由若干（或零）个标记（
-"nonterminal"或"terminal"）构成的序列。各个语法的"terminal"用特定字母描述。
-形式如NXn, X属于{N,T},n为非负整数
-  "chain product"是只有一个"right-side nonterminal"和若干（或零）个"terminal"
-构成的序列组成的产出。（就是一定还有一个left-hand side nontermial）。
+  "context-free grammar"由若干"productions"组成。每个产出是一个树，有两个支干
+left-hand side 和 right-hand side，在"left-hand side"是一个抽象标记记为
+"nonterminal", 在"right-hand side" 是一个队列，由可数个标记（"nonterminal"或
+"terminal"）构成的序列。各个语法的"terminal"用特定字母描述。形式如NXn, 
+X属于{N,T},n为非负整数，差不多类似/N[NT]*/。
+  "chain product"是只有一个"right-side nonterminal"和可数个个"terminal"
+构成的序列组成的产出。（一定还有一个left-hand side nontermial）。
   一个语句从开始由仅一个区分出的称为"goal symbol"的"nontermimal"和一个给定
 的语法描述（context-free grammar)构成。语句具体指明一个"language"，即一组可数
 的"terminal symbol"序列（数学意义上的可数：有限的或无限的）。这个序列可以
@@ -65,7 +72,7 @@ eval(str)
 每次调用eval将str的值转换成ECMAScript源码，然后执行具有隔离的解析树的独立的
 解析。这些树是截然不同的即使这些解析操作的源文本来自相同的字符值。
 **** 备注2 解析树是本规范的方式，实现没有必要一定用相似的数据结构
-  语句语法的产出使用一个冒号作为符号进行区别。
+  语句语法的产出使用一个冒号":"作为符号进行区别。
   13-16章出现的句法语法不是被"ECMAScript Script or Module"正确接受全部的内容。
 某些额外的"token"同样被正确接受，即，那些仅当分号放在特定位置（例如换行符
 前）才被语法描述的"token"。此外，某些本语法描述的"token"序列，如果换行符
@@ -82,8 +89,231 @@ eval(str)
   后来，算法会使用"N被P覆盖"语句访问这个解析的结果。既然任何解析失败会
 被"early error"规则侦测到，这就总是一个解析节点（一个N实例对应一个给定P）。
 *** 5.1.5 语法符号
-  终端符号用等宽加黑（这里我也不知道如何表示）字体表示，无论是在语法产出
-还是在文档规范里，只要文字直接表示一个终端符号。这会像所写的一样出现在脚
-本。以这种方式指明的全部终端符代码符都被认为是恰当的Unicode代码，包含基本
-的拉丁字符，而不是
+  terminal symbols用等宽加黑（这里我也不知道如何表示）字体表示，无论是在语法
+产出还是在文档规范里，只要文字直接表示一个terminal symbol。这会像所写的一样
+出现在脚本。以这种方式指明的全部终端符代码符都被认为是恰当的Unicode代码，
+包含基本的拉丁字符，而不是那些在Unicode范围内相似外形的编码。终端符不能用
+\UnicodeEscapeSequence表示
+  nonterminal用斜体表示。一个nonterminal（其实就是产出）的定义以跟随若干冒号
+的名称开始介绍。冒号的数量表明产出属于那种语法。本产出的若干可替换的
+"right-hand sides"跟随在下一行。比如一个语句定义：
+WhileStatement:
+    while ( Expression ) Statement
+声明了WhileStatement nonterminal表示while token、(、一个Exression、)、一个Statement
+组成的序列。Expression和Statement上发生他们自己的nonterminal。在举一个语句定义
+的例子：
+ArgumentList:
+    AssignmentExpression
+    ArgumentList, AssignmentExpression
+声明了ArgumentList可能表示一个单独的AssignmentExpression或者一个由一个
+ArgumentList、,、一个AssignmentExpression构成的序列。这个ArgumentList定义是递归
+的，因为它的定义需要本身。于是ArgumenList可以包含若干参数，参数用,分隔，
+每个参数表达式就是AssignmentExpression。这种nonterminal的递归定义很常见。
+  下标后缀opt，出现在terminal或nonterminal后，声明一个可选标志。这种包含可选
+标志的替换实际是指明两种right-hand sides，一种是缺失可选元素的，一种是包含
+可选元素的。如下所示：
+VariableDeclaration:
+    BindingIdentifier Initializer_opt
+是下列定义的简便缩写：
+VariableDeclaration:
+    BindingIdentifier
+    BindingIdentifier Initializer
+，更进一步：
+ForStatement:
+    for ( LexicalDeclaration Expression_opt ; Expression_opt ) Statement
+是下列定义的简便缩写：
+ForStatement:
+    for ( LexicalDeclaration ; Expression_opt ) Statement
+    for ( LexicalDeclaration Expression ; Expression_opt ) Statement
+是如下的缩写：
+ForStatement:
+    for ( LexicalDeclaration ; ) Statement
+    for ( LexicalDeclaration ; Expression ) Statement
+    for ( LexicalDeclaration Expression ; ) Statement
+    for ( LexicalDeclaration Expression ; Expression ) Statement
+所以，在这个例子里，noterminal ForStatement有四个可替换的right-hand sides
+  产出可以通过增加"[parameters]"形式的标注的方式参数化，这个标注后缀在一个
+产出定义的nonterminal标志上。其中"parameters"可以一个名称或者用都号分隔的
+名称列表。一个参数化的产出是一套通过在被参数化的nonterminal symbol后拼接
+下划线_和参数名称的方式的所有组合的速记。例如：
+StatementList_[Return]:
+    ReturnStatement
+    ExpressionStatement
+是下列定义的简便缩写:
+StatementList:
+    ReturnStatement
+    ExpressionStatement
+StatementList_Return:
+    ReturnStatement
+    ExpressionStatement
+，更进一步有：
+StatementList_[Return, In]:
+    ReturnStatement
+    ExpressionStatement
+是如下的缩写：
+StatementList:
+    ReturnStatement
+    ExpressionStatement
+StatementList_Return:
+    ReturnStatement
+    ExpressionStatement
+StatementList_In:
+    ReturnStatement
+    ExpressionStatement
+StatementList_Return_In:
+    ReturnStatement
+    ExpressionStatement
+多个参数产生的产出组合，不全是完整语法定义需要的。
+  涉及到产出right-hand side的nonterminal也同样可以使用参数。例如：
+StatementList:
+    ReturnStatement
+    ExpressionStatement_[+In]
+等价于：
+StatementList:
+    ReturnStatement
+    ExpressionStatement_In
+而
+SatementList:
+    ReturnStatement
+    ExpressionStatement_[~In]
+等价于：
+SatementList:
+    ReturnStatement
+    ExpressionStatement
+  一个nonterminal引用可能同时包含参数列表和"opt"后缀。例如:
+VariableDeclaration:
+    BindingIdentifier Initializer_[+In]_opt
+是下面声明的缩写：
+VariableDeclaration:
+    BindingIdentifier
+    BindingIdentifier Initializer_In
+  在一个right-hand side nonterminal引用的参数上增加?前缀，表示这个参数是否
+出现在依赖于是否出现在当前产出的left-hand side标识上。例如：
+VariableDeclaration_[In]:
+    BindingIdentifier Initializer_[?In]
+是下面声明的缩写：
+VariableDeclaration:
+    BindingIdentifier Initializer
+VariableDeclaration_In:
+    BindingIdentifier Initializer_In
+  如果right-hand分支上含有前缀"[+parameter]"，那么这个分支仅在这个参数名出现
+在其产出的nonterminal标识上时可用。与之相反"[~parameter]"，则在其产出的
+nonterminal标识上不含有参数名时，参数分支可用。例如：
+StatementList_[Return]:
+    [+Return]ReturnStatement
+    ExpressionStatement
+是下面声明的缩写：
+StatementList:
+    ExpressionStatement
+StatementList_Return:
+    ReturnStatement
+    ExpressionStatement
+，再者：
+StatementList_[Return]:
+    [~Return]ReturnStatement
+    ExpressionStatement
+是下面声明的缩写：
+StatementList:
+    ReturnStatement
+    ExpressionStatement
+StatementList_Return:
+    ExpressionStatement
+  当词汇one of跟随在语法定义的冒号":"后时，表明随后若干行的没给terminal标识
+都是一个可选定义。例如，ECMAScript的词法语法包含产出：
+NonZeroDigit:: one of
+    1 2 3 4 5 6 7 8 9
+这仅仅是下面声明的简写：
+NonZeroDigit:: one of
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+  如果短语"[empty]"出现在产出的right-hand side中，表明产出的right-hand side没有
+任何terminal或者nonterminal
+  如果短语"[lookahead=seq]"出现在产出的right-hand side，表明这个产出可能仅用在
+这个token序列seq是随后的token序列的前置代号，也就是说随后的token序列以seq起始。
+类似的"[lookahead∈set]"，其中set是一个有限的非空的token序列的集合，表明这个
+产出仅在set中的某些元素是随后token序列的前置代号。为了方便这个集合可以被写
+成一个nonterminal，这表示，这个nonterminal展开为这个集合的全部token序列。如果
+这个nonterminal可以被展开成无穷的不同token序列，那他被认为是一个编者的错误。
+**** 就是写错了。
+  有些情况需要反向定义。"[lookahead≠seq]"表明产出仅在seq不是随后token序列的
+前置代号时才可能被采用，"[lookahead∉set]"表明仅在没有set中的元素是随后的token
+序列的前置代号时产出才会被采用。
+  举例说明，前置定义：
+DecimalDigit:: one of
+    0 1 2 3 4 5 6 7 8 9
+DecimalDigits
+    DecimalDigit
+    DecimalDigits DecimalDigit
+定义：
+LookaheadExample::
+    n [lookahead ∉ {1, 3, 5, 7, 9}] DecimalDigits
+    DecimalDigit [lookahead ∉ DecimalDigit]
+会匹配n跟随若干偶数或者仅一位数字形式的源文本。
+  需要注意这些短语被用在语句语法的时候，可能无法准确的识别跟随的token序列
+，因为确定后续的token需要知道哪个词法goal symbol在随后的位置使用。因此，如果
+这些短语被用在句法语法时，会被认为是编者的错误，因为如果一个token序列seq
+出现在lookahead限制（包括作为一组序列的一部分）里，如果要用的词法goal symbol
+是不定的无论seq是否是结果token序列的前置代号。
+  如果短语"[no LineTerminator here]"出现在语句语法的产出的right-hand side，表明
+这个产出是一个被限制的产出，他不可以被用在那些LineTerminator出现在指定位置
+的输入流。例如产出：
+ThrowStatement:
+    throw [no LineTerminator here] Expression;
+指明这个产出不能用在LineTerminator出现在throw token与Expression之间的输入流上。
+  除非LineTerminator是被限制产出明确禁止的，任意个LineTerminator可以在输入元素
+流里任何两个连续的token间出现，不影响这个脚本的合理性。
+  当在词法与数字产出出现在一个多码的token中时，这表示对应的代码序列要构成
+一个对应的token。
+  产出right-hand有可能会用短语"but not"来限制某种展开，表明不包含这种展开。例
+如产出：
+Identifier::
+    IdentifierName but not ReservedWord
+意味着nonterminal Identifier可以是被那些提供的编码不能替换为ReservedWord的
+IdentifierName替换。
+**** 简单来说就是集合IdentifierName - 集合ReseredWord
+  最后有少些nonterminal被描述短语"sans-serif"描述的标识难以列举所有的选项：
+SourceCharacter::
+    any Unicode code point
+** 5.2 算法约定
+  本规范经常使用若干列表指明算法步骤。这些算法被用于精确指明ECMAScript
+语言结构的需要语义。算法不是意图暗示任何实现技术。事实上，鼓励用更有效
+的算法实现给定的特性。
+  算法可能被用一个有序的、逗号分隔的别名序列参数化，这些参数名会被用在
+算法步骤里，代表在相应位置传进来的数据。可选的参数被方括号包含（如
+[,name]），但是在算法步骤上没有差异。剩余形式的参数需要在参数列表的末端，
+以省略号开始（,...name）。剩余形式的参数捕获在必须参数和可选参数后的提供
+的所有参数放到一个List中。如果没有这种额外的参数，这个List是空的。
+  算法步骤可能需要再分为有序的子步骤。子步骤是缩进的，并可能继续拆分到
+缩进的子步骤中。第一层用数字标记步骤，第一层的子步骤（第二层）用小写字母
+标记，第二层的子步骤（第三层）用小写的罗马数字标记。如果还有更多的层级
+需要标记那就从第四层重复这个规则。例如：
+1. Top-level step
+    a. Substep
+    b. Substep
+        i. Subsubstep
+        ii.Subsubstep
+            1. Subsubsubstep
+                a. Subsubsubsubstep
+                    i. Subsubsubsubsubstep
+  步骤或者子步骤会使用"if"表明本步骤需要的条件。这时只有条件是true是，这个
+步骤才会被采用。如果步骤或者子步骤用"else"开始，这表明当之前同级"if"过程得
+到相反结果时，此步骤才会被采用。
+  步骤会有迭代的子步骤。
+  以"Assert"开始的步骤认定一个此算法的恒定条件。这种声明被用于明确的算法条
+件，否则就是内含的条件。并没有增加额外的语义要求，因此也无需实现检查。他
+们只是让算法清晰。
+  算法步骤会用"Let x be someValue"的形式定以一些别名。这些别名与"x"和
+"someValue"一样是某些根本数据的引用，一个修改了内容，别的也都可见。算法步骤
+想避免这种引用行为时，会使用"Let x be a copy of someValue"来浅复制someValue。
+  一旦声明了别名，后续任意步骤都可以引用此别名，但是之前的步骤不行。别名
+可以通过"Set x to someOtherValue"的方式修改别名指向。
+*** 5.2.1
+
 * 第六章
