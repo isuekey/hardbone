@@ -1,9 +1,11 @@
+
 * 待办
 ** 将来会使用LaTex进行处理.
 * 约定
 ** 若干 表示一个或者多个
 ** 可数 表示零个、一个或者多个
 ** 所有英文为原文内容，作为专用词汇表示特定含义
+** 用领表示realm
 * 第一章
 * 第二章
 * 第三章
@@ -306,14 +308,347 @@ SourceCharacter::
 步骤才会被采用。如果步骤或者子步骤用"else"开始，这表明当之前同级"if"过程得
 到相反结果时，此步骤才会被采用。
   步骤会有迭代的子步骤。
-  以"Assert"开始的步骤认定一个此算法的恒定条件。这种声明被用于明确的算法条
-件，否则就是内含的条件。并没有增加额外的语义要求，因此也无需实现检查。他
-们只是让算法清晰。
+  以"Assert"/"断言"开始的步骤认定为此算法的恒定条件。这种声明被用于明确的
+算法条件，否则就是内含的条件。并没有增加额外的语义要求，因此也无需实现
+检查。他们只是让算法清晰。
   算法步骤会用"Let x be someValue"的形式定以一些别名。这些别名与"x"和
 "someValue"一样是某些根本数据的引用，一个修改了内容，别的也都可见。算法步骤
 想避免这种引用行为时，会使用"Let x be a copy of someValue"来浅复制someValue。
   一旦声明了别名，后续任意步骤都可以引用此别名，但是之前的步骤不行。别名
 可以通过"Set x to someOtherValue"的方式修改别名指向。
-*** 5.2.1
-
+*** 5.2.1 抽象操作
+  为了便利一些算法在本规范的不同部分使用，称这些算法为抽象操作，被命名和
+定义为带参数的函数形式，以便于被其他算法用名称的方式引用。抽象操作通常的
+引用方式是函数调用，类似OperationName(arg1, arg2)。在一些class-like的规范抽象
+的部分抽象操作被当作多态处理的方法。这些方法样子的抽象操作一般引用方式是
+someValue.OperationName(arg1, arg2)。
+*** 5.2.2 面向句法的操作
+  面向句法的操作是一个命名的操作，包含若干算法，每个算法联系若干ECMAScript
+语法产出。产出还有多个备选定义，但是每个备选有明确的算法。当算法联结到
+语法产出后，算法可能会通过参数的方式引用产出备选的终结和非终结符。用这种
+方式时，非终结符指向一个从源文本解析出的实际的备选定义。语法产出匹配的源
+文本是源码的一部分，这部分源码从参与匹配的第一个终结符开始，结束到参与匹
+配的最后一个终结符结束。
+  当算法联结到产出备选，这个备选一般不会有任何"[]"，这种语法注解。这种注解
+应该仅用于句法识别备选，而且不能对联结的备选的语义有任何作用。
+  在下面的算法中的1、3、4约定的步骤中，带着解析节点和可选的参数，面向句法
+的操作会被调用：
+1. 让status是SomeNonTerminal的SyntaxDirectedOperation
+2. 让someParseNode是某些源码的解析
+3. 执行someParseNode的SyntaxDirectedOperation
+4. 传递value作为参数，执行someParseNode的SyntaxDirecteOperation
+  除非显式声明，否则所有的链环产出对于每个操作都有一个隐式定义，这个会被
+当作产出的left-hand side的非终止符。如果有上述非终止符，这个隐式的定义就简
+单的重复提交相同的操作和相同的参数，给链环产出的right-hand side非终止符，然
+后返回这个结果。比如，假设算法有一步骤是：“返回评估Block的结果”，就会有
+这样的一个产出：
+Block:
+    { StatementList }
+但是评估操作不会联结算法与产出。这样，评估操作隐式的包含如下形式的联结：
+Runtime Semantics: Evaluation
+Block: { StatementList }
+    1. 返回StatementList的评估结果。
+**** 评估是运行语义的行为。
+*** 5.2.3 运行语义
+  描述只在运行时被调用的语义的算法称为运行语义。运行语义被定义为抽象操作
+或者面向语句的操作。都会返回一个结束记录。
+**** 5.2.3.1 隐式结束值
+  本规范的算法通常隐式的返回结束记录，其Type是normal。除非语境中有其
+他明显的形式，算法语句才会返回一个不是结束记录的值，例如：
+1. Return "Infinity"
+意味着同下：
+1. Return NormalCompletion("Infinity")
+  然而，如果return语句的表达式的值是一个结束记录的构造语句，返回结束记录的
+结果。如果是抽象操作，返回语句就是简单返回抽象操作产生的结束记录。
+  抽象操作Completion(completionRecord)用于强调返回之前计算的结束记录。Completion
+抽象操作接受一个参数completionRecord，按照下述步骤执行：
+1. 断言completionRecord是结束记录
+2. 将completionRecord作为这个抽象操作的结束记录返回。
+  算法步骤中"return"语句没有值，意味着：
+1. 返回NormalCompletionRecord(undefined)
+  如果完结记录不是意外完结，在语境中又没有明确要求是完整的完结记录，那么
+任何完结记录的引用的值是指完结记录的Value字段。
+**** 5.2.3.2 投掷异常
+  算法会投掷异常，例如：
+1. Throw a TypeError exception
+意味着：
+1. Return ThrowCompletion(a newly created TypeError object)
+**** 5.2.3.3 意外就返回
+  算法步骤有如下或等价描述：
+1. ReturnIfAbrupt(argument)
+意味着：
+1. 如果argument是一个意外完结，返回argument
+2. 否则如果argument是一个完结记录，以argument的Value覆盖argument
+  算法步骤有如下或等价描述：
+1. ReturnIfAbrupt(AbstractOperation())
+意味着：
+1. 让hygienicTemp是AbstractOperation()
+2. 如果hygienicTemp是意外完结，返回hygienicTemp
+3. 否则如果hygienicTemp是完结记录，以hygienicTemp的Value覆盖hygienicTemp
+这里hygienicTemp是短暂的，仅被ReturnIfAbrupt适用的步骤可见。
+  算法步骤有如下或等价描述：
+1. 让result是AbstractOperation(ReturnIfAbrupt(argument))
+意味着：
+1. 如果argument是意外完结，返回argument
+2. 如果argument是完结记录，以argument的Value覆盖argument
+3. 让result是AbstractOperation(argument)
+**** 5.2.3.4 意外就返回的简写
+  调用的抽象操作和面向句法的操作有前缀"?"，表明意外就返回被用在计算完结记
+录上。例如步骤：
+1. ?OperationName()
+等价于：
+1. ReturnIfAbrupt(OperationName())
+类似的，方法运用形式的步骤：
+1. ?someValue.OperationName()
+等价于：
+1. ReturnIfAbrupt(someValue.OperationName())
+  类似的，前缀"!"被用于表明后续调用抽象或面向句法的操作绝对不会返回一个意
+外完结，而且完结记录的Value备用作操作的返回值。例如步骤：
+1. 让val是!OperationName()
+等价于如下步骤：
+1. 让val是OperationName()
+2. 断言val不是意外完结
+3. 如果val是完结记录，让val的Value覆盖val
+  运行语义的面向句法的操作调用使用!和?这种前缀简写：
+4. Perform !SyntaxDirectedOperation of NonTerminal
+*** 5.2.4 静态语义
+  上下文无关语法没有足够的能力表达定义在被评估的Script或Module的输入元素流的
+所有规则。在这些情况下，需要额外的规则来表达ECMAScript算法约定或者散文要
+求。这种规则总是联结到一个语法产出，被称作产出的静态语义。
+  静态语义规则有名字，通常使用算法定义。命名的静态语义规则联结到语法产出，
+产出有多个备选定义，每个备选针对提供的命名的静态语法规则有明确的算法。
+  一类特殊的静态语法规则是前期错误规则。前期错误规则定义了前期错误条件，联
+结到特定的语法产出。大多数的前期错误的评估不是在本规范的的算法内被显示调用
+的。一个一致实现必须，在首次评估Script或Module前，校验Script或者Module解析的产
+出的所有前期错误规则。任何前期错误规则被违反，这个Script或者Module就是无效的
+且不能被评估。
+*** 5.2.5 数学操作
+  本规范给各种数字值相应的引用方式：
+1. 数学值 Mathematical values: 任意实数，作为默认数字类型
+2. 扩展数学值 Extended mathematical values: 包含+∞和-∞的Mathematical values
+3. Numbers: IEEE 754-2019双精度浮点数值
+4. BigInts: ECMAScript值准确表示任意有限整数
+  本规范的语言中，使用下标后缀明确各种不同数字类型的数值。下标F表示浮点
+数，下标Z表示BigInt，不带下标则是数学值。
+  数学操作符如：+、*、=和≥指那些与运算符一致的操作。就是如果被提供了数学
+值，这些操作符指的就是那些常用的数学运算。如果提供了Numbers，这些操作符指
+的就是IEEE 754-2019内相应的操作。如果被提供了BigInt，这些操作符指将BigInt转
+换为数学值后再应用常用的数学运算。
+   通常，在本规范引用数字值的时候，例如短语"the length of y"或者"the integer 
+represented by the four hexadecimal digits ..."，没有任何显式的数字类型声明，这个
+短语表示的是数学值。短语需要显示声明使用的是指Numbers或者BigInt，例如，"the
+Number value for the number of code points in ..."或者"the BigInt value for ..."。
+   没有定义含有混合类型运算（比如Numbers与数学值）的数字操作符，应当被认为
+是本规范的编辑错误。
+   本规范中绝大多数数值使用十进制；有时会是Ox跟随0-9或和A-F的形式的16进制
+数。
+   本规范中如果使用integer术语，除非另有声明，指的是整数集上的数学值。如果
+是integer Number术语，指的是其数学值在整数集上的Numbers。
+   本文档里数学值与Numbers或BigInt之间的转换总是显式的。从数学值或者扩展数
+值到Numbers的转换被明示为"the Number value for x"或者F(x)，在[[6.1.6.1]]有明确定义。
+从整数x到BigInt的转换被明示为"the BigInt value for x"或者Z(x)。从Numbers或
+者BigInt到数学值的转换被明示为"the mathematical value of x"或者R(x)。+0和-0的数
+学值是数学值0。无穷的数学值没有定义。有限值x的扩展数学值x就是x的有限数学
+值，+∞和-∞依次是+∞_F和-∞_F的值。NaN没有定义的数学值。
+  数学函数abs(x)产生x的绝对值，如果x<0，就是-x否则就是x本身。数学函数min(x1,
+x2,...,xN)产生x1到xN中数学意义上最小的。数学函数max(x1,x2,...,xN)产生x1到xN中
+数学意义上最大的。这些数学函数的定义域是扩展数学值。
+  "x modulo y"（y是有限的非零的）记法，计算一个与y（或者0）同号的k，满足
+abs(k) < abs(y)且x-k = q * y，其中q是整数值。
+  短语"the result of clamping x between lower and upper"（x是扩展整数值，lower和
+upper是数学值，而且lower≤upper），如果x<lower，产生lower，如果x>upper，产生
+upper，其他产生x。
+  数学函数floor(x)产生不超过x的最大的整数，如果x是+∞，就是最接近+∞的整数。
+  数学函数min,max,abs,floor没有为Numbers和BigInt定义，任何非数学值应用了这些
+方法，都是一个编辑错误。
+**** floor(x) = x - (x modulo 1)
+*** 5.2.6 值记法
+  本规范中，ECMAScript语言值用粗体显示。例如null，true或者"hello"。这些区别于
+更长的ECMAScrpit代码序列比如：Function.prototype.apply或者let n = 42;
+  本规范内部的，不能被ECMAScript代码直接察觉的值用sans-serif字体表示。例如，
+完结记录的Type字段的值像normal、return、或者throw。
 * 第六章
+  本规范的算法操作的值都有一个联结的类型。可能的值类型在本条款确定。Type
+进一步细分为ECMAScript语言的类型和规范的类型。
+  在本规范，记号"Type(x)"用于简化"the type of x"，其中type指本条款定义的
+ECMAScript语言的类型和规范的类型。"empty"术语用于声明一个值时，等于说"no 
+value of any type"
+** 6.1 ECMAScript语言的类型
+ECMAScript语言的类型与ECMAScript语言编写的ECMAScript程序操作的值一致。ECMAScript
+语言的类型有Undefined、Null、Boolean、String、Symbol、Number、BigInt和Object。
+ECMAScript语言的值必然是被ECMAScript语言类型描述的。
+*** 6.1.1 Undefined类型
+  Undefined类型就一个值，即undefined。任何变量没有被赋值前都有undefined值。
+*** 6.1.2 Null类型
+  Null类型就一个值，即null。
+*** 6.1.3 Boolean类型
+  表示逻辑实体的Boolean类型有两个值，即true和false。
+*** 6.1.4 String类型
+  String类型是所有0到2^53-1个16位二进制无符号数（元素）构成的有序序列的集
+合。在运行中的ECMAScript程序中String类型用于表示文本数据，这种情景下每个
+String元素被当作UTF-16的编码单元值。在序列中，每个元素被认为占据一个位置。
+位置使用非负整数索引。第一个元素（如果有）索引是0，随后元素（如果有）是1，
+依次类推。String的长度就是他含有的元素数量。空String长度是0，因此也就没有元
+素。
+  不会翻译String内容的ECMAScript操作不提供任何延伸语义。翻译String值的操作把
+每个元素当作UTF-16编码单元。然而ECMAScript不会限制这些编码单元的值或者关系，
+所以将String内容作为Unicode编码单元翻译的操作必须考虑从错误格式的自序列。
+这些操作需要对每个在[0xD800,0xDBFF]区间的编码单元（在Unicode标准中，作为首
+位，或者通用的说法高位编码单元）和每个在[0xDC00,0xDFFF]区间的编码单元（被定
+以为尾位，或者通用的说法低位编码单元）依据如下规则提供特殊的处理：
+1. 一个编码单元既不是首位也不是尾位，按照原本值翻译。
+2. 有两个编码单元的序列，如果第一个编码单元c1是首位，第二个编码单元c2是尾
+位，这就是一个编码对，需要按照一个编码点进行翻译，编码点的值是
+(c1 - 0xD800)*0x400+(c2-0xDC00)+0x10000
+3. 如果编码单元是首位或者尾位，但是按照编码对出现，就按照原本值翻译。
+**** 我觉得在组织编码时，这里有个注意事项，
+就是需要连续独立显示首位和尾位时，中间需要增加隔离符号。
+  函数String.prototype.normalize(见于22.1.3.13)备用显式的规范String值。
+String.prototype.localeCompare(见于22.1.3.10)内部规范String值，但是其他操作不会在
+操作内容上隐式的规范String值。只有那些显式指明是语言或者地域敏感的操作产出
+语言敏感的结果。
+**** 这种设计的深层原因是让String的实现尽可能简单和高效。如果ECMAScript源文本
+是C规范的，字符串原文被确保是规范的，只要没有包含任意的Unicode。
+  本规范里，短语"the string-concatenation of A,B,..."（每个参数都是String值、编
+码单元、或者编码单元序列），表示按照参数顺序依次拼接参数的编码单元序列形
+成的编码单元序列的String值。
+  短语"the substring of S from inclusiveStart to exclusiveEnd"（S是一个编码单元序列
+的String值，inclusiveStart和exclusiveEnd是整数），表示S单元序列上[inclusiveStart,
+exclusiveEnd)区间（如果inclusiveStart==exclusiveEnd，会是空集）上的编码单元的
+String值。如果缺省了"to"，S的长度作为exclusiveEnd。
+**** 6.1.4.1 StringIndexOf(string, searchValue, fromIndex)
+  抽象操作StringIndexOf使用参数string（String值）,searchValue（String值）和
+fromIndex（非负整数）。被调用时按照下列步骤执行：
+1. Assert：Type(string)是String
+2. Assert：Type(searchValue)是String
+3. Assert：formIndex是非负整数
+4. 让len是string的长度
+5. 如果searchValue是空String，而且fromIndex≤len，返回fromIndex
+6. 让searchLen是searchValue的长度
+7. 每个从fromIndex开始到的i，且i≤len-searchLen的整数，按照升序依次执行
+    a. 让candidate是substring of string from i to i+searchLen
+    b. 如果candidate与searchValue有相同的编码序列，返回i
+8. 返回 -1
+**** 注意。如果searchValue而且fromIndex不大于string的长度时返回fromIndex。这用
+空String可以在string的任何位置被找到。
+**** 如果fromIndex > string的长度，算法返回-1
+*** 6.1.5 Symbol类型
+  Symbol类型是所有可以被用于Object属性的键，且不是Sring值的集合。
+  每个Symbol值是唯一且无法修改的。
+  每个Symbol值不可修改的联结到一个被称为Description的值，undefined或者是String
+值。
+**** 6.1.5.1 既有Symbols
+  既有symbol是内置的Symbol值，用于显式引用本规范的算法。他们通常被用于属性
+的键，对应的属性值作为本规范的算法的扩展点。除非特殊说明，所有的既有symbol
+在全部领下可用。
+  本规范内，既有symbol使用@@name形式的标注来引用，name是下表的值。
+| Specification Name   | Description                     | Value and Purpose                                                                                     |
+| @@asyncIterator      | "Symbol.asyncIterator"      | 为对象返回一个默认的AsyncIterator方法。被语句for-await-of语义调用                                     |
+| @@hasInstance        | "Symbol.hasInstance"        | constructor对象识别一个对象是否是自身实例的方法。被instanceOf操作符调用                               |
+| @@isConcatSpreadable | "Symbol.isConcatSpreadable" | 属性值是Boolean。如果true，表明对象应该被Array.prototype.concat展平为其数组元素                       |
+| @@iterator           | "Symbol.iterator"           | 为对象返回默认Iterator的方法。被for-of语句的语义调用。                                                |
+| @@match              | "Symbol.match"              | 正则表达式用于匹配字符串的方法。被String.prototype.match方法调用                                      |
+| @@matchAll           | "Symbol.matchAll"           | 正则表达式返回一个遍历器的方法，遍历器提供表达式匹配字符串的结果。被String.prototype.matchAll方法调用 |
+| @@replace            | "Symbol.replace"            | 正则表达式替换字符串上匹配的子串的方法。被String.prototype.replace方法调用                            |
+| @@search             | "Symbol.search"             | 正则表达式返回字符串上匹配的位置索引。被String.prototype.search方法调用                               |
+| @@species            | "Symbol.species"            | 其属性值是constructor函数，用于创建衍生对象                                                           |
+| @@split              | "Symbol.split"              | 正则表达式用于将字符串在匹配的位置索引上进行拆分的方法。被String.prototype.split方法调用              |
+| @@toPrimitive        | "Symbol.toPrimitive"        | 用于将对象转换为基础值的方法。被ToPrimitive抽象操作调用                                               |
+| @@toStringTag        | "Symbol.toStringTag"        | 属性值是String值，用于创建对象的默认描述。被内置方法Object.prototype.toString访问                     |
+| @@unscopables        | "Symbol.unscopables"        | 属性值是对象，对象自有或继承的属性名称是被联结对象绑定的with环境排除的属性名                          |
+*** 6.1.6 数值类型
+  ECMAScript有两种内置的数值类型：Number和BigInt。本规范任意数值类型T包含乘法
+标识记为T::unit。本规范类型也有跟随的抽象操作，就像规范名称op上的给定操作
+记为T::op。所有参数是T。"Result"列显示返回的类型，如果调用操作可能会返回意
+外完结，"Result"会有标示。
+| 调用概要                  | 源文件示例                               | 调用者的评估语义所属                                                     | Result                           |
+| T::unaryMinus(x)          | - x                                      | Unary - Operator                                                         | T                                |
+| T::bitwiseNOT(x)          | ~ x                                      | 按位非操作符( ~ )                                                        | T                                |
+| T::exponentiate(x, y)     | x ** y                                   | 幂运算操作和Math.pow(base, exponent)                                     | T,可能会投掷范围异常             |
+| T::multiply(x, y)         | x * y                                    | 乘法算符                                                                 | T                                |
+| T::divide(x, y)           | x / y                                    | 乘法算符                                                                 | T,可能会投掷范围异常             |
+| T::remiander(x, y)        | x % y                                    | 乘法算符                                                                 | T,可能会投掷范围异常             |
+| T::add(x, y)              | x \+\+, \+\+ x, x + y                    | 后自增算符，前自增算符和加法算符                                         | T                                |
+| T::subtract(x, y)         | x--, --x, x - y                          | 后自减算符，前自减算符和减法算符                                         | T                                |
+| T::leftShift(x, y)        | x << y                                   | 左移算符（<<）                                                           | T                                |
+| T::signRightShift(x, y)   | x >> y                                   | 有符号右移算符（>>）                                                     | T                                |
+| T::unsignRightShift(x, y) | x >>> y                                  | 无符号右移算符（>>>）                                                    | T，可能会投掷类型错误            |
+| T::lessThan(x, y)         | x < y, x > y, x <= y, x >= y             | 关系算符，通过抽象关系比较                                               | Boolean或者undefined（无序输入） |
+| T::equal(x, y)            | x \=\= y, x !\= y, x \=\=\= y, x !\=\= y | 相等算符，通过严格相等比较                                               | Boolean                          |
+| T::sameValue(x, y)        |                                          | Object内部方法，通过SameValue(x, y)检测相等性                            | Boolean                          |
+| T::sameValueZero(x, y)    |                                          | Array、Map和Set方法，通过SameValueZero(x, y)检测相等性，忽略+0与-0的差别 | Boolean                          |
+| T::bitwiseAND(x, y)       | x & y                                    | 二进制按位操作符                                                         | T                                |
+| T::bitwiseXOR(x, y)       | x ^ y                                    | 二进制按位操作符                                                         | T                                |
+| T::bitwiseOR(x, y)        | x \vert y                                | 二进制按位操作符                                                         | T                                |
+| T::toString(x)            | String(x)                                | 很多表达式或者内置函数，通过ToString(argument)                           | String                           |
+  T::unit值和T::op运算不是ECMAScript语言的部分，在这里定义它们，仅仅就是帮助
+ECMAScript语言的语义规范。其他抽象操作通过本规范定义。
+  因为数字类型在转换时通常会丢失精度或者截断，所以ECMAScript语言在这个类型
+间不提供隐式的转换。程序员必须显式调用Number和BigInt函数来转换类型，如果调
+用的函数需要不同的类型时。
+**** 注意 从第一版ECMAScript开始，针对某些操作，已经提供了隐式的会丢失精度
+的数值转换。这些合法的转换被保留在后续的兼容里，但是支持BigInt，以便减少
+程序错误的几率，和在未来版本保留通用值类型的选项。
+**** 6.1.6.1 Number类型
+  Number类型有18,437,736,874,454,810,627（就是2^64 - 2^53 + 3）个值，表示IEEE 
+754-2019的双精度64位格式值，在IEEE标准中为二进制浮点数代数而规定的，除了
+9,007,199,254,740,990（就是2^53 - 2）个被识别为IEEE标准中的"Not-a-Number"值。
+这些"Not-a-Number"值在ECMAScript中被用一个特殊NaN值表示。（注意NaN值是被程序
+表达式NaN产生的）。在某些实现中，扩展代码可能侦测到不同Not-a-Number值的差
+异，但是这种行为是实现定义的。ECMAScript代码所有的NaN是不区分。
+***** 注意在ArrayBuffer（见于[[25.1]]）或者SharedArrayBuffer（监狱[[25.2]]）中，一个
+Number值被存储到其中后，可能侦测到这种位模式值（能够区分的NaN），这种
+位模式没有必要与ECMAScript实现使用内部表示Number值的行为一致。
+  有两个特殊的值：正无穷与负无穷。为了方便，这些值依次用说明性更好的符号
+\+∞和\-∞表示（这两种Number值用+Infinity或者简单的Infinity和-Infinity产生）。
+  其他18,437,736,874,454,810,624(就是2^64 - 2^53)值被称为有限值。一半正数，一半
+负数。每个有限的正Numbr值都有一个对应的相同规模的负值。
+  注意这里有一个正0一个负0。为了简便，这些值依次用说明性更好的符号+0_F和
+-0_F的方式表示（这两种零Number值被程序表达式+0或0和-0产生）。
+  这18,437,736,874,454,810,622（就是2^64 - 2^53 - 2）个非零有限值分类两类：
+18,428,729,675,200,069,632（2^64 - 2^54 ）是正常化的，具有 s * m * 2^e 的形式
+其中s是1或-1，m是在[2^52, 2^53)上的整数，e是[-1074,971]上的整数。剩下的
+9,007,199,254,740,990（2^53 - 2）个数是非正常化的，也具有 s * m * 2 ^e 的形式，
+其中s是1或-1，m是在(0, 2^52)上的整数，e是-1074.
+  注意所有Number类型的整数的规模不会超过2^53。整数0有两种Number类型：+0_F和
+-0_F。
+  按照上述形式表达的非零有限值，如果m是奇数，这个数有奇数精度。否则是偶数
+精度。
+  本规范中，短语"x的Number值"，其中x表示一个实数（包括pai这种无理数），意味
+Number值按照下列方式选中。（Number值都是有限精度的有理数）。构建一个包含除
+-0以外的有限值和两个不被有限Number类型表示的特殊值，即2^1024（1*2^53*2^971）
+和-2^1024（-1*2^53*2^971），的集合。在其中选择一个数最接近x的元素。如果有两个
+与x一样，那么选择是偶数精度，因此2^1024与-2^1024被认为是偶数精度。如果选中
+2^1024，替换为\+∞；如果是选中-2^1024，替换为-∞；如果选中+0，且x<0，替换为
+-0；其他选中保持不便。这个结果就是"x的Number值"。（这个产出与IEEE 754-2019的
+向偶数近似模式严格一致）。
+  \+∞的Number值是\+∞，\-∞的Number值是\-∞。
+  有些ECMAScript操作只能处理在[-2^31,2^31-1]或者[0,2^16-]上的整数。这些算符接受
+全部的Number值，但是算法第一步会转换为期望范围内的整数。数字转换的细节描述
+在[[7.1]]。
+  Number::unit的值是1_F
+***** 6.1.6.1.1 Number::unaryMinus(x)
+  抽象操作Number::unaryMinus接受参数Number值x，被调用时执行下列两步：
+1. 如果x是NaN，返回NaN。
+2. 返回相反的x；就是带有相反符号但是相同规模的Number值。
+***** 6.1.6.1.2 Number::bitwiseNOT(x)
+  抽象操作Number::bitwiseNOT接受参数Number值x，被调用时执行下列两步：
+1. 让oldValue是!ToInt32(x).
+2. 返回oldValue的二进制补码。结果的数学值可以准确表示为32位二进制补码的字
+符串。
+***** 6.1.6.1.3 Number::exponentiate(base, exponent)
+  抽象操作Number::exponentiate接受参数
+***** 6.1.6.1.4
+***** 6.1.6.1.5
+***** 6.1.6.1.6
+***** 6.1.6.1.7
+***** 6.1.6.1.8
+***** 6.1.6.1.9
+***** 6.1.6.1.10
+***** 6.1.6.1.11
+* 7
+** 7.1
+* 25
+** 25.1
+
+
