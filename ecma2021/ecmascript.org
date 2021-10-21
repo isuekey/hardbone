@@ -4,9 +4,12 @@
 * 约定
 ** 若干 表示一个或者多个
 ** 可数 表示零个、一个或者多个
-** 所有英文为原文内容，作为专用词汇表示特定含义
-** 用领表示realm
-** 用规模表示某数的模。或者在这里进行约定。数x的模就是x的绝对值|x|
+** 所有英文为原文内容，作为专用词汇表示特定含义，比如类型、参数、概念等。
+** 领 表示realm
+** 规模 表示某数的模。或者在这里进行约定。数x的模就是x的绝对值|x|
+** 性质 表示property
+** 属性 表示attribute
+** List<some> 表示列表的元素有some特性。
 * 第一章
 * 第二章
 * 第三章
@@ -1056,9 +1059,29 @@ Table5 所示
   除了其参数列表，还有一个内部方法经常访问对象，就是方法调用的对象。
   内部方法隐式返回一个完结记录，或者包含调用模式指明的返回类型对应的值的
 普通完结，或者投掷完结。
-| 内置方法      | 签名                  | 描述 |
-| GetPropertyOf | ()->Object \vert Null |      |
-***** 6.1.7.3
+| 内置方法                | 签名                                               | 描述                                                                                                                                                                |
+| \[\[GetPrototypeOf]]    | ()->Object \vert Null                              | 明确为当前对象提供继承性质的对象。null表示没有继承性质                                                                                                              |
+| \[\[SetPrototypeOf]]    | (Object \vert Null)-> Boolean                      | 为本对象联结其他对象以提供继承性质。传递null表示没有继承性质。返回true表示本操作成功，false表示本操作没有成功。                                                     |
+| \[\[IsExtensible]]      | ()-> Boolean                                       | 明确本对象是否允许增加性质。                                                                                                                                        |
+| \[\[PreventExtensions]] | ()-> Boolean                                       | 控制本对性能否增加新性质。操作成功返回true，否则返回false。                                                                                                         |
+| \[\[GetOwnProperty]]    | (propertyKey)-> Undefined \vert PropertyDescriptor | 返回propertyKey对应的自有性质的PropertyDescriptor。如果不存在这个自有性质，就会返回undefined                                                                        |
+| \[\[DefineOwnProperty]] | (propertyKey, PropertyDescriptor)-> Boolean        | 创建或者修改propertyKey对应的自有性质，其状态由PropertyDescriptor描述。如果操作成功返回true，否则返回false。                                                        |
+| \[\[HasProperty]]       | (propertyKey) -> Boolean                           | 返回对象的自有性质或者继承性质的键是propertyKey。                                                                                                                   |
+| \[\[Get]]               | (propertyKey, Receiver)->any                       | 从本对象返回propertyKey对应性质的值。如果任何ECMAScript代码必然被执行来取回这个性质值，那么在执行代码时Receiver被用作this的值。                                     |
+| \[\[Set]]               | (propertyKey, value, Receiver)-> Boolean           | 设置propertyKey性质的值为value。如果任何ECMAScript代码必然被执行来设置这个性质值，那么执行代码时Receiver被用作this的值。如果性质被设置了新值返回true，否则返回false |
+| \[\[Delete]]            | (propertyKey) -> Boolean                           | 从本对象中移除propertyKey对应的自有性质。如果没有删除，且性质继续存在返回false。如果删除成功，或者性质不存在，返回true。                                            |
+| \[\[OwnPropertyKeys]]   | () -> List<propertyKey>                            | 返回本对象所有自有性质的键的列表                                                                                                                                    |
+  Table7 描述了对象被作为函数被调用时需要的额外的基本内部方法。函数对象就是
+支持\[\[Call]]内部方法的对象。构造范是支持\[\[Constructor]]内部方法的对象。任何
+支持\[\[Constructor]]的对象都需要支持\[\[Call]]，因为每个构造范都是函数对象。
+因此构造范也被认为是构造函数或者构造函数对象。
+| 内置方法          | 签名                         | 描述                                                                                                                                                                                                                                                   |
+| \[\[Call]]        | (any, List<any>)->any        | 执行本对象联结的代码。通过函数调用表达式被调用。传递给本内部方法的参数是this值和List<any>。List<any>是调用表达式执行时传递的参数列表。实现了这个内部方法的对象是可调用的。                                                                             |
+| \[\[Constructor]] | (List<any>, Object)-> Object | 创建一个对象。通过new操作符或者super调用被调用。第一个参数是表达式调用时传递的值列表。第二个参数是在是使用new操作符是提供的初始值。实现了这个内部方法的对象被称为构造范。函数对象没必要是构造范，所以非构造范的函数对象没有\[\[Constructor]]内部方法。 |
+  基本对象和标准奇异对象的基础内部方法的语义在第十章具体说明。奇异对象的
+内部方法的具体使用没有被实现支持，当尝试调用时应该投掷TypeError异常。
+***** 6.1.7.3 基础内部方法的恒定部分
+  ECMAScript引擎
 ***** 6.1.7.4
 **** 6.2 用于ECMAScript规范的类型
 * 7
