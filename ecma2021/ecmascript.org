@@ -1081,7 +1081,66 @@ Table5 所示
   基本对象和标准奇异对象的基础内部方法的语义在第十章具体说明。奇异对象的
 内部方法的具体使用没有被实现支持，当尝试调用时应该投掷TypeError异常。
 ***** 6.1.7.3 基础内部方法的恒定部分
-  ECMAScript引擎
+  ECMAScript引擎对象的内部方法必须满足下列的恒定规定。基本ECMAScript对象与本
+规范中的所有标准奇异对象维护这些恒定内容。ECMAScript代理对象维护这些恒定内
+容是指在调用这个\[\[ProxyHandler]]对象时运行全部的检查。
+  任何实现提供的任何奇异对象必须维护这些恒定内容。违反这些恒定内容会导致
+ECMAScript代码有不可预测的行为和导致安全问题。然而违反这些恒定内容绝对不能
+妥协实现的内存安全。
+  实现不能允许这些恒定内容以任何方式被绕过，比如提供备选接口实现了基础内部
+方法的功能但是没有强化恒定内容。
+  定义：
+. 内部方法的目标是这个内部方法在其上被调用的对象。
+. 如果目标的\[\[IsExtensible]]返回false，或者\[\[PreventExtensions]]返回true，这个
+目标是不可扩展的。
+. 非存在性质是一个不可扩展对象上没有作为自有性质存在的性质。
+. 所有SameValue的引用都依赖于SameValue算法的定义。
+  返回值
+内部方法返回的值必然是一个完结记录，携带下列之一：
+. \[\[Type]]=normal, \[\[Target]]=empty而且\[\[Value]]为如下列内部方法返回的“正常
+返回值”
+. \[\[Type]]=normal, \[\[Target]]=empty而且[\[Value]]为任意ECMAScript语言值。
+****** 注意1 内部方法不能返回\[\[Type]]是continue、break或return的完结记录
+****** 6.1.7.3.1 \[\[GetPrototypeOf]]()
+. 常规返回的类型是Object或者null
+. 如果target是不可扩展的，而且\[\[GetPrototypeOf]]返回了一个值V，随后调用
+\[\[GetPrototypeOf]]都应该返回V的相同值。
+****** 注意2 对象的原型链需要是有限长度的（这就是说从任何对象开始，递归的调
+用\[\[GetPrototypeOf]]内部方法，最终的结果必须是明确的null）。然而，这个要求并
+不强求原型链上某个原型是没有使用标准对象\[\[GetPrototypeOf]]定义的奇异对象的
+对象。这种环形原型链可能会在访问对象性质的时候导致无限循环。
+****** 6.1.7.3.2 \[\[SetPrototypeOf]](V)
+. 常规返回类型是Boolean
+. 如果对象是不可扩展的，而且V与目标上\[\[GetPrototypeOf]]的结果不是SameValue，
+那么\[\[SetPrototypeOf]]必须返回false。
+****** 6.1.7.3.3 \[\[IsExtensible]]()
+. 常规返回类型是Boolean
+. 如果\[\[IsExtensible]]返回了false，后续目标上所有\[\[IsExtensible]]调用都要返回
+false。
+****** 6.1.7.3.4 \[\[PreventExtensions]]()
+. 常规返回类型是Boolean
+. 如果\[\[PreventExtensions]]返回true，后续目标上所有\[\[IsExtensible]]调用需要返
+回false，而且目标被认为是不可扩展的。
+****** 6.1.7.3.5 \[\[GetOwnProperty]](P)
+. 常规返回类型是PropertyDescriptor或者Undefined
+. 如果返回值类型是PropertyDescriptor，那么这个值必须是完整填充的
+PropertyDescriptor
+. 如果P
+****** 6.1.7.3.6 \[\[SetPrototypeOf]]
+****** 6.1.7.3.7 \[\[SetPrototypeOf]]
+****** 6.1.7.3.8 \[\[SetPrototypeOf]]
+****** 6.1.7.3.9 \[\[SetPrototypeOf]]
+****** 6.1.7.3.10 \[\[SetPrototypeOf]]
+****** 6.1.7.3.11 \[\[SetPrototypeOf]]
+****** 6.1.7.3.12 \[\[SetPrototypeOf]]
+****** 6.1.7.3.13 \[\[SetPrototypeOf]]
+****** 6.1.7.3.14 \[\[SetPrototypeOf]]
+****** 6.1.7.3.15 \[\[SetPrototypeOf]]
+****** 6.1.7.3.16 \[\[SetPrototypeOf]]
+****** 6.1.7.3.17 \[\[SetPrototypeOf]]
+****** 6.1.7.3.18 \[\[SetPrototypeOf]]
+****** 6.1.7.3.19 \[\[SetPrototypeOf]]
+****** 6.1.7.3.20 \[\[SetPrototypeOf]]
 ***** 6.1.7.4
 **** 6.2 用于ECMAScript规范的类型
 * 7
