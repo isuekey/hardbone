@@ -4,9 +4,12 @@
 * 约定
 ** 若干 表示一个或者多个
 ** 可数 表示零个、一个或者多个
-** 所有英文为原文内容，作为专用词汇表示特定含义
-** 用领表示realm
-** 用规模表示某数的模。或者在这里进行约定。数x的模就是x的绝对值|x|
+** 所有英文为原文内容，作为专用词汇表示特定含义，比如类型、参数、概念等。
+** 领 表示realm
+** 规模 表示某数的模。或者在这里进行约定。数x的模就是x的绝对值|x|
+** 性质 表示property
+** 属性 表示attribute
+** List<some> 表示列表的元素有some特性。
 * 第一章
 * 第二章
 * 第三章
@@ -474,7 +477,7 @@ upper，其他产生x。
   在本规范，记号"Type(x)"用于简化"the type of x"，其中type指本条款定义的
 ECMAScript语言的类型和规范的类型。"empty"术语用于声明一个值时，等于说"no 
 value of any type"
-** 6.1 ECMAScript语言的类型
+** 6.1 用于ECMAScript语言的类型
 ECMAScript语言的类型与ECMAScript语言编写的ECMAScript程序操作的值一致。ECMAScript
 语言的类型有Undefined、Null、Boolean、String、Symbol、Number、BigInt和Object。
 ECMAScript语言的值必然是被ECMAScript语言类型描述的。
@@ -750,7 +753,342 @@ R(n)/R(y)的规模的情况下尽可能大。
 3. 让shiftCount是R(rnum)对于32的模，R(rnum)%32
 4. 返回lnum左移shiftCount位的结果。结果的数学值准确表示这个32位的2禁止字符串。
 ***** 6.1.6.1.10
-***** 6.1.6.1.11
+***** 6.1.6.1.11 Number::unsignedRightShift(x,y)
+  抽象操作Number::unsignedRightShift接受两个Number值参数：x、y。被调用时，执行
+下列步骤：
+1. 让lnum是!ToUint32(x)
+2. 让rnum是!ToUint32(y)
+3. 让shiftCount是R(rnum)在32上的模
+4. 返回lnum右移shiftCount位以0填充的结果。空位用0填充。结果的数学值准确表示
+结果的32位无符号二进制串。
+***** 6.1.6.1.12 Number::lessThan(x,y)
+  抽象操作Number::lessThan接受两个Number值参数：x、y。被调用时，执行下列步骤：
+1. 如果x是NaN，返回undefined
+2. 如果y是NaN，返回undefined
+3. 如果x、y是相同的Number值，返回false
+4. 如果x是+0_F，y是-0_F，返回false
+5. 如果x是-0_F，y是+0_F，返回false
+6. 如果x是+∞_F，返回false
+7. 如果y是+∞_F，返回true
+8. 如果y是-∞_F，返回false
+9. 如果x是-∞_F，返回true
+10. Assert：x和y都是有限的非零Number值
+11. 如果R(x)<R(y)，那么返回true。否则返回false。
+***** 6.1.6.1.13 Number::equal(x,y)
+  抽象操作Number::equal接受两个Number值参数：x、y。被调用时，执行下列步骤：
+1. 如果x是NaN，返回false
+2. 如果y是NaN，返回false
+3. 如果x、y是相同的Number值，返回true
+4. 如果x是+0_F，y是-0_F，返回true
+5. 如果x是-0_F，y是+0_F，返回true
+6. 返回false
+***** 6.1.6.1.14 Number::sameValue(x,y)
+  抽象操作Number::sameValue接受两个Number值参数：x、y。被调用时，执行下列步骤：
+1. 如果x是NaN，而且y也是NaN，返回true
+2. 如果x是+0_F，y是-0_F，返回false
+3. 如果x是-0_F，y是+0_F，返回false
+4. 如果x、y是相同的Number值，返回true
+5. 返回false
+***** 6.1.6.1.15 Number::sameValueZero(x,y)
+  抽象操作Number::sameValueZero接受两个Number值参数：x、y。被调用时，执行下列
+步骤：
+1. 如果x是NaN，而且y也是NaN，返回true
+2. 如果x是+0_F，y是-0_F，返回true
+3. 如果x是-0_F，y是+0_F，返回true
+4. 如果x、y是相同的Number值，返回true
+5. 返回false
+***** 6.1.6.1.16 NumberBitwiseOp(op, x, y)
+  抽象操作NumberBitwiseOp接受参数op（Unicode字符串）、Number值x和Number值y。被调
+用时执行下列步骤：
+1. Assert：op是"&"、"^"或者"|"
+2. 让lnum是!ToInt32(x)
+3. 让rnum是!ToInt32(y)
+4. 让lbits是表示R(lnum)的32位2进制补码字符串
+5. 让rbits是表示R(rnum)的32位2进制补码字符串
+6. 如果op是&，让result是在lbits和rbits上使用按位与（AND）操作的结果
+7. 如果op是^，让result是在lbits和rbits上使用按位异或（XOR）操作的结果
+8. 如果op是|，让result是在lbits和rbits上使用按位或（OR）操作的结果
+9. 返回result代表的整数的Number值
+***** 6.1.6.1.17 Number::bitwiseAND(x,y)
+  抽象操作Number::bitwiseAND接受两个Number值参数：x、y。被调用时，执行下列步
+骤：
+1. 返回NumberBitwiseOp('&', x, y)
+***** 6.1.6.1.18 Number::bitwiseXOR(x,y)
+  抽象操作Number::bitwiseXOR接受两个Number值参数：x、y。被调用时，执行下列步
+骤：
+1. 返回NumberBitwiseOp('^', x, y)
+***** 6.1.6.1.19 Number::bitwiseOR(x,y)
+  抽象操作Number::bitwiseOR接受两个Number值参数：x、y。被调用时，执行下列步
+骤：
+1. 返回NumberBitwiseOp('|', x, y)
+***** 6.1.6.1.20 Number::toString(x)
+  抽象操作Number::toString接受一个Number值参数x。转换x为字符串格式。被调用
+时，执行下列步骤：
+1. 如果x时NaN，返回字符串"NaN"
+2. 如果x是+0_F或者-0_F，返回字符串"0"
+3. 如果x<+0_F，返回"-"与!Number::toString(-x)的拼接字符串
+4. 如果x是+∞_F，返回字符串"Infinity"
+5. 让n、k和s是整数，且满足k>=1，10^(k-1)<= s < 10^k, s* 10^(n-k)是R(x)，而且k
+尽可能小。k与s的十进制位数相等，s不能被10整除，s的最低位数字没必要由本
+标准确定
+6. 如果k <= n <= 21，返回下列字符串的拼接：
+    。十进制s的k位数字（按顺序，非0开始）
+    。n-k个0x0030（数字0）
+7. 如果0 < n <= 21，返回下列字符串的拼接：
+    。十进制s的n个高位部数字
+    。0x002E（小数点）
+    。十进制s剩余的k-n位数字
+8. 如果-6 < n <= 0，返回下列字符串的拼接：
+    。0x0030（数字0）
+    。0x002E（小数点）
+    。-n个0x0030（数字0）。注意n<0，所以取-n。
+    。十进制s的k位数字
+9. 如果k是1，返回下列字符串的拼接：
+    。s的数字
+    。0x0065（小写字母e）
+    。0x002B（+）或者0x002D（-）与n-1的正负号相同
+    。n-1绝对值的十进制数字（非0开始）
+10. 返回下列字符串的拼接：
+    。十进制s的最高位数字
+    。0x002E（小数点）
+    。十进制s的低位部k-1个数字
+    。0x0065（小写字母e）
+    。0x002B（+）或者0x002D（-）与n-1的正负号相同
+    。n-1绝对值的十进制数字（非0开始）
+****** 注意 如下推论可能对实现有帮助，但不是本标准的规范要求。
+。如果x是Number值，且大于-0_F，那么ToNumber(ToString(x))与x的Number值相同
+。本规范的第五步决定了，s的最低位非唯一
+****** 注意 如果实现提供了更精确的转换，推荐第5步符合如下指导
+  5. 让n、k和s是整数，且满足k>=1，10^(k-1)<= s < 10^k, s* 10^(n-k)是R(x)，而且
+k尽可能小。如果由多个s，选择s*10^(n-k)最接近R(x)的。如果由两个可选的s，那么
+选择偶数。k是十进制s的位数，s不能被10整除。
+****** 注意 ECMAScript的实现可以在David M. Gay关于二进制浮点数转换的相关论文
+中找到有用的内容和代码。
+http://ampl.com/REFS/abstracts.html#rounding 近似展示数字。
+http://netlib.sandia.gov/fp/dtoa.c 这是部分代码
+http://netlib.sandia.gov/fp/g_fmt.c 这是其他部分代码。
+这些内容也可以在netlib镜像找到。
+***** 6.1.6.2 BigInt 类型
+  BigInt类型表示整数值。这个值可以是任何大小，也没有二进制宽度限制（任何
+大小好理解。二进制宽度限制估计是表示不限制位16的倍数。但是我估计仍然会是8
+的倍数）。如果没有说明，这里的操作都返回准确数学值结果。对于二进制操作，
+BigInt被作为二进制补码字符串处理，负数的话认为左侧有无穷位。
+  BigInt::unit的值是1_Z。
+***** 6.1.6.2.1 BigInt::unaryMinus(x)
+  抽象操作BigInt::unaryMinus接受一个BigInt参数：x。被调用时执行下列步骤：
+1. 如果x是0_Z，返回0_Z
+2. 返回表示负的R(x)的BigInt值。
+***** 6.1.6.2.2 BigInt::bitwiseNOT(x)
+  抽象操作BigInt::bitwiseNOT(x)接受一个BigInt参数。返回x的补码表示的BigInt，也
+就是-x-1_Z
+***** 6.1.6.2.3 BigInt::exponentiate(base, exponent)
+  抽象操作BigInt::exponentiate接受BigInt参数：base、exponent。被调用时执行下
+列步骤：
+1. 如果exponent < 0_Z。抛出异常。
+2. 如果base是0_Z而且exponent是0_Z，返回1_Z。
+3. 返回表示R(base)幂乘R(exponent)的结果的BigInt值。
+***** 6.1.6.2.4 BigInt::multiply(x, y)
+  抽象操作BigInt::multiply接受BigInt参数：x、y。返回x乘以y的结果的BigInt值。
+****** 注意 即使结果远超输入规模，准确的数学值结果也应该返回。
+***** 6.1.6.2.5 BigInt::divide(x,y)
+  抽象操作BigInt::divide接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 如果y是0_Z，投掷RangeError异常。
+2. 让quotient是R(x)/R(y)
+3. 返回quotient向0取整的整数的BigInt值。
+***** 6.1.6.2.6 BigInt::remainder(n, d)
+  抽象操作BigInt::remainder接受BigInt参数：n、d。被调用时执行下列步骤：
+1. 如果d是0_Z，投掷RangeError异常
+2. 如果n是0_Z，返回0_Z
+3. 让r是被算式r=n-(d*q)决定的BigInt值。q是BigInt，且与n/d同正负号，在不超过n
+除以d的商的规模下，尽可能大
+4. 返回r
+****** r的符号与n的符号一致。
+***** 6.1.6.2.7 BigInt::add(x,y)
+  抽象操作BigInt::add接受BigInt参数：x、y。返回x与y的和的BigInt值。
+***** 6.1.6.2.8 BigInt::subtract(x,y)
+  抽象操作BigInt::subtract接受BigInt参数：x、y。返回x减以y的差的BigInt值。
+***** 6.1.6.2.9 BigInt::leftShift(x,y)
+  抽象操作BigInt::leftShift接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 如果y < 0_Z，那么：
+    a. 计算R(x)/(2^-y)近似到最接近的整数，包括负数。返回这个整数的BigInt值
+2. 返回表示R(x)*(2^y)的BigInt值
+****** 语义上等价于按位左移，只是把BigInt值看作是无限长的二进制补码串。
+***** 6.1.6.2.10 BigInt::signedRightShift(x,y)
+  抽象操作BigInt::signedRightShift接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 返回BigInt::leftShift(x,-y)
+***** 6.1.6.2.11 BigInt::unsignedRightShift(x,y)
+  抽象操作BigInt::unsignedRightShift接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 投掷TypeError异常。BigInt值被看作是无限长的二进制补码串，转换没有意义。
+***** 6.1.6.2.12 BigInt::lessThan(x,y)
+  抽象操作BigInt::lessThan接受BigInt参数：x、y。当R(x)<R(y)时返回true，否则
+返回false。
+***** 6.1.6.2.13 BigInt::equal(x,y)
+  抽象操作BigInt::equal接受BigInt参数：x、y。当R(x)==R(y)时返回true，否则返回
+false。
+***** 6.1.6.2.14 BigInt::sameValue(x,y)
+  抽象操作BigInt::sameValue接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 返回BigInt::equal(x,y)
+***** 6.1.6.2.15 BigInt::sameValueZero(x,y)
+  抽象操作BigInt::sameValueZero接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 返回BigInt::equal(x,y)
+***** 6.1.6.2.16 BinaryAnd(x,y)
+  抽象操作BinaryAnd接受BigInt参数：x、y。被调用时执行下列步骤：
+1. Assert：x是0或者1
+2. Assert：y是0或者1
+3. 如果x是1且y是1，返回1
+4. 否则返回0
+***** 6.1.6.2.17 BinaryOr(x,y)
+  抽象操作BinaryOr接受BigInt参数：x、y。被调用时执行下列步骤：
+1. Assert：x是0或者1
+2. Assert：y是0或者1
+3. 如果x是1或者y是1，返回1
+4. 否则返回0
+***** 6.1.6.2.18 BinaryXor(x,y)
+  抽象操作BinaryXor接受BigInt参数：x、y。被调用时执行下列步骤：
+1. Assert：x是0或者1
+2. Assert：y是0或者1
+3. 如果x是1且y是0，返回1
+4. 如果x是0且y是1，返回1
+5. 否则返回0
+***** 6.1.6.2.19 BigIntBitwiseOp(op,x,y)
+  抽象操作BigIntBitwiseOp接受参数op（Unicode字符串）、BigInt值x和BigInt值y。被调
+用时执行下列步骤：
+1. Assert：op是"&"、"^"或者"|"
+2. 置x为R(x)
+3. 置y为R(y)
+4. 让result是0
+5. 让shift是0
+6. 重复执行，直到x是0或-1，而且y是0或-1：
+    a. 让xDigit是 x modulo 2
+    b. 让yDigit是 y modulo 2
+    c. 如果op是'&'，置result为 result + (2^shift) * BinaryAnd(xDigit, yDigit)
+    d. 如果op是'|'，置result为 result + (2^shift) * BinaryOr(xDigit, yDigit)
+    e. 否则
+        i. Assert: op 是'^'
+        ii. 置result为 result + (2^shift) * BinaryXor(xDigit, yDigit)
+    f. 置shift为shift+1
+    g. 置x位 (x - xDigit)/2
+    h. 置y位 (y - yDigit)/2
+7. 如果op是'&'，让tmp是BinaryAnd(x modulo 2, y modulo 2)
+8. 如果op是'|'，让tmp是BinaryOr(x modulo 2, y modulo 2)
+9. 否则
+    a. Assert：op是'|'
+    b. 让tmp是BinaryXor(x modulo 2, y modulo 2)
+10. 如果tmp!=0，那么
+    a. 置result为 result - (2^shift)
+    b. 注意：这就保证了符号一致。
+11. 返回result的BigInt值
+***** 6.1.6.2.20 BigInt::bitwiseAND(x,y)
+  抽象操作BigInt::bitwiseAND接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 返回BigIntBitwiseOp(&,x,y)
+***** 6.1.6.2.21 BigInt::bitwiseXOR(x,y)
+  抽象操作BigInt::bitwiseXOR接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 返回BigIntBitwiseOp(^,x,y)
+***** 6.1.6.2.22 BigInt::bitwiseOR(x,y)
+  抽象操作BigInt::bitwiseOR接受BigInt参数：x、y。被调用时执行下列步骤：
+1. 返回BigIntBitwiseOp(|,x,y)
+***** 6.1.6.2.23 BitInt::toString(x)
+  抽象操作BigInt::toString接受BigInt参数：x。转换x到字符串形式。被调用时执行
+下列步骤：
+1. 如果x < 0_Z，返回"-"与!BigInt::toString(-)的字符串拼接
+2. 返回表示x十进制数字的字符串。
+**** 6.1.7 Object类型
+  Object逻辑上是若干性质的聚集。性质分为数据性质与访问性质：
+. 数据性质指一个键值伴随一个ECMAScript语言值，和描述属性集合
+. 访问性质指一个键值伴随一个或者两个访问方法，和描述属性集合
+访问方法用于存储或者取回这个属性联结的ECMAScript语言值。
+  性质用键值识别。键值类型是ECMAScript的String值或者Symbol值。所有的String或者
+Symbol值都是有效的性质键，包括空字符串。性质名称就是性质键的String值。
+  整数索引是String值的性质键，是最简的数字String，其数字值在[+0_F, 2^53-1]之
+间。但是数组的索引在[+0_F,2^32-1)之间。
+  性质键用于访问性质和其值。有两种访问方式：get与set，对应用于取回值和赋
+值。通过get与set访问的性质包括对象直接含有的自有性质和通过原型访问的其他
+对象的继承性质。继承性质是继承对象的自有性质或者继承性质。每个对象下的自有
+性质的键是相互区别的。
+  所有对象逻辑上都是若干性质的聚集，但是根据语义访问和操作性质的不同，有多
+种对象的形式。请参考6.1.7.2关于定义对象的若干形式。
+***** 6.1.7.1 性质的属性
+  在本规范中性质用于定义和解释Object性质的状态。数据性质每个键值联结下表
+Table3 所示的属性。
+| 属性名       | 值域                 | 详细描述                                                                                                    |
+| Value        | 任何ECMAScript语言值 | get访问性质获取的值                                                                                         |
+| Writable     | Boolean              | 如果false，在ECMAScript代码试图通过set对Value进行赋值时，不会成功                                           |
+| Enumerable   | Boolean              | 如果true，性质可以被for-in方式枚举到。否则，这个性质是不可枚举的                                            |
+| Configurable | Boolean              | 如果false，那么下列行为会失败：删除性质、修改性质为访问性质、修改属性（除了Value，和Writable由true到false） |
+  访问性质每个键值联结下表 Table4 所示的属性
+| 属性名       | 值域                | 详细描述                                                                                               |
+| Get          | Object或者undefined | 如果是Object那么必然是一个函数对象。函数内部call方法在每次取回性质值时被调同，其参数为空               |
+| Set          | Object或者undefined | 如果是Object那么必然是一个函数对象。每次对性质值进行赋值时，函数内部call方法被调用，参数仅为要赋予的值 |
+| Enumerable   | Boolean             | 如果true，性质可以被for-in方式枚举到。否则，这个性质是不可枚举的                                       |
+| Configurable | Boolean             | 如果false，那么下列行为会失败：删除性质、修改性质为数据性质、修改属性。                                |
+  如果初始化时没有显示的按照本规范声明性质的属性，默认属性设置按照下表
+Table5 所示
+| 属性名       | 默认值    |
+| Value        | undefined |
+| Get          | undefined |
+| Set          | undefined |
+| Writable     | false     |
+| Enumerable   | false     |
+| Configurabel | false     |
+***** 6.1.7.2 Object内部方法与内部插槽
+  在ECMAScript，对象的实际语义是通过被称为内部方法的算法规范的。在ECMAScript
+引擎中的每个对象都联结了一套内部方法，这些方法定义了其运行时的行为。这些
+内部方法不是ECMAScript语言的内容。他们在本规范中被定义仅仅是为了用于解释。
+然而，在ECMAScript实现中的对象表现必须与指定的联结的内部方法表现一致。其实际
+完成的方式由实现决定。
+  内部方法名称是多态的。这个不同对象值在调用一个通用的方法的时候可能会使用
+不同的算法。方法调用时的实际背景对象是内部方法的"target"值。如果，运行时，
+实现的算法试图使用某个对象不支持的内部方法，会投掷TypeError异常。
+  内部插槽对应联结对象的内部状态，被各ECMAScript实现算法使用。内部插槽不是
+对象性质，也不能被继承。根据内部插槽实现的规范，其状态值可能是任何ECMAScript
+语言类型或者ECMAScript规范类型。除非显示指明，内部插槽在创建对象的过程就被
+联结，而且可能不可以动态的增加。除非显示指明，内部插槽的初始值是undefined。
+本规范的各种算法创建的对象都有内部插槽。然而ECMAScript语言不提供联结到对象
+的直接途径。
+  本规范定义的内部方法和内部插槽的名字使用双方括号包裹的形式\[\[]]
+  Table6 描述了用于本规范创建和修改对象是使用的基础内部方法。每个对象都要有
+所有基础内部方法的算法。然而不同对象的内部方法的算法可能不同。
+  基本对象是满足下列所有标准的对象
+. 在Table6中列举的内部方法，对象使用在10.1中的定义
+. 如果对象有\[\[Call]]内部方法，使用10.2.1的定义
+. 如果对象由\[\[Construct]]内部方法，使用10.2.2的定义。
+  不是基本对象的对象都是奇异对象。
+  本规范通过其对象的内部方法识别不同的奇异对象。对象只有奇异对象的部分行为
+（比如Array奇异对象或者绑定函数对象），但是没有其指明的全部内部方法，是不被
+认为是对应的奇异对象。
+  Table6 和其他类似表格 的签名列描述了每个内部方法的调用模式。调用模式通常
+插入包含描述参数名称的列表。如果参数名与ECMAScript类型名相同，表示这里需要
+相同类型的值作为参数。如果内部方法显示返回值，其参数列表后会跟随"->"符号和
+返回值的类型名。在签名中使用类型名引用了章节6定义的类型和额外的any。any意味
+其值可以是任何ECMAScript语言类型。
+  除了其参数列表，还有一个内部方法经常访问对象，就是方法调用的对象。
+  内部方法隐式返回一个完结记录，或者包含调用模式指明的返回类型对应的值的
+普通完结，或者投掷完结。
+| 内置方法                | 签名                                               | 描述                                                                                                                                                                |
+| \[\[GetPrototypeOf]]    | ()->Object \vert Null                              | 明确为当前对象提供继承性质的对象。null表示没有继承性质                                                                                                              |
+| \[\[SetPrototypeOf]]    | (Object \vert Null)-> Boolean                      | 为本对象联结其他对象以提供继承性质。传递null表示没有继承性质。返回true表示本操作成功，false表示本操作没有成功。                                                     |
+| \[\[IsExtensible]]      | ()-> Boolean                                       | 明确本对象是否允许增加性质。                                                                                                                                        |
+| \[\[PreventExtensions]] | ()-> Boolean                                       | 控制本对性能否增加新性质。操作成功返回true，否则返回false。                                                                                                         |
+| \[\[GetOwnProperty]]    | (propertyKey)-> Undefined \vert PropertyDescriptor | 返回propertyKey对应的自有性质的PropertyDescriptor。如果不存在这个自有性质，就会返回undefined                                                                        |
+| \[\[DefineOwnProperty]] | (propertyKey, PropertyDescriptor)-> Boolean        | 创建或者修改propertyKey对应的自有性质，其状态由PropertyDescriptor描述。如果操作成功返回true，否则返回false。                                                        |
+| \[\[HasProperty]]       | (propertyKey) -> Boolean                           | 返回对象的自有性质或者继承性质的键是propertyKey。                                                                                                                   |
+| \[\[Get]]               | (propertyKey, Receiver)->any                       | 从本对象返回propertyKey对应性质的值。如果任何ECMAScript代码必然被执行来取回这个性质值，那么在执行代码时Receiver被用作this的值。                                     |
+| \[\[Set]]               | (propertyKey, value, Receiver)-> Boolean           | 设置propertyKey性质的值为value。如果任何ECMAScript代码必然被执行来设置这个性质值，那么执行代码时Receiver被用作this的值。如果性质被设置了新值返回true，否则返回false |
+| \[\[Delete]]            | (propertyKey) -> Boolean                           | 从本对象中移除propertyKey对应的自有性质。如果没有删除，且性质继续存在返回false。如果删除成功，或者性质不存在，返回true。                                            |
+| \[\[OwnPropertyKeys]]   | () -> List<propertyKey>                            | 返回本对象所有自有性质的键的列表                                                                                                                                    |
+  Table7 描述了对象被作为函数被调用时需要的额外的基本内部方法。函数对象就是
+支持\[\[Call]]内部方法的对象。构造范是支持\[\[Constructor]]内部方法的对象。任何
+支持\[\[Constructor]]的对象都需要支持\[\[Call]]，因为每个构造范都是函数对象。
+因此构造范也被认为是构造函数或者构造函数对象。
+| 内置方法          | 签名                         | 描述                                                                                                                                                                                                                                                   |
+| \[\[Call]]        | (any, List<any>)->any        | 执行本对象联结的代码。通过函数调用表达式被调用。传递给本内部方法的参数是this值和List<any>。List<any>是调用表达式执行时传递的参数列表。实现了这个内部方法的对象是可调用的。                                                                             |
+| \[\[Constructor]] | (List<any>, Object)-> Object | 创建一个对象。通过new操作符或者super调用被调用。第一个参数是表达式调用时传递的值列表。第二个参数是在是使用new操作符是提供的初始值。实现了这个内部方法的对象被称为构造范。函数对象没必要是构造范，所以非构造范的函数对象没有\[\[Constructor]]内部方法。 |
+  基本对象和标准奇异对象的基础内部方法的语义在第十章具体说明。奇异对象的
+内部方法的具体使用没有被实现支持，当尝试调用时应该投掷TypeError异常。
+***** 6.1.7.3 基础内部方法的恒定部分
+  ECMAScript引擎
+***** 6.1.7.4
+**** 6.2 用于ECMAScript规范的类型
 * 7
 ** 7.1
 * 25
