@@ -746,7 +746,12 @@ R(n)/R(y)的规模的情况下尽可能大。
 被调用时，执行下列步骤：
 1. 返回 Number::add(x, Number::unaryMinus(y))
 ****** 注意 x - y的结果总是与 x + (- y) 的结果一致。
-***** 6.1.6.1.9
+***** 6.1.6.1.9 Number::leftShift(x, y)
+  抽象操作Number::leftShift接受Number值参数：x，y。被调用时，执行下列步骤：
+1. 让lnum是!ToInt32(x)
+2. 让rnum是!ToUint32(y)
+3. 让shiftCount是R(rnum)对于32的模，R(rnum)%32
+4. 返回lnum左移shiftCount位的结果。结果的数学值准确表示这个32位的2禁止字符串。
 ***** 6.1.6.1.10
 ***** 6.1.6.1.11 Number::unsignedRightShift(x,y)
   抽象操作Number::unsignedRightShift接受两个Number值参数：x、y。被调用时，执行
