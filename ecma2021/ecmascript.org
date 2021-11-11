@@ -10,6 +10,8 @@
 ** 性质 表示property
 ** 属性 表示attribute
 ** List<some> 表示列表的元素有some特性。
+** 相同值 表示两个值是同一个
+** 构造范 表示constructor
 * 第一章
 * 第二章
 * 第三章
@@ -752,15 +754,22 @@ R(n)/R(y)的规模的情况下尽可能大。
 2. 让rnum是!ToUint32(y)
 3. 让shiftCount是R(rnum)对于32的模，R(rnum)%32
 4. 返回lnum左移shiftCount位的结果。结果的数学值准确表示这个32位的2禁止字符串。
-***** 6.1.6.1.10
+***** 6.1.6.1.10 Number::signedRightShift(x,y)
+  抽象操作Number::signedRightShift接受两个Number值参数：x、y。被调用时，执行
+下列步骤：
+1. 让lnum是!ToUint32(x)
+2. 让rnum是!ToUint32(y)
+3. 让shiftCount是R(rnum)在32上的模
+4. 返回lnum按符号右移shiftCount位的结果。空位用符号位值填充。结果的数学值准
+确表示结果的32位二进制补码串
 ***** 6.1.6.1.11 Number::unsignedRightShift(x,y)
   抽象操作Number::unsignedRightShift接受两个Number值参数：x、y。被调用时，执行
 下列步骤：
 1. 让lnum是!ToUint32(x)
 2. 让rnum是!ToUint32(y)
 3. 让shiftCount是R(rnum)在32上的模
-4. 返回lnum右移shiftCount位以0填充的结果。空位用0填充。结果的数学值准确表示
-结果的32位无符号二进制串。
+4. 返回保留符号位lnum右移shiftCount位以0填充的结果。空位用0填充。结果的数学值
+准确表示结果的32位无符号二进制串。
 ***** 6.1.6.1.12 Number::lessThan(x,y)
   抽象操作Number::lessThan接受两个Number值参数：x、y。被调用时，执行下列步骤：
 1. 如果x是NaN，返回undefined
@@ -1130,24 +1139,166 @@ false。
 . 常规返回类型是PropertyDescriptor或者Undefined
 . 如果返回值类型是PropertyDescriptor，那么这个值必须是完整填充的
 PropertyDescriptor
-. 如果P
-****** 6.1.7.3.6 \[\[SetPrototypeOf]]
-****** 6.1.7.3.7 \[\[SetPrototypeOf]]
-****** 6.1.7.3.8 \[\[SetPrototypeOf]]
-****** 6.1.7.3.9 \[\[SetPrototypeOf]]
-****** 6.1.7.3.10 \[\[SetPrototypeOf]]
-****** 6.1.7.3.11 \[\[SetPrototypeOf]]
-****** 6.1.7.3.12 \[\[SetPrototypeOf]]
-****** 6.1.7.3.13 \[\[SetPrototypeOf]]
-****** 6.1.7.3.14 \[\[SetPrototypeOf]]
-****** 6.1.7.3.15 \[\[SetPrototypeOf]]
-****** 6.1.7.3.16 \[\[SetPrototypeOf]]
-****** 6.1.7.3.17 \[\[SetPrototypeOf]]
-****** 6.1.7.3.18 \[\[SetPrototypeOf]]
-****** 6.1.7.3.19 \[\[SetPrototypeOf]]
-****** 6.1.7.3.20 \[\[SetPrototypeOf]]
-***** 6.1.7.4
-**** 6.2 用于ECMAScript规范的类型
+. 如果P描述的是不可设置或者不可写的自有数据性质，后续调用
+\[\[GetOwnProperty]](P)返回PropertyDescriptor的\[\[Value]]必须与P的\[\[Value]]属性
+是相同值
+. 如果P除了\[\[Writable]]外的其他属性会在后续的过程中修改，甚至P性质可能会被
+删除，那么此时P的\[\[Configurable]]属性必须是true
+. P的\[\[Writable]]属性可能从false修改到true，那么\[\[Configurable]]属性必须是
+true
+. 如果target是不可扩展的，而且P是非存在性质，那么后续在这target上调用
+\[\[GetOwnProperty]](P)必须描述P是非存在的（例如必须返回undefined）
+****** 注意三
+作为第三个不变性的后果，一个数据性质可能在不同时间返回不同值。那么要求其
+\[\[Writable]]和\[\[Configurable]]必须都是true，即使没有暴露其他通过基本内部
+方法修改这个值的机制。
+****** 6.1.7.3.6 \[\[DefineOwnProperty]](P,Desc)
+. 常规返回类型是Boolean
+. 如果P在之前已经发现是目标的不可设置的自有性质，那么必须按照下列情况返回
+    1. P是可写的数据性质。不可设置的可写数据性质变更成不可设置的不可写数据
+性质。此时返回true。
+    2. Desc的所有属性与P的属性全部是相同值。此时返回true。
+    3. 其他情况发挥false。
+. 如果目标是不可扩展的，P是非存在性质，那么\[\[DefineOwnProperty]](P,Desc)必须
+返回false。其实就是不可扩展的目标对象不能扩展新的性质。
+****** 6.1.7.3.7 \[\[HasProperty]](P)
+. 常规返回类型是Boolean
+. 如果P在之前已经发现是目标的不可设置的自有的数据或者访问性质，
+\[\[HasProperty]]必须返回true
+****** 6.1.7.3.8 \[\[Get]](P,Receiver)
+. 常规返回类型是任意ECMAScript语言类型
+. 如果P在之前发现是目标的带有值V的不可设置的或不可写的自有数据性质，那么
+\[\[Get]]必须返回V的相同值
+****** 6.1.7.3.9 \[\[Set]](P,V,Receiver)
+. 常规返回类型是Boolean
+. 如果P在之前已经发现是目标的不可设置的或不可写的自有数据性质，那么
+    .如果P的\[\[Value]]属性与V是相同值，返回true
+    .否则返回false
+. 如果P在之前已经发现是目标的不可设置的自有访问性质，而且P的\[\[Set]]属性是
+undefined，那么\[\[Set]](P,V,Receiver)操作必须返回false
+****** 6.1.7.3.10 \[\[Delete]](P)
+. 常规返回类型是Boolean
+. 如果P在之前已经发现是目标的不可设置的自有的数据或者访问性质，\[\[Delete]]
+操作必须返回false
+****** 6.1.7.3.11 \[\[OwnPropertyKess]]()
+. 常规返回类型是List
+. 返回的List不允许包含重复的实例
+. 返回的List的每个元素类型的要么是String，要么是Symbol
+. 返回的List至少要包含之前已经发现的所有不可设置的自有性质的键
+. 如果目标是不可扩展的，返回的List必须只能包含目标通过\[\[GetOwnProperty]]发现
+的所有自有性质的键
+****** 6.1.7.3.12 \[\[Call]]()
+. 常规返回类型是任意ECMAScript语言类型
+****** 6.1.7.3.13 \[\[Construct]]()
+. 常规返回类型是Object
+. 目标必须同时有\[\[Call]]内部方法
+***** 6.1.7.4 常用的固有Object
+  常用的固有是基于本规范算法显示引用的对象进行内建，通常也有领内标识。除非
+特殊说明每个固有对象实际上对应一套相似对象，每个领一个。
+  在本规范里用%name%标识一个固有对象，联结到当前领，对应这个name。类似
+%name.a.b%这种用法表示，在评估ECMAScript代码前，已经访问了%name%内部对象的"a"
+性质的"b"性质。本领的规定和其固有对象在9.3中描述。常用固有对象列在下表8中。
+| 固有对象名称                     | 全局名称             | ECMAScript语言联结                                                 |
+| %AggregateError%                 | AggregateError       | AggregateError构造范（20.5.7.1）                                   |
+| %Array%                          | Array                | Array构造范（23.1.1）                                              |
+| %ArrayBuffer%                    | ArrayBuffer          | ArrayBuffer构造范（25.1.3）                                        |
+| %ArrayIteratorPrototype%         |                      | Array遍历器对象的原型（23.1.5）                                    |
+| %AsyncFromSyncIteratorPrototype% |                      | 异步-从-同步遍历器对象的原型（27.1.4）这个完全不了解，无法有效翻译 |
+| %AsyncFunction%                  |                      | 异步函数对象的构造范（27.7.1）                                     |
+| %AsyncGeneratorFunction%         |                      | 异步遍历器对象的构造范（27.4.1）                                   |
+| %AsyncIteratorPrototype%         |                      | 所有标准的内置异步构造器都间接的继承自这个对象                     |
+| %Atomics%                        | Atomics              | Atomics对象（25.4）                                                |
+| %BigInt%                         | BigInt               | BigInt构造范（21.2.1）                                             |
+| %BigInt64Array%                  | BigInt64Array        | BigInt64Array构造范（23.2）                                        |
+| %BigUint64Array%                 | BigUint64Array       | BigUint64Array构造范（23.2）                                       |
+| %Boolean%                        | Boolean              | Boolean构造范（20.3.1）                                            |
+| %DataView%                       | DataView             | DataView构造范（25.3.2）                                           |
+| %Date%                           | Date                 | Date构造范（21.4.2）                                               |
+| %decodeURI%                      | decodeURI            | decodeURI函数（19.2.6.2）                                          |
+| %decodeURIComponent%             | decodeURIComponent   | decodeURIComponent函数（19.2.6.3)                                  |
+| %encodeURI%                      | encodeURI            | encodeURI函数（19.2.6.4）                                          |
+| %encodeURIComponent%             | encodeURIComponent   | encodeURIComponent函数（19.2.6.5）                                 |
+| %Error%                          | Error                | Error构造范（20.5.1）                                              |
+| %eval%                           | eval                 | eval函数（19.2.1）                                                 |
+| %EvalError%                      | EvalError            | EvalError构造范（20.5.5.1）                                        |
+| %FinalizationRegistry%           | FinalizationRegistry | FinalizationRegistry构造范（26.2.1）                               |
+| %Float32Array%                   | Float32Array         | Float32Array构造范（23.2）                                         |
+| %Float64Array%                   | Float64Array         | Float64Array构造范（23.2）                                         |
+| %ForInIteratorPrototype%         |                      | For-In遍历器对象的原型（14.7.5.10）                                |
+| %Function%                       | Function             | Function构造范（20.2.1）                                           |
+| %GeneratorFunction%              |                      | generator对象的构造范（27.3.1）                                    |
+| %Int8Array%                      | Int8Array            | Int8Array构造范（23.2）                                            |
+| %Int16Array%                     | Int16Array           | Int16Array构造范（23.2）                                           |
+| %Int32Array%                     | Int32Array           | Int32Array构造范（23.2）                                           |
+| %isFinite%                       | isFinite             | isFinite函数（19.2.2）                                             |
+| %isNaN%                          | isNaN                | isNaN函数（19.2.3）                                                |
+| %IteratorPrototype%              |                      | 所有标准的内置遍历器对象都间接的继承自这个对象                     |
+| %JSON%                           | JSON                 | JSON对象（25.5）                                                   |
+| %Map%                            | Map                  | Map构造范（24.1.1）                                                |
+| %MapIteratorPrototype%           |                      | Map遍历器对象的原型（24.1.5）                                      |
+| %Math%                           | Math                 | Math对象（21.3）                                                   |
+| %Number%                         | Number               | Number构造范（21.1.1）                                             |
+| %Object%                         | Object               | Object构造范（20.1.1）                                             |
+| %parseFloat%                     | parseFloat           | parseFloat函数（19.2.4）                                           |
+| %parseInt%                       | parseInt             | parseInt函数（19.2.5）                                             |
+| %Promise%                        | Promise              | Promise构造范（27.2.3）                                            |
+| %Proxy%                          | Proxy                | Proxy构造范（28.2.1）                                              |
+| %RangeError%                     | RangeError           | RangeError构造范（20.5.5.2）                                       |
+| %ReferenceError%                 | ReferenceError       | ReferenceRrror构造范（20.5.5.3）                                   |
+| %Reflect%                        | Reflect              | Reflect对象（28.1）                                                |
+| %RegExp%                         | RegExp               | RegExp构造范（22.2.3）                                             |
+| %RegExpStringIteratorPrototype%  |                      | RegExp字符串遍历器对象的原型（22.2.7）                             |
+| %Set%                            | Set                  | Set构造范（24.2.1）                                                |
+| %SetIteratorPrototype%           |                      | Set遍历器对象的原型（24.2.5）                                      |
+| %SharedArrayBuffer%              | SharedArrayBuffer    | SharedArrayBuffer构造范（25.2.2）                                  |
+| %String%                         | String               | String构造范（22.1.1）                                             |
+| %StringIteratorPrototype%        |                      | String遍历器对象的原型（22.1.5）                                   |
+| %Symbol%                         | Symbol               | Symbol构造范（20.4.1）                                             |
+| %SyntaxError%                    | SyntaxError          | SyntaxError构造范（20.5.5.4）                                      |
+| %ThrowTypeError%                 |                      | 无条件投掷一个新的%TypeError%实例的函数对象                        |
+| %TypeArray%                      |                      | 所有类型化数组的构造范的父类（23.2.1）                             |
+| %TypeError%                      | TypeError            | TypeError构造范（20.5.5.5）                                        |
+| %Uint8Array%                     | Uint8Array           | Uint8Array构造范（23.2）                                           |
+| %Uint8ClampedArray%              | Uint8ClampedArray    | Uint8ClampedArray构造范（23.2）                                    |
+| %Uint16Array%                    | Uint16Array          | Uint16Array构造范（23.2）                                          |
+| %Uint32Array%                    | Uint32Array          | Uint32Array构造范（23.2）                                          |
+| %URIError%                       | URIError             | URIError构造范（20.5.5.6）                                         |
+| %WeakMap%                        | WeakMap              | WeakMap构造范（24.3.1）                                            |
+| %WeakRef%                        | WeakRef              | WeakRef构造范（26.1.1）                                            |
+| %WeakSet%                        | WeakSet              | WeakSet构造范（24.4.1）                                            |
+****** 注意 额外的实例在表82
+** 6.2 用于ECMAScript规范类型
+  规范类型与元值一致，用于描述ECMAScrpt语言构造和ECMAScript语言类型的算法语义
+。规范类型包括Reference、List、Completion、PropertyDescriptor、EnvironmentRecord、
+AbstrctCloure和DataBlock。规范类型是本规范制作的，不对应任何ECMAScript实现的任
+何特定实例。规范类型的值可以被用于描述ECMAScript表达式评估的中间结果，但是
+这种值不能存储为对象的性质或者个变量的值。
+*** 6.2.1 List和Record规范类型
+  List类型是用于解释在new表达式、在函数调用和其他需要简单的有序的值的算法
+的参数列表评估。List类型的多值是简单有序的List元素序列，元素拥有独立的多值
+。序列可能是任意长度。List元素会被按照0原点索引随机访问。为了表示的方便用
+类似数组的语法访问List元素。比如argument[2]就是argument List的第三个元素的缩
+写。
+  为了表示着方便，一个文法语法被用于表示一个新的List值。比如<<1,2>>定义了
+一个List值，它有两个元素，没有按照顺序初始为指定值。一个新的空List被表示
+为<< >>。
+  Record类型用于描述本规范的算法中的数据聚合。一个Record类型值包含一个或者
+多个以命名的字段。每个字段的值要么是ECMAScript值要么是表示联结到一个Record
+类型的名字的抽象值。字段的名字通常用双方括号包含起来例如\[\[Value]]。
+  为了表示着方便，类似对象的文法语法被用于表示一个Record值。比如
+{ \[\[Field1]]:42, \[\[Field2]:false, \[\[Field3]]:empty } 定义了一个拥有三个字段
+的Record值，每个字段被初始化为指定值。字段名字的顺序没有意义。任何没有显式
+列出的字段被认为是缺失的。
+  在规范的文本与算法中，.符号被用于引用Record值的指定字段。例如，如果R表示
+之前段落说的Record值，那么R.\[\[Field2]是“R中名称为Field2的字段”的缩写。
+  常用的Receord字段组合提纲会被命名，这个名字被用作文法Record值的前缀，用于
+标识按照描述的指定类型的聚合。例如 PropertyDescriptor { \[\[Value]]:42,
+\[\[Writable]]:false, \[\[Configurable]]:true }
+*** 6.2.2 Set和Relation规范类型
+*** 6.2.3
+*** 6.2.4
+** 6.3
+** 6.4
 * 7
 ** 7.1
 * 25
