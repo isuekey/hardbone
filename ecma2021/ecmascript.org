@@ -6,12 +6,15 @@
 ** 可数 表示零个、一个或者多个
 ** 所有英文为原文内容，作为专用词汇表示特定含义，比如类型、参数、概念等。
 ** 领 表示realm
+** 域 表示domain
 ** 规模 表示某数的模。或者在这里进行约定。数x的模就是x的绝对值|x|
 ** 性质 表示property
 ** 属性 表示attribute
 ** List<some> 表示列表的元素有some特性。
 ** 相同值 表示两个值是同一个
 ** 构造范 表示constructor
+** 合集 表示collection
+** R域 表示R适用的所有值的集合
 * 第一章
 * 第二章
 * 第三章
@@ -1295,7 +1298,40 @@ AbstrctCloure和DataBlock。规范类型是本规范制作的，不对应任何E
 标识按照描述的指定类型的聚合。例如 PropertyDescriptor { \[\[Value]]:42,
 \[\[Writable]]:false, \[\[Configurable]]:true }
 *** 6.2.2 Set和Relation规范类型
-*** 6.2.3
+  Set类型是用于在内存模型中解释无序的元素合集。Set类型的值就是元素的简单合
+集，且没有元素出现一次以上。元素可以在Set中增加与删除。集合间可以进行合
+并、取交与差操作。
+  Relation类型是用于解释Set上的约束。Relation类型的值是值域上的一套有序值对。
+比如，事件上的Relation是一组有序的事件对。一个Relation R和R域上的a、b两个值，
+a R B是R的成员有序对(a,b)的简写。Relation至少要表示某些条件，当它是满足
+这些条件的最小Releation时。
+  严格偏序是一种Relation值R，满足如下要求：
+. R域上的任意值a, b, c
+    . 没有a R a, 且
+    . 如果a R b 和b R c，那么a R c
+**** 上述两个性质分别是非反身性和传递性。
+  严格全序是满足如下要求的Releation值R
+. R域上的任意值a, b, c
+    . a 与 b相同, a R b, b R a 三者之一，且
+    . 没有 a R a， 且
+    . 如果a R b 和b R c，那么a R c
+**** 上述三个性质分别是完全性、非反身性和传递性。
+**** 注意 
+上面关系内容其实与抽象代数中关系的描述是一致的，相关的名词以数学名词为准。
+这里就是随意翻译了一下。
+*** 6.2.3 Completion Record规范类型
+  Completion类型是一个Record，用于解释运行时值的传播和流程控制，比如语句（
+break, continue, return 和 throw）的行为，会产生控制本地外的传递。
+  Completion类型的值是Record值，其字段在表9中定义。这些值合起来就是Completion
+Record
+| 字段名称     | 值                                         | 含义                     |
+| \[\[Type]]   | 必须normal,break,continue,return,throw之一 | 产生的Completion的类型   |
+| \[\[Value]]  | ECMAScript语言值或者空                     | 产生的值                 |
+| \[\[Target]] | ECMAScript字符串或者空                     | 直接的控制传输的目标标签 |
+  术语abrupt completion（意外完结）指\[\[Type]]不是normal的Completion实例。
+*** 6.2.3.1 Await
+*** 6.2.3.1.1 Await
+*** 6.2.3.2 Await
 *** 6.2.4
 ** 6.3
 ** 6.4
