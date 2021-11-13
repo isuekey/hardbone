@@ -1329,9 +1329,66 @@ Record
 | \[\[Value]]  | ECMAScript语言值或者空                     | 产生的值                 |
 | \[\[Target]] | ECMAScript字符串或者空                     | 直接的控制传输的目标标签 |
   术语abrupt completion（意外完结）指\[\[Type]]不是normal的Completion实例。
-*** 6.2.3.1 Await
-*** 6.2.3.1.1 Await
-*** 6.2.3.2 Await
+**** 6.2.3.1 Await
+   算法步骤
+ 1. 让completion是Await(value)
+   与下列步骤意味着相同的含意
+ 1. 让asyncContext是运行时执行上下文（running execution context）
+ 2. 让promise是?PromiseResolve(%Promise%, value)
+ 3. 让stepsFulfilled是定义在Await Fulfilled Functions的算法步骤
+ 4. 让lengthFulfilled是定义在Await Fulfilled Functions的函数需要的必要参数的数量
+ 5. 让onFulfilled是!CreateBuiltinFunction(stepsFulfilled, lengthFulfilled,\'''\', <<\[\[AsyncContext\]\]>>)
+ 6. 设置onFulfilled.\[\[AsyncContext]]为asyncContext
+ 7. 让stepsRejected是定义在Await Rejected Functions的算法步骤
+ 8. 让lengthRejected是定义在Await Rejected Functions的函数需要的必要参数的数量
+ 9. 让onRejected是!CreateBuiltinFunction(stepsRejected, lengthRejected, \'''\',<<\[\[AysncContext]]>>)
+ 10. 设置onRejected.\[\[AsyncContext]]为asyncContext
+ 11. 运行!PerformPromiseThen(promise, onFulfilled, onRejected)
+ 12. 从execution context stack中移除asyncContext，将在execution context stack顶部的execution context
+     恢复为running execution context
+ 13. 设置asyncContext像那些带着完结completion继续的评估的代码评估状态是completion，这样跟随在Await
+     算法之后的步骤就会执行下去
+ 14. 返回
+ 15. 注意：本返回到评估的操作在asyncContext中是最优先继续评估的。
+ 上述步骤中的别名，和预期的completion，都是瞬时的，而且仅在Await的算法步骤中可见。
+***** 注意 Await可以组合?和!前缀，例如： 1. 让result是?Await(value)
+      意味着下面行为：
+ 1. 让result是Await(value)
+ 2. ReturnIfAbrupt(result)
+***** 6.2.3.1.1 Await Fulfilled Functions
+    Await fulfilled函数是匿名内建函数，是Await规范的一部分，用于将promise fulfillment值
+  作为普通完结派发到调用者。每个Await fulfilled函数有一个内置的\[\[AsyncContext\]\]
+    当Await fulfilled函数被带着value调用时，下列步骤会被执行
+  1. 让F是active function object
+  2. 让asyncContext是F.\[\[AsyncContext]]
+  3. 让prevContext是running execution context
+  4. 挂起prevContext
+  5. 将asyncContext压到execution context stack；asyncContext就是现在的运行时执行背景
+  6. 继续asyncContext上已经挂起的评估，用NormalCompletion(value)作为这个导致挂起的操作的结果。
+  7. Assert：当到达这步的时候，asyncContext已经从execution context stack中移除，而且
+     prevContext是当前的运行时执行背景
+  8. 返回undefined
+    Await fulfilled函数的length性质是1_F
+***** 6.2.3.1.2 Await Rejected Functions
+    Await rejected函数是匿名内建函数，是Await规范的一部分，用于将promise rejection原因
+  作为投掷完结派发给调用者。每个Await rejected函数有一个内置的\[\[AsyncContext]]
+    当Await rejected函数被带着reason调用时，下列步骤会被执行
+  1. 让F是active function object
+  2. 让asyncContext是F.\[\[AsyncContext]]
+  3. 让prevContext是running execuction context
+  4. 挂起prevContext
+  5. 将asyncContext压到execution context stack；asyncContext就是现在的运行时执行背景
+  6. 继续asyncContext上已经挂起的评估，用ThrowCompletion(reason)作为这个导致挂起的操作的
+  结果。
+  7. Assert：当到达这步的时候，asyncContext已经从execution context stack中移除，而且
+     prevContext是当前的运行时执行背景
+  8. 返回undefined
+    Await rejected函数的length性质是1_F
+**** 6.2.3.2 NormalCompletion
+  抽象操作NormalCompletion有单一参数argument，比如：
+1. Return NormalCompetion(argument)
+**** 6.2.3.3 ThrowCompletion
+**** 6.2.3.2 UpdateEmpty
 *** 6.2.4
 ** 6.3
 ** 6.4
