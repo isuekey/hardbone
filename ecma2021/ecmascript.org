@@ -1386,10 +1386,137 @@ Record
     Await rejected函数的length性质是1_F
 **** 6.2.3.2 NormalCompletion
   抽象操作NormalCompletion有单一参数argument，比如：
-1. Return NormalCompetion(argument)
+1. 返回 NormalCompetion(argument)
+  是下列定义的简写：
+1. 返回 Completion {\[\[Type]]:normal, \[\[Value]]:argument, \[\[Target]]:empty}
 **** 6.2.3.3 ThrowCompletion
-**** 6.2.3.2 UpdateEmpty
-*** 6.2.4
+  抽象操作ThrowCompletion有单一参数argument，比如：
+1. 返回 ThrowCompetion(argument)
+  是下列定义的简写：
+1. 返回 Completion {\[\[Type]]:throw, \[\[Value]]:argument, \[\[Target]]:empty}
+**** 6.2.3.2 UpdateEmpty(completionRecord, value)
+  抽象操作UpdateEmpty接受两个参数completionRecord和value。被调用时，执行下列步
+骤：
+1. Assert：completionRecord.\[\[Type]]如果是throw或者return，那么
+completionRecord.\[\[Value]]必然不空
+2. 如果completionRecord.\[\[Type]]不空，返回Completion(completionRecord)
+3. 否则返回Completion {
+  \[\[Type]]:completionRecord.\[\[Type]],
+  \[\[Value]]:value,
+  \[\[Target]]:completionRecord.\[\[Target]]
+}
+*** 6.2.4 ReferenceRecord规范类型
+  ReferenceRecord类型是用于解释例如delete、typeof、赋值、super关键词和其他语言特
+性等操作的行为。举例：赋值语句中的左侧的操作项就被期望产生一个
+ReferenceRecord。
+  ReferenceRecord是一个已解决的名称或性质的绑定，它的字段在表10中定义
+| 字段名称             | 值                                                                                  | 含义                                                                                         |
+| \[\[Base]]           | 三者之一：除null和undefined的ECMAScript语言的值；Environment Record; unresolvable。 | 占据这个绑定的值或者Environment Record。\[\[Base]]如果是unresolvable表明这个绑定不能被解决。 |
+| \[\[ReferencedName]] | String或者Symbol                                                                    | 这个绑定的名称。如果\[\[Base]]值是Evironment Record，那么总是String。                        |
+| \[\[Strict]]         | Boolean                                                                             | 如果这个ReferenceRecord来源自严格模式的代码，它就是true，否则就是false                       |
+| \[\[ThisValue]]      | 任何ECMAScript语言的值，或者empty                                                   | 如果不空，这个ReferenceRecord表示一个用super关键词表示的性质绑定；它被称为SuperReferenceRecord，而且\[\[Base]]值永不会是EnvironmentRecord。在这种案例里\[\[ThisValue]]是创建ReferenceRecord时的this值。 |
+  下列抽象操作被用在本规范里以操作上述的Reference。
+**** 6.2.4.1 IsPropertyReference(V)
+  抽象操作IsPropertyReference接受参数V。被调用时执行下列步骤：
+1. Assert: V是一个ReferenceRecord
+2. 如果V.\[\[Base]]是unresolvable，返回false
+3. 如果V.\[\[Base]]是Boolean、String、Symbol、BigInt、Number或者Object返回true，
+否则返回false
+**** 6.2.4.2 IsUnresolvableReference(V)
+  抽象操作IsUnresolvableReference接受参数V。被调用时执行下列步骤：
+1. Assert: V是一个ReferenceRecord
+2. 如果V.\[\[Base]]是unresolvable，返回true，否则返回false。
+**** 6.2.4.3 IsSuperReference(V)
+  抽象操作IsSuperReference接受参数V。被调用时执行下列步骤：
+1. Assert: V是一个ReferenceRecord
+2. 如果V.\[\[ThisValue]]非空，返回true，否则返回false。
+**** 6.2.4.4 GetValue(V)
+  抽象操作GetValue接受参数V。被调用时执行下列步骤：
+1. ReturnIfAbrupt(V)
+2. 如果V不是ReferenceRcord返回V
+3. 如果IsUnresolvableReference(V)是true，那么投掷一个ReferenceError异常
+4. 如果IsPropertyReference(V)是true，那么
+    a. 让baseObj是!ToObject(V.\[\[Base]])
+    b. 返回?baseObj.\[\[Get]](V.\[\[ReferenceName]], GetThisValue(V))
+5. 否则
+    a. 让base是V.\[\[Base]]
+    b. Assert：base是一个EnvironmentRecord
+    c. 返回 ?base.GetBindingValue(V.\[\[ReferenceName]], V.\[\[String]])（见9.1）
+**** 6.2.4.5 PutValue(V, W)    
+  抽象操作PutValue接受参数V和W。被调用时执行下列步骤：
+1. ReturnIfAbrupt(V)
+2. ReturnIfAbrupt(W)
+3. 如果V不是ReferenceRecord，投掷一个ReferenceError异常
+4. 如果IsUnresolvableReference(V)是true，那么
+    a. 如果V.\[\[Strict]]是true，投掷一个ReferenceError异常
+    b. 让globalObj是GetGlobalObject()
+    c. 返回?Set(globalObj, V.\[\[ReferencedName]], W, false)
+5. 如果IsPropertyReference(V)是true，那么
+    a. 让baseObj是!ToObject(V.\[\[Base]])
+    b. 让succeeded是?baseObj.\[\[Set]](V.\[\[ReferencedName]], W, GetThiValue(V))
+    c. 如果succeeded是false，而且V.\[\[Strict]]是true，投掷一个类型异常
+    d. 返回
+6. 否则
+    a. 让base是V.\[\[Base]]
+    b. Assert：base是EnvironmentRecord
+    c. 返回 ?base.SetMutableBinding(V.\[\[ReferencedName]], W, V.\[\[Strict]])（见
+9.1）
+***** 注意 步骤5.a可能创建一个对象，除了上述抽象操作和基本对象的\[\[Set]]内部
+方法外的其他行为不能访问这个对象。实现可以选择规避实际创建这个对象。
+**** 6.2.4.6 GetThisValue(V)
+  抽象操作GetThisValue接受参数V。被调用时执行下列步骤：
+1. Assert：IsPropertyReference(V)是true
+2. 如果IsSuperReference(V)是true，returV.\[\[ThisValue]]；否则返回V.\[\[Base]]
+**** 6.2.4.7 InitializeReferenceBinding(V,W)
+  抽象操作InitializeReferenceBinding接受参数V和W。被调用时执行下列步骤：
+1. ReturnIfAbrupt(V)
+2. ReturnIfAbrupt(W)
+3. Assert：V是ReferenceRecord
+4. Assert：IsUnresolvableReference(V)是false
+5. 让base是V.\[\[Base]]
+6. Assert：base 是一个EnvironmentRecord
+7. 返回base.InitializeBinding(V.\[\[ReferencedName]], W)
+*** 6.2.5 Property Descriptor规范类型
+  Property Descriptor类型是用于解释操作和物化Object性质的属性。Property
+Descriptor类型的值是Record类型。每个字段的名称就是属性的名称，它的值与
+6.1.7.1中确定的属性的值一致。另外，任何字段都可能出现或缺失。在本规范中
+为了标记Property Descriptor记录的文法描述，使用PropertyDescriptor作为纲要名称。
+  依据某些字段的存在或使用情况，Property Descriptor值可以被进一步划分为
+数据Property Descriptor和访问Property Descriptor。数据Property Descriptor含有
+\[\[Value]]或者\[\[Writable]]字段。访问Property Descriptor含有\[\[Get]]或者
+\[\[Set]]字段。Property Descriptor还会含有\[\[Enumerable]]和\[\[Configurable]]。
+Property Descriptor不能同时是数据Property Descriptor或者访问Property Descriptor，
+然而可以两者都不是，这时就是一个普通的Property Descriptor。一个完整填充的
+Property Descriptor必须是两者之一，其属性与对应的表3或者表4一致。
+  随后的抽象操作被用在本规范来操作Property Descriptor值。
+**** 6.2.5.1 IsAccessorDescriptor(Desc)
+  抽象操作IsAccessorDescriptor接受参数Desc（Property Descriptor值或者undefined）。
+被调用时执行下列步骤：
+1. 如果Desc是undefined，返回false。
+2. 如果Desc.\[\[Get]]和Desc.\[\[Set]]都缺失，返回false。
+3. 返回true。
+**** 6.2.5.2 IsDataDescriptor(Desc)
+  抽象操作IsDataDescriptor接受参数Desc（Property Descriptor值或者undefined）。
+被调用时执行下列步骤：
+1. 如果Desc是undefined，返回false。
+2. 如果Desc.\[\[Value]]和Desc.\[\[Writable]]都缺失，返回false。
+3. 返回true。
+**** 6.2.5.3 IsGenericDescriptor(Desc)
+  抽象操作IsGenericDescriptor接受参数Desc（Property Descriptor值或者undefined）。
+被调用时执行下列步骤：
+1. 如果Desc是undefined，返回false。
+2. 如果IsAccessorDescriptor(Desc)和IsDataDescriptor(Desc)都是false，返回true。
+3. 返回false。
+**** 6.2.5.4 FromPropertyDescriptor(Desc)
+  抽象操作FromPropertyDescriptor接受参数Desc(Property Descriptor值货主undefined)。
+被调用时执行下列步骤：
+1. 如果Desc是undefined，返回undefined。
+2. 让obj是!OrdinaryObjectCreate(%Object.prototype%)
+3. Assert: obj是可扩展的不含性质的基础对象
+4. 如果Desc有\[\[Value]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "value", Desc.\[\[Value]])
+5. 如果
+*** 6.2.6
 ** 6.3
 ** 6.4
 * 7
