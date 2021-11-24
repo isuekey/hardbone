@@ -15,6 +15,9 @@
 ** 构造范 表示constructor
 ** 合集 表示collection
 ** R域 表示R适用的所有值的集合
+** 字位 一个二进制位
+** 字节 8个连续的二进制位。至于大小端，如果没有明确说明，就不考虑。
+*** 根据编译原理，大小端由其他编译层处理。
 * 第一章
 * 第二章
 * 第三章
@@ -1515,12 +1518,247 @@ Property Descriptor必须是两者之一，其属性与对应的表3或者表4�
 3. Assert: obj是可扩展的不含性质的基础对象
 4. 如果Desc有\[\[Value]]字段，那么
     a. 执行!CreateDataPropertyOrThrow(obj, "value", Desc.\[\[Value]])
-5. 如果
-*** 6.2.6
-** 6.3
-** 6.4
-* 7
-** 7.1
+5. 如果Desc有\[\[Writable]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "writable", Desc.\[\[Writable]])
+6. 如果Desc有\[\[Get]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "get", Desc.\[\[Get]])
+7. 如果Desc有\[\[Set]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "set", Desc.\[\[Set]])
+8. 如果Desc有\[\[Enumerable]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "enumerable", Desc.\[\[Enumerable]])
+9. 如果Desc有\[\[Configurable]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "configurable", Desc.\[\[Configurable]])
+10. 返回obj
+**** 6.2.5.5 ToPropertyDescriptor(Obj)
+  抽象操作ToPropertyDescriptor接受参数Obj，被调用时执行下列步骤：
+1. 如果Type(Obj)不是Object，投掷TypeError异常
+2. 让desc是新的Property Descriptor且没有初始化任何字段
+3. 让hasEnumerable是?HasProperty(Obj, "enumerable")
+4. 如果hasEnumerable是true，那么
+    a. 让enumerable是!ToBoolean(?Get(Obj, "enumerable"))
+    b. 设置desc.\[\[Enumerable]]是enumerable
+5. 让hasConfigurable是?HasProperty(Obj, "confirgurable")
+6. 如果hasConfigurable是true，那么
+    a. 让configurable是!ToBoolean(?Get(Obj, "configurable"))
+    b. 设置desc.\[\[Configurable]]是configurable
+7. 让hasValue是?HasProperty(Obj, "value")
+8. 如果hasValue是true，那么
+    a. 让value是?Get(Obj, "value")
+    b. 设置desc.\[\[Value]]是value
+9. 让hasWritable是?HasProperty(Obj, "writable")
+10. 如果hasWritable是true，那么
+    a. 让writable是!ToBoolean(?Get(Obj, "writable"))
+    b. 设置desc.\[\[Writable]]是writable
+11. 让hasGet是?HasProperty(Obj, "get")
+12. 如果hasGet是true，那么
+    a. 让getter是?Get(Obj, "get")
+    b. 如果IsCallable(getter)是false，而且getter不是undefined，投掷TypeError异常
+    c. 设置desc.\[\[Get]]是getter
+13. 让hasSet是?HasProperty(Obj, "set")
+14. 如果hasSet是true，那么
+    a. 让setter是?Get(Obj, "set")
+    b. 如果IsCallable(setter)是false，而且setter不是undefined，投掷TypeError异常
+    c. 设置desc.\[\[Set]]是setter
+15. 如果desc.\[\[Get]]存在或者desc.\[\[Set]]存在，那么
+    a. 如果desc.\[\[Value]]存在或者desc.\[\[Writable]]存在，投掷TypeError异常
+16. 返回desc
+**** 6.2.5.6 CompletePropertyDescriptor(Desc)
+  抽象操作CompletePropertyDescriptor接受参数Desc（一个PropertyDescriptor）。被调用
+时执行下列步骤：
+1. Assert: Desc是一个PropertyDescriptor
+2. 让like是Record {\[\[Value]]:undefined, \[\[Writable]]:undefined, \[\[Get]]:undefined,
+\[\[Set]]:undefined, \[\[Enumerable]]:undefined, \[\[Configurable]]:undefined, }
+3. 如果IsGenericDescriptor(Desc)是true，或者IsDataDescriptor(Desc)是true，那么
+    a. 如果Desc没有\[\[Value]]字段，那么设置Desc.\[\[Value]]是like.\[\[Value]]
+    b. 如果Desc没有\[\[Writable]]字段，那么设置Desc.\[\[Writable]]是
+like.\[\[Writable]]
+4. 否则
+    a. 如果Desc没有\[\[Get]]字段，那么设置Desc.\[\[Get]]是like.\[\[Get]]
+    b. 如果Desc没有\[\[Set]]字段，那么设置Desc.\[\[Set]]是like.\[\[Set]]
+5. 如果Desc没有\[\[Enumerable]]字段，那么设置Desc.\[\[Enumerable]]是
+like.\[\[Enumerable]]
+6. 如果Desc没有\[\[Configurable]]字段，那么设置Desc.\[\[Configurable]]是
+like.\[\[Configurable]]
+7. 返回Desc
+*** 6.2.6 Environment Record规范类型
+  Environment Record类型是用于解释在函数和块中解释名称的行为。这个类型和其上
+的操作在9.1中定义。
+*** 6.2.7 Abstract Closure规范类型
+  Abstract Closure规范类型用于描述连同值合集的若干算法步骤。Abstract Colsure值
+是元值，用函数应用的方式调用，例如closure(arg1, arg2)。和抽象操作类似，调用时
+按照Abstract Closure描述的算法步骤执行。
+  在会创建Abstract Closure的算法步骤中，捕获的值用"capture"后跟随的别名列表
+表示。当Abstract Closure被创建了，同时它捕获这些别名联结的值。在Abstract
+Closure被调用时执行的指定算法的步骤，捕获的值仍然用捕获时的别名引用。
+  如果Abstract Closure返回一个完结记录，这个完结记录的\[\[Type]]要么时normal，
+要么是throw。
+  Abstract Closure在行内创建，作为其他算法的组成，例如：
+1. 让addend是 41
+2. 让closure是新的Abstract Closure，带有parameters(x)捕获addend，并且被调用时
+   执行随后的步骤:
+    a. 返回 x + addend;
+3. 让val时closure(1)
+4. Assert: val时42
+*** 6.2.8 Data Blocks规范类型
+  Data Block规范类型用于描述确切的可修改的字节数值（8位数值）序列。一个字节
+值是一个[0,255]内的整数。每个创建的Data Block值都有固定的字节数，每个字节都
+初始化为0。
+  为了在本规范中表示着方便，适用类似数组的语法访问Data Block中独立的字节。
+这种记法将Data Block表示成一个零原点的整数索引的字节序列。例如，如果db是一个
+5字节的Data Block值，那么db[2]表示其第三个字节的内容。
+  一个data blcok驻留在内存里，可以被多个代理访问到的话，被定为Shared Data
+Block。Shared Data Block有一个标识（为了检测Shared Data Block值是否相等），这个
+标识是无地址的，也就是说它没有绑定到这个块映射在任何进程中的虚拟地址，而
+是这个块在内存中的地址集。两个Data Block相等的唯一条件是其包含的地址集相
+等，否则他们不相等，而且它们包含的地址集没有交集。最后，Shared Data Block要
+能区别于Data Block。
+  Shared Data Block的语义在内存模型中使用Shared Data Block事件中定义。下面的
+抽象操作介绍了Shared Data Block事件，和作为评估语义与内存模型的事件语义间的
+界面。事件构成了备选执行，内存模型在备选执行上作为过滤程序。请咨询内存
+模型获得完整的语义。
+  Shared Data Block事件用Record模型，在内存模型中定义。
+  随后的抽象操作在本规范中用于Data Block值上的操作。
+**** 6.2.8.1 CreateByteDataBlock(size)
+  抽象操作CreateByteDataBlock接受参数size（整数）。被调用时执行下列步骤：
+1. Assert：size >= 0
+2. 让db是新的Data Block值，包含size个字节。如果无法创建这样的Data Block，
+投掷一个RangeError异常
+3. 是指db上所有的字节都是0
+4. 返回db
+**** 6.2.8.2 CreateSharedByteDataBlock(size)
+  抽象操作CreateSharedByteDataBlock接受参数size（非负整数）。被调用时执行下列
+步骤：
+1. Assert：size >= 0
+2. 让db是新的Shared Data Block值，包含size个字节。如果无法创建这样的Shared 
+Data Block，投掷一个RangeError异常
+3. 让execution是环境代理的环境记录的\[\[CandidateExecution]]字段。
+4. 让eventList是execution.\[\[EventsRecords]]里满足\[\[AgentSignifier]]是
+   AgentSignifier()的元素的\[\[EventList]]字段。
+5. 让zero是<<0>>
+6. 遍历db的每个索引i，执行
+    a. 向eventList中附加WriteShareMemory { \[\[Order]]:Init, \[\[NoTear]]:true,
+       \[\[Block]]:db, \[\[ByteIndex]]:i, \[\[ElementSize]]:1, \[\[Payload]]:zero }
+7. 返回db
+**** 6.2.8.3 CopyDataBlockBytes(toBlock, toIndex, fromBlock, fromIndex, count)
+  抽象操作CopyDataBlockBytes接受参数toBlock、toIndex(非负整数）、fromBlock、
+fromIndex（非负整数）和count（非负整数）。被调用时执行下列步骤：
+1. Assert：fromBlock和toBlock是不同的Data Block或者Shared Data Block值。
+2. 让fromSize是fromBlock的字节数
+3. Assert：fromIndex + count <= fromSize
+4. 让toSize是toBlock的字节数
+5. Assert：toIndex + count <= toSize
+6. 当count > 0时，重复执行
+    a. 如果fromBlock是Shared Data Block 那么
+        i. 让execution是环境代理的代理记录的\[\[CandidateExecution]]字段
+       ii. 让eventList是execution.\[\[EventsRecords]]里满足\[\[AgentSignifier]]是
+           AgentSignifier()的元素的\[\[EventList]]字段。
+      iii. 让bytes是一个列表，只有一个未确定选定的字节值。
+       iv. 注意：在实现中，bytes是底层硬件上的非原子读取指令的结果。这种
+           未确定性是内存模型中描述这种弱一致性的监察硬件行为的语义处方。
+        v. 让readEvent是 ReadSharedMemory { \[\[Order]]:Unordered, \[\[NoTear]]:true,
+           \[\[Block]]:fromBlock, \[\[ByteIndex]]:fromIndex, \[\[ElementSize]]:1}
+       vi. 在eventList上追加readEvent
+      vii. 在execution.\[\[ChosenValues]]中附加Chosen Value Record {
+           \[\[Event]]:readEvent, \[\[ChosenValue]]:bytes }
+     viii. 如果toBlock是Shared Data Block，那么
+            1. 在eventList上追加 WriteSharedMemory { \[\[Order]]:Unordered,
+               \[\[NoTear]]:true, \[\[Block]]:toBlock, \[\[ByteIndex]]:toIndex,
+               \[\[ElementSize]]:1, \[\[Payload]]:bytes}
+       ix. 否则
+            1. 设置toBlock[toIndex]是bytes[0]
+    b. 否则
+        i. Assert：toBlock不是Shared Data Block
+       ii. 设置toBlock[toIndex]是fromBlock[fromIndex]
+    c. 设置toIndex是toIndex+1
+    d. 设置fromIndex是fromIndex+1
+    e. 设置count是count-1.
+7. 返回NormalCompletion(empty)
+***** 注意 有可能有从data block到shared data block的操作。这里没有禁止有可能
+在别的地方处理了。
+* 7 抽象操作
+  这些操作不是ECMAScript语言的部分；在这里定义他们，只是帮助ECMAScript语言的
+语义规范。而且贯穿本规范还有更多的特定抽象操作被定义了。
+** 7.1 类型转换    
+  ECMAScript语言在需要的时候隐式的自动执行类型转换。为了明晰某种结构的语义，
+很需要定义一套转换的抽象操作。转换的抽象操作是多态的，他们可以接受任意的
+ECMAScript语言类型的值。但是规范类型值不能在这些操作中适用。
+  在ECMAScript语言中BigInt没有隐式的转换，程序必须调用BigInt来显示的转换到其
+他类型。
+*** 7.1.1 ToPrimitive(input[, preferredType])
+  抽象操作ToPrimitive接受参数input和可选参数preferredType。将input参数转换为一个
+非对象类型。如果一个对象是可以转换为多个原生类型的，它可能需要提示选项
+preferredType到想要的类型。被调用时执行下列步骤：
+1. Assert：input是ECMAScript语言类型
+2. 如果Type(input)是对象，那么
+    a. 让exoticToPrim是?GetMethod(input, @@toPrimitive)
+    b. 如果exoticToPrim不是undefined，那么
+        i. 如果不存在preferredType，让hint是"default"
+       ii. 不然如果preferredType是string，让hint是"string"
+      iii. 否则
+            1. Assert：preferredType是number
+            2. 让hint是"number"
+       iv. 让result是?Call(exoticToPrim, input, <<hint>>)
+        v. 如果Type(result)不是对象，返回result
+       vi. 投掷TypeError异常
+    c. 如果preferredType不存在，让preferredType是number
+    d. 返回?OrdinaryToPrimitive(input, prferredType)
+3. 返回input
+**** 注意 当ToPrimitive被不带提示的调用时，它的行为跟hint是number时是一样的
+     然而，对象可以通过重写@@toPrimitive方法来覆盖这个行为。在本规范中只有
+     Date对象（详见21.4.4.45）和Symbol对象（详见20.4.3.5）重写了ToPrimitive行为。
+     Date对象对待空hint为string。
+**** 7.1.1.1 OrdinaryToPrimitive(O, hint)
+  抽象操作OrdinaryToPrimitive接受参数O和hint。被调用时执行下列步骤：
+1. Assert：Type(O)是对象
+2. Assert：hint是number或者string
+3. 如果hint是string那么
+    a. 让methodNames是<<"toString", "valueOf">>
+4. 否则
+    a. 让methodNames是<<"valueOf", "toString">>
+5. 遍历methodNames的元素name，执行
+    a. 让method是?Get(O, name)
+    b. 如果IsCallable(method)是true，那么
+        i. 让result是?Call(method, O)
+       ii. 如果Type(result)不是Object，返回resut
+6. 投掷TypeError异常
+*** 7.1.2 ToBoolean(argument)
+  抽象操作ToBoolean接受参数argument。它根据表11将argument转换成Boolean类型的值
+| 参数类型  | 结果                                                                       |
+| Undefined | 返回false                                                                  |
+| Null      | 返回false                                                                  |
+| Boolean   | 返回argument                                                               |
+| Number    | 如果argument是+0_F、-0_F或者NaN，返回false。其他返回true                   |
+| String    | 如果argument是空字符串（即length是0），返回false。其他返回true             |
+| Symbol    | 返回true                                                                   |
+| BigInt    | 如果argument是0_Z，返回false。其他返回true。                               |
+| Object    | 返回true。注意：一个关联到内置\[\[IsHTMLDDA]]的备选算法在B.3.7.1中强制执行 |
+*** 7.1.3 ToNumeric(value)
+  抽象操作ToNumeric接受参数value。它返回value转换成的Number或者BigInt。被调用时
+执行下列步骤：
+1. 让primValue是?ToPrimitive(value, number)
+2. 如果Type(primValue)是BitInt，返回primValue
+3. 返回?ToNumber(primValue)
+*** 7.1.4 ToNumber(argument)
+  抽象操作ToNumber接受参数argument。它根据表12将argument转换为Number值。
+| 参数类型  | 结果                                                                                      |
+| Undefined | 返回NaN                                                                                   |
+| Null      | 返回+0_F                                                                                  |
+| Boolean   | 如果argument是true，返回1_F。如果argument是false，返回+0_F                                |
+| Number    | 返回argument（不转换）                                                                    |
+| String    | 参看按照下方的语法和转换算法                                                              |
+| Symbol    | 投掷TypeError异常                                                                         |
+| BigInt    | 投掷TypeError异常                                                                         |
+| Object    | 执行下列步骤：1. 让primValue是?ToPrimitive(argument, number)；2. 返回?ToNumber(primValue) |
+**** 7.1.4.1 接受了String类型的ToNumber行为
+***** 7.1.4.1.1 运行语义：MV
+*** 7.1.5
+** 7.2
+** 7.3
+** 7.4
+** 7.5
+** 7.6
+** 7.7
+** 7.8
 * 25
 ** 25.1
 
