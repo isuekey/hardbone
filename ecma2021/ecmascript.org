@@ -3,7 +3,8 @@
 ** 将来会使用LaTex进行处理.
 * 约定
 ** 若干 表示一个或者多个
-** 可数 表示零个、一个或者多个
+** 有限 表示零个、一个或者多个
+** 可数 表示零个、一个、多个或者无限个
 ** 所有英文为原文内容，作为专用词汇表示特定含义，比如类型、参数、概念等。
 ** 领 表示realm
 ** 域 表示domain
@@ -17,6 +18,7 @@
 ** R域 表示R适用的所有值的集合
 ** 字位 一个二进制位
 ** 字节 8个连续的二进制位。至于大小端，如果没有明确说明，就不考虑。
+** 修圆 指用有限精度数字描述准确数字的处理过程。
 *** 根据编译原理，大小端由其他编译层处理。
 * 第一章
 * 第二章
@@ -30,7 +32,7 @@ left-hand side 和 right-hand side，在"left-hand side"是一个抽象标记记
 "nonterminal", 在"right-hand side" 是一个队列，由可数个标记（"nonterminal"或
 "terminal"）构成的序列。各个语法的"terminal"用特定字母描述。形式如NXn, 
 X属于{N,T},n为非负整数，差不多类似/N[NT]*/。
-  "chain product"是只有一个"right-side nonterminal"和可数个个"terminal"
+  "chain product"是只有一个"right-side nonterminal"和可数个"terminal"
 构成的序列组成的产出。（一定还有一个left-hand side nontermial）。
   一个语句从开始由仅一个区分出的称为"goal symbol"的"nontermimal"和一个给定
 的语法描述（context-free grammar)构成。语句具体指明一个"language"，即一组可数
@@ -62,7 +64,7 @@ InputElementRegExpOrTemplateTail，这些产出描述了如何将输入的字符
   数字语法的产出用三个冒号":::"作为符号来标志。
 *** 5.1.4 语句语法
   ECMAScript的语句语法在13至16章给出。这语法有被词汇语法定义为
-"terminal symbols"的"ECMAScript tokens"。它定义了一套产出，从两个"goal symbol 
+"terminal symbols"的"ECMAScript tokens"。它定义了一套产出，从两个目标符号" 
 Script and Module"的某个开始，描述了token序列如何沟组成ECMAScript程序的
 语句的正确的独立的组件。
   当一个编码流被解析成ECMAScript的"Script"或者"Module"时，它先通过反复运用
@@ -114,11 +116,11 @@ eval(str)
 WhileStatement:
     while ( Expression ) Statement
 声明了WhileStatement nonterminal表示while token、(、一个Exression、)、一个Statement
-组成的序列。Expression和Statement上发生他们自己的nonterminal。在举一个语句定义
+组成的序列。Expression和Statement上发生他们自己的nonterminal。再举一个语句定义
 的例子：
 ArgumentList:
     AssignmentExpression
-    ArgumentList, AssignmentExpression
+    ArgumentList , AssignmentExpression
 声明了ArgumentList可能表示一个单独的AssignmentExpression或者一个由一个
 ArgumentList、,、一个AssignmentExpression构成的序列。这个ArgumentList定义是递归
 的，因为它的定义需要本身。于是ArgumenList可以包含若干参数，参数用,分隔，
@@ -513,8 +515,8 @@ String元素被当作UTF-16的编码单元值。在序列中，每个元素被�
 位，这就是一个编码对，需要按照一个编码点进行翻译，编码点的值是
 (c1 - 0xD800)*0x400+(c2-0xDC00)+0x10000
 3. 如果编码单元是首位或者尾位，但是按照编码对出现，就按照原本值翻译。
-**** 我觉得在组织编码时，这里有个注意事项，
-就是需要连续独立显示首位和尾位时，中间需要增加隔离符号。
+**** 我觉得在组织编码时，这里有个注意事项，就是需要连续独立显示首位和尾位
+     时，中间需要增加隔离符号。
   函数String.prototype.normalize(见于22.1.3.13)备用显式的规范String值。
 String.prototype.localeCompare(见于22.1.3.10)内部规范String值，但是其他操作不会在
 操作内容上隐式的规范String值。只有那些显式指明是语言或者地域敏感的操作产出
@@ -1045,7 +1047,7 @@ Table5 所示
 | Writable     | false     |
 | Enumerable   | false     |
 | Configurabel | false     |
-***** 6.1.7.2 Object内部方法与内部插槽
+***** 6.1.7.2 Object内部方法与内部占位
   在ECMAScript，对象的实际语义是通过被称为内部方法的算法规范的。在ECMAScript
 引擎中的每个对象都联结了一套内部方法，这些方法定义了其运行时的行为。这些
 内部方法不是ECMAScript语言的内容。他们在本规范中被定义仅仅是为了用于解释。
@@ -1054,13 +1056,13 @@ Table5 所示
   内部方法名称是多态的。这个不同对象值在调用一个通用的方法的时候可能会使用
 不同的算法。方法调用时的实际背景对象是内部方法的"target"值。如果，运行时，
 实现的算法试图使用某个对象不支持的内部方法，会投掷TypeError异常。
-  内部插槽对应联结对象的内部状态，被各ECMAScript实现算法使用。内部插槽不是
-对象性质，也不能被继承。根据内部插槽实现的规范，其状态值可能是任何ECMAScript
-语言类型或者ECMAScript规范类型。除非显示指明，内部插槽在创建对象的过程就被
-联结，而且可能不可以动态的增加。除非显示指明，内部插槽的初始值是undefined。
-本规范的各种算法创建的对象都有内部插槽。然而ECMAScript语言不提供联结到对象
+  内部占位对应联结对象的内部状态，被各ECMAScript实现算法使用。内部占位不是
+对象性质，也不能被继承。根据内部占位实现的规范，其状态值可能是任何ECMAScript
+语言类型或者ECMAScript规范类型。除非显示指明，内部占位在创建对象的过程就被
+联结，而且可能不可以动态的增加。除非显示指明，内部占位的初始值是undefined。
+本规范的各种算法创建的对象都有内部占位。然而ECMAScript语言不提供联结到对象
 的直接途径。
-  本规范定义的内部方法和内部插槽的名字使用双方括号包裹的形式\[\[]]
+  本规范定义的内部方法和内部占位的名字使用双方括号包裹的形式\[\[]]
   Table6 描述了用于本规范创建和修改对象是使用的基础内部方法。每个对象都要有
 所有基础内部方法的算法。然而不同对象的内部方法的算法可能不同。
   基本对象是满足下列所有标准的对象
@@ -1750,9 +1752,305 @@ preferredType到想要的类型。被调用时执行下列步骤：
 | BigInt    | 投掷TypeError异常                                                                         |
 | Object    | 执行下列步骤：1. 让primValue是?ToPrimitive(argument, number)；2. 返回?ToNumber(primValue) |
 **** 7.1.4.1 接受了String类型的ToNumber行为
+  ToNumber处理String值时将String解释成UTF-16编码点序列后使用后续的语法。如果
+这里的语法无法将String值翻译成一个扩展的StringNumberLiteral，那么ToNumber返回的
+结果是NaN。
+***** 注意1 本语法中终结符都是由BMP（Unicode Basic Multilingual Plane）字符构成。
+      所以字符串中包含任何首位和尾位编码单元，无论匹配与否，ToNumber都会返回
+      NaN。
+  Syntax
+    StringNumericLiteral :::
+      StrWhiteSpace_opt
+      StrWhiteSpace_opt StrNumericLiteral StrWhiteSpace_opt
+    StrWhiteSpace :::
+      StrWhiteSpaceChar StrWhiteSapce_opt
+    StrWhiteSpaceChar :::
+      WhiteSpace
+      LineTerminator
+    StrNumericLiteral :::
+      StrDecimalLiteral
+      NonDecimalIntegerLiteral_[~Sep]
+    StrDecimalLiteral :::
+      StrUnsignedDecimalLiteral
+      + StrUnsignedDecimalLiteral
+      - StrUnsignedDecimalLiteral
+    StrUnsignedDecimalLiteral :::
+      Infinity
+      DecimalDigits_[~Sep] . DecimalDigits_[~Sep]_opt ExponentPart_[~Sep]_opt
+      . DecimalDigits_[~Sep]_opt ExponentPart_[~Sep]_opt
+      DecimalDigits_[~Sep] ExponentPart_[~Sep]_opt
+  上面用到的没有明确定义的语法符号在字面数字的词法语法（12.8.3）中定义。
+***** 注意2 StringNumericLiteral和NumericLiteral语义有些不同，需要注意
+        . StringNumericLiteral可以在始末包含有限的空格或者换行符
+        . StringNumericLiteral其实位值可以有任意个0
+        . StringNumericLiteral可以包含+或-来指明符号
+        . StringNumericLiteral可以是空的或者值包含空白符，被转换成+0_F
+        . Infinity和-Infinity被时别为StringNumericLiteral，而不是NumericLiteral
+        . StringNumericLiteral不能包含BigIntLiteralSuffix
 ***** 7.1.4.1.1 运行语义：MV
-*** 7.1.5
-** 7.2
+  String转化为Number值总体上与从字面数字得到Number值的规定相似，但是有些细节
+是不同的，所以在这里给出从字符串数字到Number类型值的转换过程。这个值由两步
+决定：首先，从字符串数字中派生数学值（MV）；其次，这个数学值按照下方的描述
+进行修圆。不是在下方里，而是在其他语法符号中提及的MV，是在12.8.3.1中定义的
+MV。
+  . StringNumericLiteral ::: [empty]的MV是0
+  . StringNumericLiteral ::: StrWhiteSpace的MV是0
+  . StringNumericLiteral ::: StrWhiteSpace_opt StrNumericLiteral StrWhiteSpace_opt的MV
+    是StrNumericLiter的MV，无论有多少空白或者没有空白
+n  . StringNumericLiteral ::: - StrUnsignedDecimalLiteral的MV是负的
+    StrUnsignedDecimalLiteral的MV。（注意如果StrUnsignedDecimalLiteral的MV是0，这个
+    MV的负值仍然是0。下方的修圆规则处理这个无符号数值0到合适的+0_F或者-0_F
+    浮点数）
+  . StrUnsignedDecimalLiteral ::: Infinity的MV是10^10000（足够大以致于修圆到+∞_F）
+  . StrUnsignedDecimalLiteral ::: DecimalDigits . DecimalDigits的MV是第一个
+    DecimalDigits的MV加以(第二DecimalDigits的MV与10^-n的积)的和，其中n是第二个
+    DecimalDigits的编码点数量
+  . StrUnsignedDecimalLiteral ::: DecimalDigits . ExponentPart的MV是DecimalDigits的MV
+    与10^e的积，其中e是ExponentPart的MV。
+  . StrUnsignedDecimalLiteral ::: DecimalDigits . DecimalDigits ExponentPart的MV是(第一
+    个DecimalDigits的MV加以(第二个DecimalDigits的MV与10^-n的积)的和）与10^e的积，
+    其中n是第二个DecimalDigits的编码点数量，而e是ExponentPart的MV。
+  . StrUnsignedDecimalLiteral ::: . DecimalDigits的MV是DecimalDigits的MV与10^-n的积，
+    其中n是DecimalDigits的编码点数量
+  . StrUnsignedDecimalLiteral ::: . DecimalDigits ExponentPart的MV是DecimalDigits的MV
+    与10^(e-n)的积，其中n是DecimalDigits的编码点数量，而e是ExponentPart的MV。
+  . StrUnsignedDecimalLiteral ::: DecimalDigits ExponentPart的MV是DecimalDigits的MV与
+    10^e的积，其中e是ExponentPart的MV。
+  一旦字符串字面量数字决定了确定的MV，随后被修圆到Number类型的值。如果MV是
+0，会被修圆到+0_F，除非字符串字面量的第一个非空白符是"-"，这时会被修圆到
+-0_F。其他情况，必须修圆到MV对应的Number值（按照在6.1.6.1中定义的含义），除非
+是字面里包含StrUnsignedDecimalLiteral，而且包含了超过20个有意义数字的特殊情
+况。在特殊情况里Number值可能是用0替换掉第20位之后的有意义数字的MV的Number
+值，或者用0替换掉第20位之后的有意义数字后，再在第20位+1的MV的Number值。
+  有意义数字是指不在ExponentPart里的，且
+  . 不是"0"，或者
+  . 左侧有非0数字，而且右侧有不在ExponentPart里的非0数字的"0"
+*** 7.1.5 ToIntegerOrInfinity(argument)
+  抽象操作ToIntegerOrInfinity接受参数argument。它将argument转换成整数、+∞或
+-∞。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F或者-0_F，返回0
+3. 如果number是+∞_F，返回+∞
+4. 如果number是-∞_F，返回-∞
+5. 让integer是floor(abs(R(number)))
+6. 如果number<+0_F，设置integer是-integer
+7. 返回integer
+*** 7.1.6 ToInt32(argument)
+  抽象操作ToInt32接受参数argument。将argument转换为2^32的整数Number，范围在
+[F(-2^31),F(2^31-1)]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int32bit是int按2^32取模
+5. 如果int32bit>=2^31,返回F(int32bit - 2^32)否则返回F(int32bit)
+**** 注意 上述定义ToInt32
+    . ToInt32抽象操作是向前强效的。如果被提供了一个它产生的结果，这个第二次
+      使用需要值不变。
+    . ToInt32(ToUnit32(x))与ToInt32(x)是相同值。（这是为了保留后面将+∞_F和-∞_F
+      映射到+0_F的性质）
+    . ToInt32映射-0_F到+0_F
+*** 7.1.7 ToUint32(argument)
+  抽象操作ToUint32接受参数argument。将argument转换为2^32的整数Number，范围在
+[+0_F,F(2^32-1)]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int32bit是int按2^32取模
+5. 返回F(int32bit)
+**** 注意 上述定义ToUint32
+    . 只有第5步上ToUint32与ToInt32有差异
+    . ToUint32抽象操作是向前强效的。如果被提供了一个它产生的结果，这个第二次
+      使用需要值不变。
+    . ToUnit32(ToInt32(x))与ToUint32(x)是相同值。（这是为了保留后面将+∞_F和-∞_F
+      映射到+0_F的性质）
+    . ToUint32映射-0_F到+0_F
+*** 7.1.8 ToInt16(argument)
+  抽象操作ToInt16接受参数argument。将argument转换为2^16的整数Number，范围在
+[F(-2^15), F(2^15-1)]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int16bit是int按2^16取模
+5. 如果int16bit>=2^15,返回F(int16bi5 - 2^16)否则返回F(int16bit)
+*** 7.1.9 ToUint16(argument)
+  抽象操作ToUint16接受参数argument。将argument转换为2^16的整数Number，范围在
+[F(+0_F), F(2^16-1)]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int16bit是int按2^16取模
+5. 返回F(int16bit)
+**** 注意 上述定义ToUint16
+    . ToUint16与ToUint32的唯一差别是在第4步，用2^16替代了2^32。
+    . ToUint16映射-0_F到+0_F
+*** 7.1.10 ToInt8(argument)
+  抽象操作ToInt8接受参数argument。将argument转换为2^8的整数Number，范围在
+[-128_F, 127_F]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int8bit是int按2^8取模
+5. 如果int8bit>=2^7,返回F(int8bit - 2^8)否则返回F(int8bit)
+*** 7.1.11 ToUint8(argument)
+  抽象操作ToUint8接受参数argument。将argument转换为2^8的整数Number，范围在
+[+0_F, 255_F]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int8bit是int按2^8取模
+5. 返回F(int8bit)
+*** 7.1.12 ToUint8Clamp(argument)
+  抽象操作ToUint8Clamp接受参数argument。将argument转化为2^8的整数Number，范围在
+[+0_F, 255_F]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN，返回+0_F
+3. 如果R(number)<=0，返回+0_F
+4. 如果R(number)>= 255，返回255_F
+5. 让f是floor(R(number))
+6. 如果f+0.5 < R(number)，返回F(f+1)
+7. 如果R(number) < f + 0.5，返回F(f)
+8. 如果f是odd，返回F(f+1)
+9. 返回F(f)
+**** 注意 不像其他ECMAScript的整数转换，ToUint8Clamp的修圆方式不同于截断整数
+     也不是转换+∞_F到+0_F。ToUint8Clamp采用中间取偶的方式进行修圆。这也不同
+     于Math.round的四舍五入方式。
+*** 7.1.13 ToBigInt(argument)
+  抽象操作ToBigInt接受参数argument。将argument转换为BigInt值，或者投掷异常如果
+需要隐式的丛Number转换的话。被调用时执行下列步骤：
+1. 让prim是?ToPrimitive(argument, number)
+2. 按照表13，根据prim值进行返回。
+| 参数类型  | 结果                                                                        |
+| Undefined | 投掷TypeError异常                                                           |
+| Null      | 投掷TypeError异常                                                           |
+| Bollean   | 如果prim是true，则返回1n。如果prim是false，则返回0n                         |
+| BigInt    | 返回prim                                                                    |
+| Number    | 投掷TypeError异常                                                           |
+| String    | 1. 让n是!StringToBigInt(prim)；2. 如果n是NaN，投掷SyntaxError异常；3. 返回n |
+| Symbol    | 投掷TypeError异常                                                           |
+*** 7.1.14 StringToBigInt(argument)
+  应用7.1.4.1的算法，并进行随后的调整
+. 替换StrUnsignedDecimalLiteral产出的DecimalDigits中禁止Infinity、小数点和指数部
+. 如果NaN，返回NaN。否则返回准确表示MV的BigInt值，不需要修圆。
+*** 7.1.15 ToBigInt64(argument)
+  抽象操作ToBigInt64接受参数argument。将argument转换为2^64的BigInt值，范围在
+[Z(-2^63),Z(2^63-1)]内。被调用是执行下列步骤：
+1. 让n是?ToBigInt(argument)
+2. 让int64bit是R(n)按2^64取模
+3. 如果int64bit>=2^63，返回Z(int64bit - 2^64)；否则返回Z(int64bit)
+*** 7.1.16 ToBigUint64(argument)
+  抽象操作ToBigUint64接受参数argument。将argument转换为2^64的BigInt值，范围在
+[0_Z, Z(2^64-1)]内。被调用时执行下列步骤：
+1. 让n是?ToBigInt(argument)
+2. 让int64bit是R(n)按2^64取模
+3. 返回Z(int64bit)
+*** 7.1.17 ToString(argument)
+  抽象操作ToString接受参数argument。将argument按照表14转根据其类型转换为String
+值。
+| 参数类型  | 结果                                                                                       |
+| Undefined | 返回"undefined"                                                                            |
+| Null      | 返回"null"                                                                                 |
+| Boolean   | 如果argument是true，返回"true"。如果argument是false，返回"false"                           |
+| Number    | 返回!Number::toString(argument)                                                            |
+| String    | 返回argument                                                                               |
+| Symbol    | 投掷TypeError异常                                                                          |
+| BigInt    | 返回!BigInt::toString(argument)                                                            |
+| Object    | 应用随后的步骤：1. 让primValue是?ToPrimitive(argument, string) 2. 返回?ToString(primValue) |
+*** 7.1.18 ToObject(argument)
+  抽象操作ToObject接受参数argument。将argument按照表15根据其类型转换为Object
+值。
+| 参数类型  | 结果                                                                                      |
+| Undefined | 投掷TypeError异常                                                                         |
+| Null      | 投掷TypeError异常                                                                         |
+| Boolean   | 返回一个新的Boolean对象，其内部占位\[\[BooleanData]]是argument。参看20.3Boolean对象的描述 |
+| Number    | 返回一个新的Number对象，其内部占位\[\[NumberData]]是argument。参看21.1Number对象的描述    |
+| String    | 返回一个新的String对象，其内部占位\[\[StringData]]是argument。参看22.1String对象的描述    |
+| Symbol    | 返回一个新的Symbol对象，其内部占位\[\[SymbolData]]是argument。参看20.4Symbol对象的描述    |
+| BigInt    | 返回一个新的BigInt对象，其内部占位\[\[BigIntData]]是argument。参看21.2Bigint对象的描述    |
+| Object    | 返回argument                                                                              |
+*** 7.1.19 ToPropertyKey(argument)
+  抽象操作ToPropertyKey接受参数argument。将argument转换为能作为性质键的值。被调
+用时执行下列步骤：
+1. 让key是?ToPrimitive(argument,string)
+2. 如果Type(key)是Symbol，那么
+    a. 返回key
+3. 返回!ToString(key)
+*** 7.1.20 ToLength(argument)
+  抽象操作ToLenght接受参数argument。将argument转换为适合作为像数组的对象的长度
+的整数Number。被调用时执行下列步骤：
+1. 让len是?ToIntegerOrInfinity(argument)
+2. 如果len <= 0，返回+0_F
+3. 返回F(min(len, 2^53-1))
+*** 7.1.21 CanonicalNumericIndexString(argument)
+  抽象操作CanonicalNumericIndexString接受参数argument。将argument转换为Number值，
+如果是可以Number通过ToString产生的String值或者String"-0"。否则返回undefined。当
+被调用时执行下列步骤：
+1. Assert：Type(argument)是String
+2. 如果argument是"-0"，返回-0_F
+3. 让n是!ToNumber(argument)
+4. 如果SameValue(!ToString(n), argument)是false，返回undefined
+5. 返回n
+  经典数字字符串是指不会让CanonicalNumericIndexString抽象操作返回undefined的
+String值。
+*** 7.1.22 ToIndex(value)
+  抽象操作ToIndex接受参数value。将参数value转换为非负整数，如果value是有效的
+整数索引值。被调用时执行下列步骤：
+1. 如果value是undefined，那么
+    a. 返回0
+2. 否则
+    a. 让integerIndex是F(?ToIntegerOrInfinity(value))
+    b. 如果integerIndex < +0_F，投掷RangeError异常
+    c. 让index是!ToLength(integerIndex)
+    d. 如果!SameValue(integerIndex, index)是false，投掷RangeError异常
+    e. 返回R(index)
+** 7.2 检测和匹配操作
+*** 7.2.1 RequireObjectCoercible(argument)（coerce强制）
+  抽象操作RequireObjectCoercible接受参数argument。如果argument不能使用ToObject转换
+成Object，会投掷异常。在表16中定义。
+| 参数类型  | 结果              |
+| Undefined | 投掷TypeError异常 |
+| Null      | 投掷TypeError异常 |
+| Bollean   | 返回argument      |
+| Number    | 返回argument      |
+| String    | 返回argument      |
+| Symbol    | 返回argument      |
+| BigInt    | 返回argument      |
+| Oject     | 返回argument      |
+*** 7.2.2 IsArray(argument)
+  抽象操作IsArray接受参数argument。被调用时执行下列步骤：
+1. 如果Type(Argument)不是Object，返回false
+2. 如果argument是Array exotic对象，返回true
+3. 如果arugment是Proxy exotic对象，那么
+    a. 如果arugment.\[\[ProxyHandler]]是空，投掷TypeError异常
+    b. 让target是argument.\[\[ProxyTarget]]
+    c. 返回?IsArray(target)
+4. 返回false
+*** 7.2.3 IsCallable(argument)
+  抽象操作IsCallable接受参数argument（ECMAScript语言值）。明确argument是一个带有
+\[\[Call]]内置方法的可调用函数。被调用时执行下列步骤：
+1. 如果Type(argument)不是Object，返回false
+2. 如果argument有\[\[Call]]内置方法，返回true
+3. 返回false
+*** 7.2.4 IsConstrutor(argument)
+  抽象操作IsConstructor接受参数argument（ECMAScript语言值）。明确argument是一个
+带有\[\[Constructor]]内置方法的函数对象。被调用时执行下列步骤：
+1. 如果Type(argument)不是Object，返回false
+2. 如果argument有\[\[Constructor]]内置方法，返回true
+3. 返回false
+*** 7.2.5 IsExtensible(O)
+  抽象操作IsExtensible接受参数O（一个Object）,返回一个完结记录。record的
+\[\[Type]]是normal，\[\[Value]]是Boolean值。被用于明确额外的性质能否被添加到O
+上。被调用时执行下列步骤：
+1. Assert: Type(O)是Object
+2. 返回?O.\[\[IsExtensible]]()
+*** 7.2.7 
+*** 7.2.8 
+*** 7.2.9
+*** 7.2.10 
+*** 7.2.11
+*** 7.2.12
+*** 7.2.13 
+*** 7.2.14
+*** 7.2.15
 ** 7.3
 ** 7.4
 ** 7.5
