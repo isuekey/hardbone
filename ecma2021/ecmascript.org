@@ -2037,21 +2037,112 @@ String值。
 2. 如果argument有\[\[Constructor]]内置方法，返回true
 3. 返回false
 *** 7.2.5 IsExtensible(O)
-  抽象操作IsExtensible接受参数O（一个Object）,返回一个完结记录。record的
-\[\[Type]]是normal，\[\[Value]]是Boolean值。被用于明确额外的性质能否被添加到O
-上。被调用时执行下列步骤：
+  抽象操作IsExtensible接受参数O（一个Object）,返回Boolean值。明确额外的性质能
+否被添加到O上。被调用时执行下列步骤：
 1. Assert: Type(O)是Object
 2. 返回?O.\[\[IsExtensible]]()
-*** 7.2.7 
-*** 7.2.8 
-*** 7.2.9
-*** 7.2.10 
-*** 7.2.11
-*** 7.2.12
-*** 7.2.13 
-*** 7.2.14
-*** 7.2.15
-** 7.3
+*** 7.2.6 IsIntegralNumber(argument)
+  抽象操作IsIntegralNumber接受参数argument。明确argument是否以一个有限的整数
+Number值。被调用时执行下列步骤：
+1. 如果Type(argument)不是Number，返回false
+2. 如果argument是NaN、+∞_F、-∞_F返回false
+3. 如果floor(abs(R(argument))) != abs(R(argument))返回false
+4. 返回true
+*** 7.2.7 IsPropertyKey(argument)
+  抽象操作IsPropertyKey接受参数argument（ECMAScript语言值）。明确argument是否可
+以作为性质键。被调用时执行下列步骤：
+1. 如果Type(argument)是String，返回true
+2. 如果Type(argument)是Symbol，返回true
+3. 返回false
+*** 7.2.8 IsRegExp(argument)
+  抽象操作IsRegExp接受参数argument。被调用时执行下列步骤：
+1. 如果Type(argument)不是Object，返回false
+2. 让matcher是?Get(argument, @@match)
+3. 如果matcher不是undefined，返回!ToBoolean(matcher)
+4. 如果argument有\[\[RegExpMatcher]]内部占位，返回true
+5. 返回false
+*** 7.2.9 IsStringPrefix(p,q) 
+  抽象操作IsStringPrefix接受参数p（String）和q（String）。明确p是否是q的前缀。
+被调用时执行下列步骤：
+1. Assert：Type(p)是String
+2. Assert：Type(q)是String
+3. 如果q是p与其他String r拼接成的String，返回true，否则返回false。
+**** 注意 任何String都是自身的前缀，因为r可以是空String
+*** 7.2.10 SameValue(x,y)
+  抽象操作SameValue接受参数x（ECMAScript语言值）和y（ECMAScript语言值），并返
+回Boolean值。被调用时执行下列步骤：
+1. 如果Type(x)与Type(y)不同，返回false
+2. 如果Type(x)是Number或者BigInt，那么
+    a. 返回!Type(x)::sameValue(x, y)
+3. 返回!SameValueNonNumeric(x,y)
+**** 注意 这个算法与严格相等算法不同，区别在如何处理零与NaN
+*** 7.2.11 SameValueZero(x,y)
+  抽象操作SameValueZero接受参数x（ECMAScript语言值）和y（ECMAScript语言值），
+并返回Boolean值。被调用时执行下列步骤：
+1. 如果Type(x)与Type(y)不同，返回false
+2. 如果Type(x)是Number或者BigInt，那么
+    a. 返回!Type::sameValueZero(x,y)
+3. 返回!SameValueNonNumeric(x,y)
+**** SameValueZero与SameValue的差异在于处理+0_F和-0_F上
+*** 7.2.12 SameValueNonNumeric(x,y)
+  抽象操作SameValueNonNumeric接受参数x（ECMAScript语言值）和y（ECMAScript语言值）
+，并返回Boolean值。被调用时返回下列步骤：
+1. Assert：Type(x)不是Number或BigInt
+2. Assert：Type(x)与Type(y)相同
+3. 如果Type(x)是Undefined，返回true
+4. 如果Type(x)是Null，返回true
+5. 如果Type(x)是String，那么
+    a. 如果x和y有相同的编码单元（相同长度，相同索引的编码单元相同），返回
+       true，否则返回false
+6. 如果Type(x)是Boolean，那么
+    a. 如果x和y都是true或者都是false，返回true；否则返回false
+7. 如果Type(x)是Symbol，那么
+    a. 如果x和y都是相同的Symbol值，返回true；否则返回false
+8. 如果x和y是相同的Object，返回true；否则返回false
+*** 7.2.13 抽象关系比较 <
+  值x、y的关系式x < y产生true、false或者undefined（表明至少有个NaN参与了比
+较）。除了x、y，这个算法还接受一个Boolean标记LeftFirst作为参数。这个标记用于
+控制在操作有潜在副作用的x、y时的评估顺序。这是必要的，因为在ECMAScript明确
+规定了从左到右评估表达式。LeftFirst的默认时值true，表明在表达式中的x代表的
+表达式发生在y代表的表达式左侧（之前）。如果LeftFirst是false，那就是相反顺
+序，y表达式的评估在x之前。比较按照下列步骤执行：
+1. 如果LeftFirst是true，那么
+    a. 让px是?ToPrimitive(x, number)
+    b. 让py是?ToPrimitive(y, number)
+2. 否则
+    a. 注意: 评估顺序需要反过来，以保证比较按照从左到右的顺序评估
+    b. 让py是?ToPrimitive(y, number)
+    c. 让px是?ToPrimitive(x, number)
+3. 如果Type(px)是String， Type(py)也是String，那么
+    a. 如果IsStringPrefix(py, px)是true，返回false
+    b. 如果IsStringPrefix(px, py)是true，返回true
+    c. 让k是px中与py中对应位置编单元不同的最小非负整数。（必然有这样的k存
+       在，即使都不是对方的前缀）
+    d. 让m是px在k位的编码单元的数字的整数
+    e. 让n是py在k位的编码单元的数字的整数
+    f. 如果m<n，返回true。否则返回false
+4. 否则
+    a. 如果Type(px)是BigInt且Type(py)是String，那么
+        i. 让ny是!StringToBigInt(py)
+       ii. 如果ny是NaN，返回undefined
+      iii. 返回BigInt::lessThan(px,ny)
+    b. 如果Type(px)是String且Type(py)是BigInt，那么
+        i. 让nx是!StringBoBigInt(px)
+       ii. 如果nx是NaN，返回undefined
+      iii. 返回BigInt::(nx,py)
+    c. 注意因为px和py是基础值，评估顺序不重要
+    d. 让nx是!ToNumeric(px)
+    e. 让ny是!ToNumeric(py)
+    f. 如果Type(nx)与Type(ny)相同，返回Type(nx)::lessThan(nx, ny)
+    g. Assert：Type(nx)是BigInt时Type(ny)是Number，或者Type(nx)是Number时Type(ny)是
+       BigInt
+    h. 如果nx或者ny是NaN，返回undefined
+    i. 如果nx是-∞_F或者ny是+∞_F，返回true
+    j. 如果nx是+∞_F或者ny是-∞_F，返回false
+    k. 如果R(nx) < R(ny)，返回true，否则返回false
+*** 7.2.14 抽象相等比较 \=\=
+*** 7.2.15 严格相等比较 \=\=\=
+** 7.3 Object上的操作
 ** 7.4
 ** 7.5
 ** 7.6
