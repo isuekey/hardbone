@@ -2205,6 +2205,14 @@ Number值。被调用时执行下列步骤：
 2. 让O是?ToObject(V)
 3. 返回?O.\[\[Get]](P,V)
 *** 7.3.4 Set(O,P,V,Throw)
+  抽象操作Set接受参数O（Object），P（性质键），V（ECMAScript语言值）和Throw（Boolean）。用于在object
+上设置指定性质的值。V是这个性质的新值。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：IsPropertyKey(P)是true
+3. Assert：Type(Throw)是Boolean
+4. 让success是?O.\[\[Set]](P,V,O)
+5. 如果success是false而且Throw是true，投掷TypeError异常
+6. 返回success
 *** 7.3.5 CreateDataProperty(O,P,V)
 *** 7.3.6 CreateMethodProperty(O,P,V)
 *** 7.3.7 CreateDataPropertyOrThrow(O,P,V)
