@@ -3,7 +3,8 @@
 ** 将来会使用LaTex进行处理.
 * 约定
 ** 若干 表示一个或者多个
-** 可数 表示零个、一个或者多个
+** 有限 表示零个、一个或者多个
+** 可数 表示零个、一个、多个或者无限个
 ** 所有英文为原文内容，作为专用词汇表示特定含义，比如类型、参数、概念等。
 ** 领 表示realm
 ** 域 表示domain
@@ -15,6 +16,10 @@
 ** 构造范 表示constructor
 ** 合集 表示collection
 ** R域 表示R适用的所有值的集合
+** 字位 一个二进制位
+** 字节 8个连续的二进制位。至于大小端，如果没有明确说明，就不考虑。
+** 修圆 指用有限精度数字描述准确数字的处理过程。
+*** 根据编译原理，大小端由其他编译层处理。
 * 第一章
 * 第二章
 * 第三章
@@ -27,7 +32,7 @@ left-hand side 和 right-hand side，在"left-hand side"是一个抽象标记记
 "nonterminal", 在"right-hand side" 是一个队列，由可数个标记（"nonterminal"或
 "terminal"）构成的序列。各个语法的"terminal"用特定字母描述。形式如NXn, 
 X属于{N,T},n为非负整数，差不多类似/N[NT]*/。
-  "chain product"是只有一个"right-side nonterminal"和可数个个"terminal"
+  "chain product"是只有一个"right-side nonterminal"和可数个"terminal"
 构成的序列组成的产出。（一定还有一个left-hand side nontermial）。
   一个语句从开始由仅一个区分出的称为"goal symbol"的"nontermimal"和一个给定
 的语法描述（context-free grammar)构成。语句具体指明一个"language"，即一组可数
@@ -59,7 +64,7 @@ InputElementRegExpOrTemplateTail，这些产出描述了如何将输入的字符
   数字语法的产出用三个冒号":::"作为符号来标志。
 *** 5.1.4 语句语法
   ECMAScript的语句语法在13至16章给出。这语法有被词汇语法定义为
-"terminal symbols"的"ECMAScript tokens"。它定义了一套产出，从两个"goal symbol 
+"terminal symbols"的"ECMAScript tokens"。它定义了一套产出，从两个目标符号" 
 Script and Module"的某个开始，描述了token序列如何沟组成ECMAScript程序的
 语句的正确的独立的组件。
   当一个编码流被解析成ECMAScript的"Script"或者"Module"时，它先通过反复运用
@@ -111,11 +116,11 @@ eval(str)
 WhileStatement:
     while ( Expression ) Statement
 声明了WhileStatement nonterminal表示while token、(、一个Exression、)、一个Statement
-组成的序列。Expression和Statement上发生他们自己的nonterminal。在举一个语句定义
+组成的序列。Expression和Statement上发生他们自己的nonterminal。再举一个语句定义
 的例子：
 ArgumentList:
     AssignmentExpression
-    ArgumentList, AssignmentExpression
+    ArgumentList , AssignmentExpression
 声明了ArgumentList可能表示一个单独的AssignmentExpression或者一个由一个
 ArgumentList、,、一个AssignmentExpression构成的序列。这个ArgumentList定义是递归
 的，因为它的定义需要本身。于是ArgumenList可以包含若干参数，参数用,分隔，
@@ -510,8 +515,8 @@ String元素被当作UTF-16的编码单元值。在序列中，每个元素被�
 位，这就是一个编码对，需要按照一个编码点进行翻译，编码点的值是
 (c1 - 0xD800)*0x400+(c2-0xDC00)+0x10000
 3. 如果编码单元是首位或者尾位，但是按照编码对出现，就按照原本值翻译。
-**** 我觉得在组织编码时，这里有个注意事项，
-就是需要连续独立显示首位和尾位时，中间需要增加隔离符号。
+**** 我觉得在组织编码时，这里有个注意事项，就是需要连续独立显示首位和尾位
+     时，中间需要增加隔离符号。
   函数String.prototype.normalize(见于22.1.3.13)备用显式的规范String值。
 String.prototype.localeCompare(见于22.1.3.10)内部规范String值，但是其他操作不会在
 操作内容上隐式的规范String值。只有那些显式指明是语言或者地域敏感的操作产出
@@ -1042,7 +1047,7 @@ Table5 所示
 | Writable     | false     |
 | Enumerable   | false     |
 | Configurabel | false     |
-***** 6.1.7.2 Object内部方法与内部插槽
+***** 6.1.7.2 Object内部方法与内部占位
   在ECMAScript，对象的实际语义是通过被称为内部方法的算法规范的。在ECMAScript
 引擎中的每个对象都联结了一套内部方法，这些方法定义了其运行时的行为。这些
 内部方法不是ECMAScript语言的内容。他们在本规范中被定义仅仅是为了用于解释。
@@ -1051,13 +1056,13 @@ Table5 所示
   内部方法名称是多态的。这个不同对象值在调用一个通用的方法的时候可能会使用
 不同的算法。方法调用时的实际背景对象是内部方法的"target"值。如果，运行时，
 实现的算法试图使用某个对象不支持的内部方法，会投掷TypeError异常。
-  内部插槽对应联结对象的内部状态，被各ECMAScript实现算法使用。内部插槽不是
-对象性质，也不能被继承。根据内部插槽实现的规范，其状态值可能是任何ECMAScript
-语言类型或者ECMAScript规范类型。除非显示指明，内部插槽在创建对象的过程就被
-联结，而且可能不可以动态的增加。除非显示指明，内部插槽的初始值是undefined。
-本规范的各种算法创建的对象都有内部插槽。然而ECMAScript语言不提供联结到对象
+  内部占位对应联结对象的内部状态，被各ECMAScript实现算法使用。内部占位不是
+对象性质，也不能被继承。根据内部占位实现的规范，其状态值可能是任何ECMAScript
+语言类型或者ECMAScript规范类型。除非显示指明，内部占位在创建对象的过程就被
+联结，而且可能不可以动态的增加。除非显示指明，内部占位的初始值是undefined。
+本规范的各种算法创建的对象都有内部占位。然而ECMAScript语言不提供联结到对象
 的直接途径。
-  本规范定义的内部方法和内部插槽的名字使用双方括号包裹的形式\[\[]]
+  本规范定义的内部方法和内部占位的名字使用双方括号包裹的形式\[\[]]
   Table6 描述了用于本规范创建和修改对象是使用的基础内部方法。每个对象都要有
 所有基础内部方法的算法。然而不同对象的内部方法的算法可能不同。
   基本对象是满足下列所有标准的对象
@@ -1329,53 +1334,904 @@ Record
 | \[\[Value]]  | ECMAScript语言值或者空                     | 产生的值                 |
 | \[\[Target]] | ECMAScript字符串或者空                     | 直接的控制传输的目标标签 |
   术语abrupt completion（意外完结）指\[\[Type]]不是normal的Completion实例。
-*** 6.2.3.1 Await
-  算法步骤
-1. 让completion是Await(value)
-  与下列步骤意味着相同的含意
-1. 让asyncContext是运行时执行上下文（running execution context）
-2. 让promise是?PromiseResolve(%Promise%, value)
-3. 让stepsFulfilled是定义在Await Fulfilled Functions的算法步骤
-4. 让lengthFulfilled是定义在Await Fulfilled Functions的函数需要的必要参数的数量
-5. 让onFulfilled是!CreateBuiltinFunction(stepsFulfilled, lengthFulfilled,\'''\', <<\[\[AsyncContext\]\]>>)
-6. 设置onFulfilled.\[\[AsyncContext]]为asyncContext
-7. 让stepsRejected是定义在Await Rejected Functions的算法步骤
-8. 让lengthRejected是定义在Await Rejected Functions的函数需要的必要参数的数量
-9. 让onRejected是!CreateBuiltinFunction(stepsRejected, lengthRejected, \'''\',<<\[\[AysncContext]]>>)
-10. 设置onRejected.\[\[AsyncContext]]为asyncContext
-11. 运行!PerformPromiseThen(promise, onFulfilled, onRejected)
-12. 从execution context stack中移除asyncContext，将在execution context stack顶部的execution context
-    恢复为running execution context
-13. 设置asyncContext像那些带着完结completion继续的评估的代码评估状态是completion，这样跟随在Await
-    算法之后的步骤就会执行下去
-14. 返回
-15. 注意：本返回到评估的操作在asyncContext中是最优先继续评估的。
-上述步骤中的别名，和预期的completion，都是瞬时的，而且仅在Await的算法步骤中可见。
-**** 注意 Await可以组合?和!前缀，例如： 1. 让result是?Await(value)
-     意味着下面行为：
-1. 让result是Await(value)
-2. ReturnIfAbrupt(result)
-*** 6.2.3.1.1 Await Fulfilled Functions
-  Await Fulfilled Functions是匿名内建函数，是Await规范的一部分，用于将promise fulfillment值
-作为普通完结派发到调用者。每个Await fulfilled函数又一个内置的\[\[AsyncContext\]\]
-  当Await fulfilled函数被调用在value上时，下列步骤会被执行
-1. 让F是active function object
-2. 让asyncContext是F.\[\[AsyncContext]]
-3. 让prevContext是running execution context
-4. 挂起prevContext
-5. 将asyncContext压到execution context stack；asyncContext就是现在的运行时执行背景
-6. 继续asyncContext上已经挂起的评估，用NormalCompletion(value)作为这个挂起的操作的结果。
-7. Assert：当到达这步的时候，asyncContext已经被从execution context stack移除，而且
-   prevContext是当前的运行时执行背景
-8. 返回undefined
-*** 6.2.3.1.1 Await Fulfilled Functions
-*** 6.2.3.1.1 Await Fulfilled Functions
-*** 6.2.3.2 Await
-*** 6.2.4
-** 6.3
-** 6.4
-* 7
-** 7.1
+**** 6.2.3.1 Await
+   算法步骤
+ 1. 让completion是Await(value)
+   与下列步骤意味着相同的含意
+ 1. 让asyncContext是运行时执行上下文（running execution context）
+ 2. 让promise是?PromiseResolve(%Promise%, value)
+ 3. 让stepsFulfilled是定义在Await Fulfilled Functions的算法步骤
+ 4. 让lengthFulfilled是定义在Await Fulfilled Functions的函数需要的必要参数的数量
+ 5. 让onFulfilled是!CreateBuiltinFunction(stepsFulfilled, lengthFulfilled,\'''\', <<\[\[AsyncContext\]\]>>)
+ 6. 设置onFulfilled.\[\[AsyncContext]]为asyncContext
+ 7. 让stepsRejected是定义在Await Rejected Functions的算法步骤
+ 8. 让lengthRejected是定义在Await Rejected Functions的函数需要的必要参数的数量
+ 9. 让onRejected是!CreateBuiltinFunction(stepsRejected, lengthRejected, \'''\',<<\[\[AysncContext]]>>)
+ 10. 设置onRejected.\[\[AsyncContext]]为asyncContext
+ 11. 运行!PerformPromiseThen(promise, onFulfilled, onRejected)
+ 12. 从execution context stack中移除asyncContext，将在execution context stack顶部的execution context
+     恢复为running execution context
+ 13. 设置asyncContext像那些带着完结completion继续的评估的代码评估状态是completion，这样跟随在Await
+     算法之后的步骤就会执行下去
+ 14. 返回
+ 15. 注意：本返回到评估的操作在asyncContext中是最优先继续评估的。
+ 上述步骤中的别名，和预期的completion，都是瞬时的，而且仅在Await的算法步骤中可见。
+***** 注意 Await可以组合?和!前缀，例如： 1. 让result是?Await(value)
+      意味着下面行为：
+ 1. 让result是Await(value)
+ 2. ReturnIfAbrupt(result)
+***** 6.2.3.1.1 Await Fulfilled Functions
+    Await fulfilled函数是匿名内建函数，是Await规范的一部分，用于将promise fulfillment值
+  作为普通完结派发到调用者。每个Await fulfilled函数有一个内置的\[\[AsyncContext\]\]
+    当Await fulfilled函数被带着value调用时，下列步骤会被执行
+  1. 让F是active function object
+  2. 让asyncContext是F.\[\[AsyncContext]]
+  3. 让prevContext是running execution context
+  4. 挂起prevContext
+  5. 将asyncContext压到execution context stack；asyncContext就是现在的运行时执行背景
+  6. 继续asyncContext上已经挂起的评估，用NormalCompletion(value)作为这个导致挂起的操作的结果。
+  7. Assert：当到达这步的时候，asyncContext已经从execution context stack中移除，而且
+     prevContext是当前的运行时执行背景
+  8. 返回undefined
+    Await fulfilled函数的length性质是1_F
+***** 6.2.3.1.2 Await Rejected Functions
+    Await rejected函数是匿名内建函数，是Await规范的一部分，用于将promise rejection原因
+  作为投掷完结派发给调用者。每个Await rejected函数有一个内置的\[\[AsyncContext]]
+    当Await rejected函数被带着reason调用时，下列步骤会被执行
+  1. 让F是active function object
+  2. 让asyncContext是F.\[\[AsyncContext]]
+  3. 让prevContext是running execuction context
+  4. 挂起prevContext
+  5. 将asyncContext压到execution context stack；asyncContext就是现在的运行时执行背景
+  6. 继续asyncContext上已经挂起的评估，用ThrowCompletion(reason)作为这个导致挂起的操作的
+  结果。
+  7. Assert：当到达这步的时候，asyncContext已经从execution context stack中移除，而且
+     prevContext是当前的运行时执行背景
+  8. 返回undefined
+    Await rejected函数的length性质是1_F
+**** 6.2.3.2 NormalCompletion
+  抽象操作NormalCompletion有单一参数argument，比如：
+1. 返回 NormalCompetion(argument)
+  是下列定义的简写：
+1. 返回 Completion {\[\[Type]]:normal, \[\[Value]]:argument, \[\[Target]]:empty}
+**** 6.2.3.3 ThrowCompletion
+  抽象操作ThrowCompletion有单一参数argument，比如：
+1. 返回 ThrowCompetion(argument)
+  是下列定义的简写：
+1. 返回 Completion {\[\[Type]]:throw, \[\[Value]]:argument, \[\[Target]]:empty}
+**** 6.2.3.2 UpdateEmpty(completionRecord, value)
+  抽象操作UpdateEmpty接受两个参数completionRecord和value。被调用时，执行下列步
+骤：
+1. Assert：completionRecord.\[\[Type]]如果是throw或者return，那么
+completionRecord.\[\[Value]]必然不空
+2. 如果completionRecord.\[\[Type]]不空，返回Completion(completionRecord)
+3. 否则返回Completion {
+  \[\[Type]]:completionRecord.\[\[Type]],
+  \[\[Value]]:value,
+  \[\[Target]]:completionRecord.\[\[Target]]
+}
+*** 6.2.4 ReferenceRecord规范类型
+  ReferenceRecord类型是用于解释例如delete、typeof、赋值、super关键词和其他语言特
+性等操作的行为。举例：赋值语句中的左侧的操作项就被期望产生一个
+ReferenceRecord。
+  ReferenceRecord是一个已解决的名称或性质的绑定，它的字段在表10中定义
+| 字段名称             | 值                                                                                  | 含义                                                                                         |
+| \[\[Base]]           | 三者之一：除null和undefined的ECMAScript语言的值；Environment Record; unresolvable。 | 占据这个绑定的值或者Environment Record。\[\[Base]]如果是unresolvable表明这个绑定不能被解决。 |
+| \[\[ReferencedName]] | String或者Symbol                                                                    | 这个绑定的名称。如果\[\[Base]]值是Evironment Record，那么总是String。                        |
+| \[\[Strict]]         | Boolean                                                                             | 如果这个ReferenceRecord来源自严格模式的代码，它就是true，否则就是false                       |
+| \[\[ThisValue]]      | 任何ECMAScript语言的值，或者empty                                                   | 如果不空，这个ReferenceRecord表示一个用super关键词表示的性质绑定；它被称为SuperReferenceRecord，而且\[\[Base]]值永不会是EnvironmentRecord。在这种案例里\[\[ThisValue]]是创建ReferenceRecord时的this值。 |
+  下列抽象操作被用在本规范里以操作上述的Reference。
+**** 6.2.4.1 IsPropertyReference(V)
+  抽象操作IsPropertyReference接受参数V。被调用时执行下列步骤：
+1. Assert: V是一个ReferenceRecord
+2. 如果V.\[\[Base]]是unresolvable，返回false
+3. 如果V.\[\[Base]]是Boolean、String、Symbol、BigInt、Number或者Object返回true，
+否则返回false
+**** 6.2.4.2 IsUnresolvableReference(V)
+  抽象操作IsUnresolvableReference接受参数V。被调用时执行下列步骤：
+1. Assert: V是一个ReferenceRecord
+2. 如果V.\[\[Base]]是unresolvable，返回true，否则返回false。
+**** 6.2.4.3 IsSuperReference(V)
+  抽象操作IsSuperReference接受参数V。被调用时执行下列步骤：
+1. Assert: V是一个ReferenceRecord
+2. 如果V.\[\[ThisValue]]非空，返回true，否则返回false。
+**** 6.2.4.4 GetValue(V)
+  抽象操作GetValue接受参数V。被调用时执行下列步骤：
+1. ReturnIfAbrupt(V)
+2. 如果V不是ReferenceRcord返回V
+3. 如果IsUnresolvableReference(V)是true，那么投掷一个ReferenceError异常
+4. 如果IsPropertyReference(V)是true，那么
+    a. 让baseObj是!ToObject(V.\[\[Base]])
+    b. 返回?baseObj.\[\[Get]](V.\[\[ReferenceName]], GetThisValue(V))
+5. 否则
+    a. 让base是V.\[\[Base]]
+    b. Assert：base是一个EnvironmentRecord
+    c. 返回 ?base.GetBindingValue(V.\[\[ReferenceName]], V.\[\[String]])（见9.1）
+**** 6.2.4.5 PutValue(V, W)    
+  抽象操作PutValue接受参数V和W。被调用时执行下列步骤：
+1. ReturnIfAbrupt(V)
+2. ReturnIfAbrupt(W)
+3. 如果V不是ReferenceRecord，投掷一个ReferenceError异常
+4. 如果IsUnresolvableReference(V)是true，那么
+    a. 如果V.\[\[Strict]]是true，投掷一个ReferenceError异常
+    b. 让globalObj是GetGlobalObject()
+    c. 返回?Set(globalObj, V.\[\[ReferencedName]], W, false)
+5. 如果IsPropertyReference(V)是true，那么
+    a. 让baseObj是!ToObject(V.\[\[Base]])
+    b. 让succeeded是?baseObj.\[\[Set]](V.\[\[ReferencedName]], W, GetThiValue(V))
+    c. 如果succeeded是false，而且V.\[\[Strict]]是true，投掷一个类型异常
+    d. 返回
+6. 否则
+    a. 让base是V.\[\[Base]]
+    b. Assert：base是EnvironmentRecord
+    c. 返回 ?base.SetMutableBinding(V.\[\[ReferencedName]], W, V.\[\[Strict]])（见
+9.1）
+***** 注意 步骤5.a可能创建一个对象，除了上述抽象操作和基本对象的\[\[Set]]内部
+方法外的其他行为不能访问这个对象。实现可以选择规避实际创建这个对象。
+**** 6.2.4.6 GetThisValue(V)
+  抽象操作GetThisValue接受参数V。被调用时执行下列步骤：
+1. Assert：IsPropertyReference(V)是true
+2. 如果IsSuperReference(V)是true，returV.\[\[ThisValue]]；否则返回V.\[\[Base]]
+**** 6.2.4.7 InitializeReferenceBinding(V,W)
+  抽象操作InitializeReferenceBinding接受参数V和W。被调用时执行下列步骤：
+1. ReturnIfAbrupt(V)
+2. ReturnIfAbrupt(W)
+3. Assert：V是ReferenceRecord
+4. Assert：IsUnresolvableReference(V)是false
+5. 让base是V.\[\[Base]]
+6. Assert：base 是一个EnvironmentRecord
+7. 返回base.InitializeBinding(V.\[\[ReferencedName]], W)
+*** 6.2.5 Property Descriptor规范类型
+  Property Descriptor类型是用于解释操作和物化Object性质的属性。Property
+Descriptor类型的值是Record类型。每个字段的名称就是属性的名称，它的值与
+6.1.7.1中确定的属性的值一致。另外，任何字段都可能出现或缺失。在本规范中
+为了标记Property Descriptor记录的文法描述，使用PropertyDescriptor作为纲要名称。
+  依据某些字段的存在或使用情况，Property Descriptor值可以被进一步划分为
+数据Property Descriptor和访问Property Descriptor。数据Property Descriptor含有
+\[\[Value]]或者\[\[Writable]]字段。访问Property Descriptor含有\[\[Get]]或者
+\[\[Set]]字段。Property Descriptor还会含有\[\[Enumerable]]和\[\[Configurable]]。
+Property Descriptor不能同时是数据Property Descriptor或者访问Property Descriptor，
+然而可以两者都不是，这时就是一个普通的Property Descriptor。一个完整填充的
+Property Descriptor必须是两者之一，其属性与对应的表3或者表4一致。
+  随后的抽象操作被用在本规范来操作Property Descriptor值。
+**** 6.2.5.1 IsAccessorDescriptor(Desc)
+  抽象操作IsAccessorDescriptor接受参数Desc（Property Descriptor值或者undefined）。
+被调用时执行下列步骤：
+1. 如果Desc是undefined，返回false。
+2. 如果Desc.\[\[Get]]和Desc.\[\[Set]]都缺失，返回false。
+3. 返回true。
+**** 6.2.5.2 IsDataDescriptor(Desc)
+  抽象操作IsDataDescriptor接受参数Desc（Property Descriptor值或者undefined）。
+被调用时执行下列步骤：
+1. 如果Desc是undefined，返回false。
+2. 如果Desc.\[\[Value]]和Desc.\[\[Writable]]都缺失，返回false。
+3. 返回true。
+**** 6.2.5.3 IsGenericDescriptor(Desc)
+  抽象操作IsGenericDescriptor接受参数Desc（Property Descriptor值或者undefined）。
+被调用时执行下列步骤：
+1. 如果Desc是undefined，返回false。
+2. 如果IsAccessorDescriptor(Desc)和IsDataDescriptor(Desc)都是false，返回true。
+3. 返回false。
+**** 6.2.5.4 FromPropertyDescriptor(Desc)
+  抽象操作FromPropertyDescriptor接受参数Desc(Property Descriptor值货主undefined)。
+被调用时执行下列步骤：
+1. 如果Desc是undefined，返回undefined。
+2. 让obj是!OrdinaryObjectCreate(%Object.prototype%)
+3. Assert: obj是可扩展的不含性质的基础对象
+4. 如果Desc有\[\[Value]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "value", Desc.\[\[Value]])
+5. 如果Desc有\[\[Writable]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "writable", Desc.\[\[Writable]])
+6. 如果Desc有\[\[Get]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "get", Desc.\[\[Get]])
+7. 如果Desc有\[\[Set]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "set", Desc.\[\[Set]])
+8. 如果Desc有\[\[Enumerable]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "enumerable", Desc.\[\[Enumerable]])
+9. 如果Desc有\[\[Configurable]]字段，那么
+    a. 执行!CreateDataPropertyOrThrow(obj, "configurable", Desc.\[\[Configurable]])
+10. 返回obj
+**** 6.2.5.5 ToPropertyDescriptor(Obj)
+  抽象操作ToPropertyDescriptor接受参数Obj，被调用时执行下列步骤：
+1. 如果Type(Obj)不是Object，投掷TypeError异常
+2. 让desc是新的Property Descriptor且没有初始化任何字段
+3. 让hasEnumerable是?HasProperty(Obj, "enumerable")
+4. 如果hasEnumerable是true，那么
+    a. 让enumerable是!ToBoolean(?Get(Obj, "enumerable"))
+    b. 设置desc.\[\[Enumerable]]是enumerable
+5. 让hasConfigurable是?HasProperty(Obj, "confirgurable")
+6. 如果hasConfigurable是true，那么
+    a. 让configurable是!ToBoolean(?Get(Obj, "configurable"))
+    b. 设置desc.\[\[Configurable]]是configurable
+7. 让hasValue是?HasProperty(Obj, "value")
+8. 如果hasValue是true，那么
+    a. 让value是?Get(Obj, "value")
+    b. 设置desc.\[\[Value]]是value
+9. 让hasWritable是?HasProperty(Obj, "writable")
+10. 如果hasWritable是true，那么
+    a. 让writable是!ToBoolean(?Get(Obj, "writable"))
+    b. 设置desc.\[\[Writable]]是writable
+11. 让hasGet是?HasProperty(Obj, "get")
+12. 如果hasGet是true，那么
+    a. 让getter是?Get(Obj, "get")
+    b. 如果IsCallable(getter)是false，而且getter不是undefined，投掷TypeError异常
+    c. 设置desc.\[\[Get]]是getter
+13. 让hasSet是?HasProperty(Obj, "set")
+14. 如果hasSet是true，那么
+    a. 让setter是?Get(Obj, "set")
+    b. 如果IsCallable(setter)是false，而且setter不是undefined，投掷TypeError异常
+    c. 设置desc.\[\[Set]]是setter
+15. 如果desc.\[\[Get]]存在或者desc.\[\[Set]]存在，那么
+    a. 如果desc.\[\[Value]]存在或者desc.\[\[Writable]]存在，投掷TypeError异常
+16. 返回desc
+**** 6.2.5.6 CompletePropertyDescriptor(Desc)
+  抽象操作CompletePropertyDescriptor接受参数Desc（一个PropertyDescriptor）。被调用
+时执行下列步骤：
+1. Assert: Desc是一个PropertyDescriptor
+2. 让like是Record {\[\[Value]]:undefined, \[\[Writable]]:undefined, \[\[Get]]:undefined,
+\[\[Set]]:undefined, \[\[Enumerable]]:undefined, \[\[Configurable]]:undefined, }
+3. 如果IsGenericDescriptor(Desc)是true，或者IsDataDescriptor(Desc)是true，那么
+    a. 如果Desc没有\[\[Value]]字段，那么设置Desc.\[\[Value]]是like.\[\[Value]]
+    b. 如果Desc没有\[\[Writable]]字段，那么设置Desc.\[\[Writable]]是
+like.\[\[Writable]]
+4. 否则
+    a. 如果Desc没有\[\[Get]]字段，那么设置Desc.\[\[Get]]是like.\[\[Get]]
+    b. 如果Desc没有\[\[Set]]字段，那么设置Desc.\[\[Set]]是like.\[\[Set]]
+5. 如果Desc没有\[\[Enumerable]]字段，那么设置Desc.\[\[Enumerable]]是
+like.\[\[Enumerable]]
+6. 如果Desc没有\[\[Configurable]]字段，那么设置Desc.\[\[Configurable]]是
+like.\[\[Configurable]]
+7. 返回Desc
+*** 6.2.6 Environment Record规范类型
+  Environment Record类型是用于解释在函数和块中解释名称的行为。这个类型和其上
+的操作在9.1中定义。
+*** 6.2.7 Abstract Closure规范类型
+  Abstract Closure规范类型用于描述连同值合集的若干算法步骤。Abstract Colsure值
+是元值，用函数应用的方式调用，例如closure(arg1, arg2)。和抽象操作类似，调用时
+按照Abstract Closure描述的算法步骤执行。
+  在会创建Abstract Closure的算法步骤中，捕获的值用"capture"后跟随的别名列表
+表示。当Abstract Closure被创建了，同时它捕获这些别名联结的值。在Abstract
+Closure被调用时执行的指定算法的步骤，捕获的值仍然用捕获时的别名引用。
+  如果Abstract Closure返回一个完结记录，这个完结记录的\[\[Type]]要么时normal，
+要么是throw。
+  Abstract Closure在行内创建，作为其他算法的组成，例如：
+1. 让addend是 41
+2. 让closure是新的Abstract Closure，带有parameters(x)捕获addend，并且被调用时
+   执行随后的步骤:
+    a. 返回 x + addend;
+3. 让val时closure(1)
+4. Assert: val时42
+*** 6.2.8 Data Blocks规范类型
+  Data Block规范类型用于描述确切的可修改的字节数值（8位数值）序列。一个字节
+值是一个[0,255]内的整数。每个创建的Data Block值都有固定的字节数，每个字节都
+初始化为0。
+  为了在本规范中表示着方便，适用类似数组的语法访问Data Block中独立的字节。
+这种记法将Data Block表示成一个零原点的整数索引的字节序列。例如，如果db是一个
+5字节的Data Block值，那么db[2]表示其第三个字节的内容。
+  一个data blcok驻留在内存里，可以被多个代理访问到的话，被定为Shared Data
+Block。Shared Data Block有一个标识（为了检测Shared Data Block值是否相等），这个
+标识是无地址的，也就是说它没有绑定到这个块映射在任何进程中的虚拟地址，而
+是这个块在内存中的地址集。两个Data Block相等的唯一条件是其包含的地址集相
+等，否则他们不相等，而且它们包含的地址集没有交集。最后，Shared Data Block要
+能区别于Data Block。
+  Shared Data Block的语义在内存模型中使用Shared Data Block事件中定义。下面的
+抽象操作介绍了Shared Data Block事件，和作为评估语义与内存模型的事件语义间的
+界面。事件构成了备选执行，内存模型在备选执行上作为过滤程序。请咨询内存
+模型获得完整的语义。
+  Shared Data Block事件用Record模型，在内存模型中定义。
+  随后的抽象操作在本规范中用于Data Block值上的操作。
+**** 6.2.8.1 CreateByteDataBlock(size)
+  抽象操作CreateByteDataBlock接受参数size（整数）。被调用时执行下列步骤：
+1. Assert：size >= 0
+2. 让db是新的Data Block值，包含size个字节。如果无法创建这样的Data Block，
+投掷一个RangeError异常
+3. 是指db上所有的字节都是0
+4. 返回db
+**** 6.2.8.2 CreateSharedByteDataBlock(size)
+  抽象操作CreateSharedByteDataBlock接受参数size（非负整数）。被调用时执行下列
+步骤：
+1. Assert：size >= 0
+2. 让db是新的Shared Data Block值，包含size个字节。如果无法创建这样的Shared 
+Data Block，投掷一个RangeError异常
+3. 让execution是环境代理的环境记录的\[\[CandidateExecution]]字段。
+4. 让eventList是execution.\[\[EventsRecords]]里满足\[\[AgentSignifier]]是
+   AgentSignifier()的元素的\[\[EventList]]字段。
+5. 让zero是<<0>>
+6. 遍历db的每个索引i，执行
+    a. 向eventList中附加WriteShareMemory { \[\[Order]]:Init, \[\[NoTear]]:true,
+       \[\[Block]]:db, \[\[ByteIndex]]:i, \[\[ElementSize]]:1, \[\[Payload]]:zero }
+7. 返回db
+**** 6.2.8.3 CopyDataBlockBytes(toBlock, toIndex, fromBlock, fromIndex, count)
+  抽象操作CopyDataBlockBytes接受参数toBlock、toIndex(非负整数）、fromBlock、
+fromIndex（非负整数）和count（非负整数）。被调用时执行下列步骤：
+1. Assert：fromBlock和toBlock是不同的Data Block或者Shared Data Block值。
+2. 让fromSize是fromBlock的字节数
+3. Assert：fromIndex + count <= fromSize
+4. 让toSize是toBlock的字节数
+5. Assert：toIndex + count <= toSize
+6. 当count > 0时，重复执行
+    a. 如果fromBlock是Shared Data Block 那么
+        i. 让execution是环境代理的代理记录的\[\[CandidateExecution]]字段
+       ii. 让eventList是execution.\[\[EventsRecords]]里满足\[\[AgentSignifier]]是
+           AgentSignifier()的元素的\[\[EventList]]字段。
+      iii. 让bytes是一个列表，只有一个未确定选定的字节值。
+       iv. 注意：在实现中，bytes是底层硬件上的非原子读取指令的结果。这种
+           未确定性是内存模型中描述这种弱一致性的监察硬件行为的语义处方。
+        v. 让readEvent是 ReadSharedMemory { \[\[Order]]:Unordered, \[\[NoTear]]:true,
+           \[\[Block]]:fromBlock, \[\[ByteIndex]]:fromIndex, \[\[ElementSize]]:1}
+       vi. 在eventList上追加readEvent
+      vii. 在execution.\[\[ChosenValues]]中附加Chosen Value Record {
+           \[\[Event]]:readEvent, \[\[ChosenValue]]:bytes }
+     viii. 如果toBlock是Shared Data Block，那么
+            1. 在eventList上追加 WriteSharedMemory { \[\[Order]]:Unordered,
+               \[\[NoTear]]:true, \[\[Block]]:toBlock, \[\[ByteIndex]]:toIndex,
+               \[\[ElementSize]]:1, \[\[Payload]]:bytes}
+       ix. 否则
+            1. 设置toBlock[toIndex]是bytes[0]
+    b. 否则
+        i. Assert：toBlock不是Shared Data Block
+       ii. 设置toBlock[toIndex]是fromBlock[fromIndex]
+    c. 设置toIndex是toIndex+1
+    d. 设置fromIndex是fromIndex+1
+    e. 设置count是count-1.
+7. 返回NormalCompletion(empty)
+***** 注意 有可能有从data block到shared data block的操作。这里没有禁止有可能
+在别的地方处理了。
+* 7 抽象操作
+  这些操作不是ECMAScript语言的部分；在这里定义他们，只是帮助ECMAScript语言的
+语义规范。而且贯穿本规范还有更多的特定抽象操作被定义了。
+** 7.1 类型转换    
+  ECMAScript语言在需要的时候隐式的自动执行类型转换。为了明晰某种结构的语义，
+很需要定义一套转换的抽象操作。转换的抽象操作是多态的，他们可以接受任意的
+ECMAScript语言类型的值。但是规范类型值不能在这些操作中适用。
+  在ECMAScript语言中BigInt没有隐式的转换，程序必须调用BigInt来显示的转换到其
+他类型。
+*** 7.1.1 ToPrimitive(input[, preferredType])
+  抽象操作ToPrimitive接受参数input和可选参数preferredType。将input参数转换为一个
+非对象类型。如果一个对象是可以转换为多个原生类型的，它可能需要提示选项
+preferredType到想要的类型。被调用时执行下列步骤：
+1. Assert：input是ECMAScript语言类型
+2. 如果Type(input)是对象，那么
+    a. 让exoticToPrim是?GetMethod(input, @@toPrimitive)
+    b. 如果exoticToPrim不是undefined，那么
+        i. 如果不存在preferredType，让hint是"default"
+       ii. 不然如果preferredType是string，让hint是"string"
+      iii. 否则
+            1. Assert：preferredType是number
+            2. 让hint是"number"
+       iv. 让result是?Call(exoticToPrim, input, <<hint>>)
+        v. 如果Type(result)不是对象，返回result
+       vi. 投掷TypeError异常
+    c. 如果preferredType不存在，让preferredType是number
+    d. 返回?OrdinaryToPrimitive(input, prferredType)
+3. 返回input
+**** 注意 当ToPrimitive被不带提示的调用时，它的行为跟hint是number时是一样的
+     然而，对象可以通过重写@@toPrimitive方法来覆盖这个行为。在本规范中只有
+     Date对象（详见21.4.4.45）和Symbol对象（详见20.4.3.5）重写了ToPrimitive行为。
+     Date对象对待空hint为string。
+**** 7.1.1.1 OrdinaryToPrimitive(O, hint)
+  抽象操作OrdinaryToPrimitive接受参数O和hint。被调用时执行下列步骤：
+1. Assert：Type(O)是对象
+2. Assert：hint是number或者string
+3. 如果hint是string那么
+    a. 让methodNames是<<"toString", "valueOf">>
+4. 否则
+    a. 让methodNames是<<"valueOf", "toString">>
+5. 遍历methodNames的元素name，执行
+    a. 让method是?Get(O, name)
+    b. 如果IsCallable(method)是true，那么
+        i. 让result是?Call(method, O)
+       ii. 如果Type(result)不是Object，返回resut
+6. 投掷TypeError异常
+*** 7.1.2 ToBoolean(argument)
+  抽象操作ToBoolean接受参数argument。它根据表11将argument转换成Boolean类型的值
+| 参数类型  | 结果                                                                       |
+| Undefined | 返回false                                                                  |
+| Null      | 返回false                                                                  |
+| Boolean   | 返回argument                                                               |
+| Number    | 如果argument是+0_F、-0_F或者NaN，返回false。其他返回true                   |
+| String    | 如果argument是空字符串（即length是0），返回false。其他返回true             |
+| Symbol    | 返回true                                                                   |
+| BigInt    | 如果argument是0_Z，返回false。其他返回true。                               |
+| Object    | 返回true。注意：一个关联到内置\[\[IsHTMLDDA]]的备选算法在B.3.7.1中强制执行 |
+*** 7.1.3 ToNumeric(value)
+  抽象操作ToNumeric接受参数value。它返回value转换成的Number或者BigInt。被调用时
+执行下列步骤：
+1. 让primValue是?ToPrimitive(value, number)
+2. 如果Type(primValue)是BitInt，返回primValue
+3. 返回?ToNumber(primValue)
+*** 7.1.4 ToNumber(argument)
+  抽象操作ToNumber接受参数argument。它根据表12将argument转换为Number值。
+| 参数类型  | 结果                                                                                      |
+| Undefined | 返回NaN                                                                                   |
+| Null      | 返回+0_F                                                                                  |
+| Boolean   | 如果argument是true，返回1_F。如果argument是false，返回+0_F                                |
+| Number    | 返回argument（不转换）                                                                    |
+| String    | 参看按照下方的语法和转换算法                                                              |
+| Symbol    | 投掷TypeError异常                                                                         |
+| BigInt    | 投掷TypeError异常                                                                         |
+| Object    | 执行下列步骤：1. 让primValue是?ToPrimitive(argument, number)；2. 返回?ToNumber(primValue) |
+**** 7.1.4.1 接受了String类型的ToNumber行为
+  ToNumber处理String值时将String解释成UTF-16编码点序列后使用后续的语法。如果
+这里的语法无法将String值翻译成一个扩展的StringNumberLiteral，那么ToNumber返回的
+结果是NaN。
+***** 注意1 本语法中终结符都是由BMP（Unicode Basic Multilingual Plane）字符构成。
+      所以字符串中包含任何首位和尾位编码单元，无论匹配与否，ToNumber都会返回
+      NaN。
+  Syntax
+    StringNumericLiteral :::
+      StrWhiteSpace_opt
+      StrWhiteSpace_opt StrNumericLiteral StrWhiteSpace_opt
+    StrWhiteSpace :::
+      StrWhiteSpaceChar StrWhiteSapce_opt
+    StrWhiteSpaceChar :::
+      WhiteSpace
+      LineTerminator
+    StrNumericLiteral :::
+      StrDecimalLiteral
+      NonDecimalIntegerLiteral_[~Sep]
+    StrDecimalLiteral :::
+      StrUnsignedDecimalLiteral
+      + StrUnsignedDecimalLiteral
+      - StrUnsignedDecimalLiteral
+    StrUnsignedDecimalLiteral :::
+      Infinity
+      DecimalDigits_[~Sep] . DecimalDigits_[~Sep]_opt ExponentPart_[~Sep]_opt
+      . DecimalDigits_[~Sep]_opt ExponentPart_[~Sep]_opt
+      DecimalDigits_[~Sep] ExponentPart_[~Sep]_opt
+  上面用到的没有明确定义的语法符号在字面数字的词法语法（12.8.3）中定义。
+***** 注意2 StringNumericLiteral和NumericLiteral语义有些不同，需要注意
+        . StringNumericLiteral可以在始末包含有限的空格或者换行符
+        . StringNumericLiteral其实位值可以有任意个0
+        . StringNumericLiteral可以包含+或-来指明符号
+        . StringNumericLiteral可以是空的或者值包含空白符，被转换成+0_F
+        . Infinity和-Infinity被时别为StringNumericLiteral，而不是NumericLiteral
+        . StringNumericLiteral不能包含BigIntLiteralSuffix
+***** 7.1.4.1.1 运行语义：MV
+  String转化为Number值总体上与从字面数字得到Number值的规定相似，但是有些细节
+是不同的，所以在这里给出从字符串数字到Number类型值的转换过程。这个值由两步
+决定：首先，从字符串数字中派生数学值（MV）；其次，这个数学值按照下方的描述
+进行修圆。不是在下方里，而是在其他语法符号中提及的MV，是在12.8.3.1中定义的
+MV。
+  . StringNumericLiteral ::: [empty]的MV是0
+  . StringNumericLiteral ::: StrWhiteSpace的MV是0
+  . StringNumericLiteral ::: StrWhiteSpace_opt StrNumericLiteral StrWhiteSpace_opt的MV
+    是StrNumericLiter的MV，无论有多少空白或者没有空白
+n  . StringNumericLiteral ::: - StrUnsignedDecimalLiteral的MV是负的
+    StrUnsignedDecimalLiteral的MV。（注意如果StrUnsignedDecimalLiteral的MV是0，这个
+    MV的负值仍然是0。下方的修圆规则处理这个无符号数值0到合适的+0_F或者-0_F
+    浮点数）
+  . StrUnsignedDecimalLiteral ::: Infinity的MV是10^10000（足够大以致于修圆到+∞_F）
+  . StrUnsignedDecimalLiteral ::: DecimalDigits . DecimalDigits的MV是第一个
+    DecimalDigits的MV加以(第二DecimalDigits的MV与10^-n的积)的和，其中n是第二个
+    DecimalDigits的编码点数量
+  . StrUnsignedDecimalLiteral ::: DecimalDigits . ExponentPart的MV是DecimalDigits的MV
+    与10^e的积，其中e是ExponentPart的MV。
+  . StrUnsignedDecimalLiteral ::: DecimalDigits . DecimalDigits ExponentPart的MV是(第一
+    个DecimalDigits的MV加以(第二个DecimalDigits的MV与10^-n的积)的和）与10^e的积，
+    其中n是第二个DecimalDigits的编码点数量，而e是ExponentPart的MV。
+  . StrUnsignedDecimalLiteral ::: . DecimalDigits的MV是DecimalDigits的MV与10^-n的积，
+    其中n是DecimalDigits的编码点数量
+  . StrUnsignedDecimalLiteral ::: . DecimalDigits ExponentPart的MV是DecimalDigits的MV
+    与10^(e-n)的积，其中n是DecimalDigits的编码点数量，而e是ExponentPart的MV。
+  . StrUnsignedDecimalLiteral ::: DecimalDigits ExponentPart的MV是DecimalDigits的MV与
+    10^e的积，其中e是ExponentPart的MV。
+  一旦字符串字面量数字决定了确定的MV，随后被修圆到Number类型的值。如果MV是
+0，会被修圆到+0_F，除非字符串字面量的第一个非空白符是"-"，这时会被修圆到
+-0_F。其他情况，必须修圆到MV对应的Number值（按照在6.1.6.1中定义的含义），除非
+是字面里包含StrUnsignedDecimalLiteral，而且包含了超过20个有意义数字的特殊情
+况。在特殊情况里Number值可能是用0替换掉第20位之后的有意义数字的MV的Number
+值，或者用0替换掉第20位之后的有意义数字后，再在第20位+1的MV的Number值。
+  有意义数字是指不在ExponentPart里的，且
+  . 不是"0"，或者
+  . 左侧有非0数字，而且右侧有不在ExponentPart里的非0数字的"0"
+*** 7.1.5 ToIntegerOrInfinity(argument)
+  抽象操作ToIntegerOrInfinity接受参数argument。它将argument转换成整数、+∞或
+-∞。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F或者-0_F，返回0
+3. 如果number是+∞_F，返回+∞
+4. 如果number是-∞_F，返回-∞
+5. 让integer是floor(abs(R(number)))
+6. 如果number<+0_F，设置integer是-integer
+7. 返回integer
+*** 7.1.6 ToInt32(argument)
+  抽象操作ToInt32接受参数argument。将argument转换为2^32的整数Number，范围在
+[F(-2^31),F(2^31-1)]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int32bit是int按2^32取模
+5. 如果int32bit>=2^31,返回F(int32bit - 2^32)否则返回F(int32bit)
+**** 注意 上述定义ToInt32
+    . ToInt32抽象操作是向前强效的。如果被提供了一个它产生的结果，这个第二次
+      使用需要值不变。
+    . ToInt32(ToUnit32(x))与ToInt32(x)是相同值。（这是为了保留后面将+∞_F和-∞_F
+      映射到+0_F的性质）
+    . ToInt32映射-0_F到+0_F
+*** 7.1.7 ToUint32(argument)
+  抽象操作ToUint32接受参数argument。将argument转换为2^32的整数Number，范围在
+[+0_F,F(2^32-1)]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int32bit是int按2^32取模
+5. 返回F(int32bit)
+**** 注意 上述定义ToUint32
+    . 只有第5步上ToUint32与ToInt32有差异
+    . ToUint32抽象操作是向前强效的。如果被提供了一个它产生的结果，这个第二次
+      使用需要值不变。
+    . ToUnit32(ToInt32(x))与ToUint32(x)是相同值。（这是为了保留后面将+∞_F和-∞_F
+      映射到+0_F的性质）
+    . ToUint32映射-0_F到+0_F
+*** 7.1.8 ToInt16(argument)
+  抽象操作ToInt16接受参数argument。将argument转换为2^16的整数Number，范围在
+[F(-2^15), F(2^15-1)]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int16bit是int按2^16取模
+5. 如果int16bit>=2^15,返回F(int16bi5 - 2^16)否则返回F(int16bit)
+*** 7.1.9 ToUint16(argument)
+  抽象操作ToUint16接受参数argument。将argument转换为2^16的整数Number，范围在
+[F(+0_F), F(2^16-1)]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int16bit是int按2^16取模
+5. 返回F(int16bit)
+**** 注意 上述定义ToUint16
+    . ToUint16与ToUint32的唯一差别是在第4步，用2^16替代了2^32。
+    . ToUint16映射-0_F到+0_F
+*** 7.1.10 ToInt8(argument)
+  抽象操作ToInt8接受参数argument。将argument转换为2^8的整数Number，范围在
+[-128_F, 127_F]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int8bit是int按2^8取模
+5. 如果int8bit>=2^7,返回F(int8bit - 2^8)否则返回F(int8bit)
+*** 7.1.11 ToUint8(argument)
+  抽象操作ToUint8接受参数argument。将argument转换为2^8的整数Number，范围在
+[+0_F, 255_F]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN、+0_F、-0_F、+∞_F、-∞_F，返回+0_F
+3. 让int是与number相同符号的数学值，规模是floor(abs(R(number)))
+4. 让int8bit是int按2^8取模
+5. 返回F(int8bit)
+*** 7.1.12 ToUint8Clamp(argument)
+  抽象操作ToUint8Clamp接受参数argument。将argument转化为2^8的整数Number，范围在
+[+0_F, 255_F]内。被调用时执行下列步骤：
+1. 让number是?ToNumber(argument)
+2. 如果number是NaN，返回+0_F
+3. 如果R(number)<=0，返回+0_F
+4. 如果R(number)>= 255，返回255_F
+5. 让f是floor(R(number))
+6. 如果f+0.5 < R(number)，返回F(f+1)
+7. 如果R(number) < f + 0.5，返回F(f)
+8. 如果f是odd，返回F(f+1)
+9. 返回F(f)
+**** 注意 不像其他ECMAScript的整数转换，ToUint8Clamp的修圆方式不同于截断整数
+     也不是转换+∞_F到+0_F。ToUint8Clamp采用中间取偶的方式进行修圆。这也不同
+     于Math.round的四舍五入方式。
+*** 7.1.13 ToBigInt(argument)
+  抽象操作ToBigInt接受参数argument。将argument转换为BigInt值，或者投掷异常如果
+需要隐式的丛Number转换的话。被调用时执行下列步骤：
+1. 让prim是?ToPrimitive(argument, number)
+2. 按照表13，根据prim值进行返回。
+| 参数类型  | 结果                                                                        |
+| Undefined | 投掷TypeError异常                                                           |
+| Null      | 投掷TypeError异常                                                           |
+| Bollean   | 如果prim是true，则返回1n。如果prim是false，则返回0n                         |
+| BigInt    | 返回prim                                                                    |
+| Number    | 投掷TypeError异常                                                           |
+| String    | 1. 让n是!StringToBigInt(prim)；2. 如果n是NaN，投掷SyntaxError异常；3. 返回n |
+| Symbol    | 投掷TypeError异常                                                           |
+*** 7.1.14 StringToBigInt(argument)
+  应用7.1.4.1的算法，并进行随后的调整
+. 替换StrUnsignedDecimalLiteral产出的DecimalDigits中禁止Infinity、小数点和指数部
+. 如果NaN，返回NaN。否则返回准确表示MV的BigInt值，不需要修圆。
+*** 7.1.15 ToBigInt64(argument)
+  抽象操作ToBigInt64接受参数argument。将argument转换为2^64的BigInt值，范围在
+[Z(-2^63),Z(2^63-1)]内。被调用是执行下列步骤：
+1. 让n是?ToBigInt(argument)
+2. 让int64bit是R(n)按2^64取模
+3. 如果int64bit>=2^63，返回Z(int64bit - 2^64)；否则返回Z(int64bit)
+*** 7.1.16 ToBigUint64(argument)
+  抽象操作ToBigUint64接受参数argument。将argument转换为2^64的BigInt值，范围在
+[0_Z, Z(2^64-1)]内。被调用时执行下列步骤：
+1. 让n是?ToBigInt(argument)
+2. 让int64bit是R(n)按2^64取模
+3. 返回Z(int64bit)
+*** 7.1.17 ToString(argument)
+  抽象操作ToString接受参数argument。将argument按照表14转根据其类型转换为String
+值。
+| 参数类型  | 结果                                                                                       |
+| Undefined | 返回"undefined"                                                                            |
+| Null      | 返回"null"                                                                                 |
+| Boolean   | 如果argument是true，返回"true"。如果argument是false，返回"false"                           |
+| Number    | 返回!Number::toString(argument)                                                            |
+| String    | 返回argument                                                                               |
+| Symbol    | 投掷TypeError异常                                                                          |
+| BigInt    | 返回!BigInt::toString(argument)                                                            |
+| Object    | 应用随后的步骤：1. 让primValue是?ToPrimitive(argument, string) 2. 返回?ToString(primValue) |
+*** 7.1.18 ToObject(argument)
+  抽象操作ToObject接受参数argument。将argument按照表15根据其类型转换为Object
+值。
+| 参数类型  | 结果                                                                                      |
+| Undefined | 投掷TypeError异常                                                                         |
+| Null      | 投掷TypeError异常                                                                         |
+| Boolean   | 返回一个新的Boolean对象，其内部占位\[\[BooleanData]]是argument。参看20.3Boolean对象的描述 |
+| Number    | 返回一个新的Number对象，其内部占位\[\[NumberData]]是argument。参看21.1Number对象的描述    |
+| String    | 返回一个新的String对象，其内部占位\[\[StringData]]是argument。参看22.1String对象的描述    |
+| Symbol    | 返回一个新的Symbol对象，其内部占位\[\[SymbolData]]是argument。参看20.4Symbol对象的描述    |
+| BigInt    | 返回一个新的BigInt对象，其内部占位\[\[BigIntData]]是argument。参看21.2Bigint对象的描述    |
+| Object    | 返回argument                                                                              |
+*** 7.1.19 ToPropertyKey(argument)
+  抽象操作ToPropertyKey接受参数argument。将argument转换为能作为性质键的值。被调
+用时执行下列步骤：
+1. 让key是?ToPrimitive(argument,string)
+2. 如果Type(key)是Symbol，那么
+    a. 返回key
+3. 返回!ToString(key)
+*** 7.1.20 ToLength(argument)
+  抽象操作ToLenght接受参数argument。将argument转换为适合作为像数组的对象的长度
+的整数Number。被调用时执行下列步骤：
+1. 让len是?ToIntegerOrInfinity(argument)
+2. 如果len <= 0，返回+0_F
+3. 返回F(min(len, 2^53-1))
+*** 7.1.21 CanonicalNumericIndexString(argument)
+  抽象操作CanonicalNumericIndexString接受参数argument。将argument转换为Number值，
+如果是可以Number通过ToString产生的String值或者String"-0"。否则返回undefined。当
+被调用时执行下列步骤：
+1. Assert：Type(argument)是String
+2. 如果argument是"-0"，返回-0_F
+3. 让n是!ToNumber(argument)
+4. 如果SameValue(!ToString(n), argument)是false，返回undefined
+5. 返回n
+  经典数字字符串是指不会让CanonicalNumericIndexString抽象操作返回undefined的
+String值。
+*** 7.1.22 ToIndex(value)
+  抽象操作ToIndex接受参数value。将参数value转换为非负整数，如果value是有效的
+整数索引值。被调用时执行下列步骤：
+1. 如果value是undefined，那么
+    a. 返回0
+2. 否则
+    a. 让integerIndex是F(?ToIntegerOrInfinity(value))
+    b. 如果integerIndex < +0_F，投掷RangeError异常
+    c. 让index是!ToLength(integerIndex)
+    d. 如果!SameValue(integerIndex, index)是false，投掷RangeError异常
+    e. 返回R(index)
+** 7.2 检测和匹配操作
+*** 7.2.1 RequireObjectCoercible(argument)（coerce强制）
+  抽象操作RequireObjectCoercible接受参数argument。如果argument不能使用ToObject转换
+成Object，会投掷异常。在表16中定义。
+| 参数类型  | 结果              |
+| Undefined | 投掷TypeError异常 |
+| Null      | 投掷TypeError异常 |
+| Bollean   | 返回argument      |
+| Number    | 返回argument      |
+| String    | 返回argument      |
+| Symbol    | 返回argument      |
+| BigInt    | 返回argument      |
+| Oject     | 返回argument      |
+*** 7.2.2 IsArray(argument)
+  抽象操作IsArray接受参数argument。被调用时执行下列步骤：
+1. 如果Type(Argument)不是Object，返回false
+2. 如果argument是Array exotic对象，返回true
+3. 如果arugment是Proxy exotic对象，那么
+    a. 如果arugment.\[\[ProxyHandler]]是空，投掷TypeError异常
+    b. 让target是argument.\[\[ProxyTarget]]
+    c. 返回?IsArray(target)
+4. 返回false
+*** 7.2.3 IsCallable(argument)
+  抽象操作IsCallable接受参数argument（ECMAScript语言值）。明确argument是一个带有
+\[\[Call]]内置方法的可调用函数。被调用时执行下列步骤：
+1. 如果Type(argument)不是Object，返回false
+2. 如果argument有\[\[Call]]内置方法，返回true
+3. 返回false
+*** 7.2.4 IsConstrutor(argument)
+  抽象操作IsConstructor接受参数argument（ECMAScript语言值）。明确argument是一个
+带有\[\[Constructor]]内置方法的函数对象。被调用时执行下列步骤：
+1. 如果Type(argument)不是Object，返回false
+2. 如果argument有\[\[Constructor]]内置方法，返回true
+3. 返回false
+*** 7.2.5 IsExtensible(O)
+  抽象操作IsExtensible接受参数O（一个Object）,返回Boolean值。明确额外的性质能
+否被添加到O上。被调用时执行下列步骤：
+1. Assert: Type(O)是Object
+2. 返回?O.\[\[IsExtensible]]()
+*** 7.2.6 IsIntegralNumber(argument)
+  抽象操作IsIntegralNumber接受参数argument。明确argument是否以一个有限的整数
+Number值。被调用时执行下列步骤：
+1. 如果Type(argument)不是Number，返回false
+2. 如果argument是NaN、+∞_F、-∞_F返回false
+3. 如果floor(abs(R(argument))) != abs(R(argument))返回false
+4. 返回true
+*** 7.2.7 IsPropertyKey(argument)
+  抽象操作IsPropertyKey接受参数argument（ECMAScript语言值）。明确argument是否可
+以作为性质键。被调用时执行下列步骤：
+1. 如果Type(argument)是String，返回true
+2. 如果Type(argument)是Symbol，返回true
+3. 返回false
+*** 7.2.8 IsRegExp(argument)
+  抽象操作IsRegExp接受参数argument。被调用时执行下列步骤：
+1. 如果Type(argument)不是Object，返回false
+2. 让matcher是?Get(argument, @@match)
+3. 如果matcher不是undefined，返回!ToBoolean(matcher)
+4. 如果argument有\[\[RegExpMatcher]]内部占位，返回true
+5. 返回false
+*** 7.2.9 IsStringPrefix(p,q) 
+  抽象操作IsStringPrefix接受参数p（String）和q（String）。明确p是否是q的前缀。
+被调用时执行下列步骤：
+1. Assert：Type(p)是String
+2. Assert：Type(q)是String
+3. 如果q是p与其他String r拼接成的String，返回true，否则返回false。
+**** 注意 任何String都是自身的前缀，因为r可以是空String
+*** 7.2.10 SameValue(x,y)
+  抽象操作SameValue接受参数x（ECMAScript语言值）和y（ECMAScript语言值），并返
+回Boolean值。被调用时执行下列步骤：
+1. 如果Type(x)与Type(y)不同，返回false
+2. 如果Type(x)是Number或者BigInt，那么
+    a. 返回!Type(x)::sameValue(x, y)
+3. 返回!SameValueNonNumeric(x,y)
+**** 注意 这个算法与严格相等算法不同，区别在如何处理零与NaN
+*** 7.2.11 SameValueZero(x,y)
+  抽象操作SameValueZero接受参数x（ECMAScript语言值）和y（ECMAScript语言值），
+并返回Boolean值。被调用时执行下列步骤：
+1. 如果Type(x)与Type(y)不同，返回false
+2. 如果Type(x)是Number或者BigInt，那么
+    a. 返回!Type::sameValueZero(x,y)
+3. 返回!SameValueNonNumeric(x,y)
+**** SameValueZero与SameValue的差异在于处理+0_F和-0_F上
+*** 7.2.12 SameValueNonNumeric(x,y)
+  抽象操作SameValueNonNumeric接受参数x（ECMAScript语言值）和y（ECMAScript语言值）
+，并返回Boolean值。被调用时返回下列步骤：
+1. Assert：Type(x)不是Number或BigInt
+2. Assert：Type(x)与Type(y)相同
+3. 如果Type(x)是Undefined，返回true
+4. 如果Type(x)是Null，返回true
+5. 如果Type(x)是String，那么
+    a. 如果x和y有相同的编码单元（相同长度，相同索引的编码单元相同），返回
+       true，否则返回false
+6. 如果Type(x)是Boolean，那么
+    a. 如果x和y都是true或者都是false，返回true；否则返回false
+7. 如果Type(x)是Symbol，那么
+    a. 如果x和y都是相同的Symbol值，返回true；否则返回false
+8. 如果x和y是相同的Object，返回true；否则返回false
+*** 7.2.13 抽象关系比较 <
+  值x、y的比较式x < y产生true、false或者undefined（表明至少有个NaN参与了比
+较）。除了x、y，这个算法还接受一个Boolean标记LeftFirst作为参数。这个标记用于
+控制在操作有潜在副作用的x、y时的评估顺序。这是必要的，因为在ECMAScript明确
+规定了从左到右评估表达式。LeftFirst的默认时值true，表明在表达式中的x代表的
+表达式发生在y代表的表达式左侧（之前）。如果LeftFirst是false，那就是相反顺
+序，y表达式的评估在x之前。比较按照下列步骤执行：
+1. 如果LeftFirst是true，那么
+    a. 让px是?ToPrimitive(x, number)
+    b. 让py是?ToPrimitive(y, number)
+2. 否则
+    a. 注意: 评估顺序需要反过来，以保证比较按照从左到右的顺序评估
+    b. 让py是?ToPrimitive(y, number)
+    c. 让px是?ToPrimitive(x, number)
+3. 如果Type(px)是String， Type(py)也是String，那么
+    a. 如果IsStringPrefix(py, px)是true，返回false
+    b. 如果IsStringPrefix(px, py)是true，返回true
+    c. 让k是px中与py中对应位置编单元不同的最小非负整数。（必然有这样的k存
+       在，即使都不是对方的前缀）
+    d. 让m是px在k位的编码单元的数字的整数
+    e. 让n是py在k位的编码单元的数字的整数
+    f. 如果m<n，返回true。否则返回false
+4. 否则
+    a. 如果Type(px)是BigInt且Type(py)是String，那么
+        i. 让ny是!StringToBigInt(py)
+       ii. 如果ny是NaN，返回undefined
+      iii. 返回BigInt::lessThan(px,ny)
+    b. 如果Type(px)是String且Type(py)是BigInt，那么
+        i. 让nx是!StringBoBigInt(px)
+       ii. 如果nx是NaN，返回undefined
+      iii. 返回BigInt::(nx,py)
+    c. 注意因为px和py是基础值，评估顺序不重要
+    d. 让nx是!ToNumeric(px)
+    e. 让ny是!ToNumeric(py)
+    f. 如果Type(nx)与Type(ny)相同，返回Type(nx)::lessThan(nx, ny)
+    g. Assert：Type(nx)是BigInt时Type(ny)是Number，或者Type(nx)是Number时Type(ny)是
+       BigInt
+    h. 如果nx或者ny是NaN，返回undefined
+    i. 如果nx是-∞_F或者ny是+∞_F，返回true
+    j. 如果nx是+∞_F或者ny是-∞_F，返回false
+    k. 如果R(nx) < R(ny)，返回true，否则返回false
+**** 注意1 步骤3与+操作（13.15.3）中的步骤2.c是不同的，这里用逻辑与，而在+操作中用的是逻辑或
+**** 注意2 字符串比较使用的是简单的按照编码单元的字典序。没有使用更加复杂的语义化的在Unicode标准
+     中根据词或则字符串相等和核对的排序。因此符合最基本相等的String值在Unicode标准中也能相等。
+     实际上本算法假设两个String都是标准化的形式。此外对于包含补充字符的字符串，使用编码单元的
+     字典序与编码点的字典序不同。
+*** 7.2.14 抽象相等比较 \=\=
+  值x、y的比较式x==y产生true或者false。这个比较式执行时按照下列步骤：
+1. 如果Type(x)与Type(y)相同，那么
+    a. 返回执行严格相等比较x\=\=\=y的结果
+2. 如果x是null，且y是undefined，返回true
+3. 如果x是undefined，且y是null，返回true
+4. 注意：这一步在B.3.7.2中被替换（
+   1.如果Type(x)是Object，且x有\[\[IsHTMLDDA]]内部占位，而y是null或undefined，返回true
+   2.如果x是null或undefined，同时Type(y)是Object且y有\[\[IsHTMLDDA]]占位，返回true
+）
+5. 如果Type(x)是Number而Type(y)是String，返回x==!ToNumber(y)结果
+6. 如果Type(x)是String而Type(y)是Number，返回!ToNumer(x)==y结果
+7. 如果Type(x)是BigInt而Type(y)是String，那么
+    a. 让n是!StringToBigInt(y)
+    b. 如果n是NaN，返回false
+    c. 返回x==n的结果
+8. 如果Type(x)是String而Type(y)是BigInt，返回y==x结果
+9. 如果Type(x)是Boolean，返回!ToNumber(x)==y结果
+10. 如果Type(y)是Boolean，返回x==!ToNumber(y)结果
+11. 如果Type(x)是String、Number、BigInt或者Symbol之一，且Type(y)是Object，返回x==?ToPrimitive(y)结果
+12. 如果Type(x)是Object，且Type(y)是String、Number、BigInt或者Symbol之一，返回?ToPrimitive(x)==y结果
+13. 如果Type(x)是BigInt且Type(y)是Number，或饿着Type(x)是Number且Type(y)是BigInt，那么
+     a. 如果x或y是NaN、-∞_F、+∞_F，返回false
+     b. 如果R(x)=R(y)，返回true。否则返回false。
+14. 返回false
+*** 7.2.15 严格相等比较 \=\=\=
+  值x、y的比较式x\=\=\=y产生true或者false。比较式执行时执行下列步骤
+1. 如果Type(x)与Type(y)不同，返回false
+2. 如果Type(x)是Number或者BigInt那么
+    a. 返回!Type(x)::equal(x,y)
+3. 返回!SameValueNonNumeric(x, y)
+**** 注意 本算法在对待0和NaN时，与SameValue算法不同
+** 7.3 Object上的操作
+*** 7.3.1 MakeBasicObject(internalSlotsList)
+  抽象操作MakeBasicObject接受参数internalSlotsList。这是所有算法创建ECMAScript对象的源，无论基本对象
+或奇异对象。提出了所有对象在创建时需要的通用步骤，集中了对象的创建过程。被调用时执行下列步骤：
+1. Assert：internalSlotsList是内置占位名称的List
+2. 让obj是新创建的对象，且每个在internalSlotsList的名字都创建了相应的内部占位
+3. 设置obj的必须内置方法是按照10.1规范定义的基本对象对应的默认值
+4. Assert：如果调用方没有同时覆盖obj的\[\[GetPrototypeOf]]和\[\[SetPrototypeOf]]基础内置方法，那么
+   internalSlotsList含有\[\[Prototype]]
+5. Assert：如果调用方没有同时覆盖obj的\[\[SetPrototypeOf]]、\[\[IsExtensible]]
+   和\[\[PreventExtensions]]基础内置方法，那么internalSlotsList含有\[\[Extensible]]
+6. 如果internalSlotsList含有\[\[Extensible]]，设置obj.\[\[Extensible]]是true。
+7. 返回obj
+**** 注意 在本规范中，由例如ArrayCreate、BoundFunctionCreated等抽象操作创建的奇异对象，首先要调用
+         MakeBasicObject获得一个基本对象，然后覆盖部分或者全部的内置方法。为了封装奇异对象的创建，对象
+	 基础内置方法在这些操作外是不能修改的。
+*** 7.3.2 Get(O,P)
+  抽象操作Get接受参数O（对象）和P（性质键）。用于检索对象上指定性质的值。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：IsPropertyKey(P)是true
+3. 返回 ?O.\[\[Get]](P,O)
+*** 7.3.3 GetV(V,P)
+  抽象操作GetV接受参数V（ECMAScript语言值）和P（性质健）。用于检索ECMAScript值的指定性质的值。如果V不是
+对象，会将值封装为合适的对象再在其上执行键查找。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让O是?ToObject(V)
+3. 返回?O.\[\[Get]](P,V)
+*** 7.3.4 Set(O,P,V,Throw)
+*** 7.3.5 CreateDataProperty(O,P,V)
+*** 7.3.6 CreateMethodProperty(O,P,V)
+*** 7.3.7 CreateDataPropertyOrThrow(O,P,V)
+*** 7.3.8 DefinePropertyOrThrow(O,P,desc)
+*** 7.3.9 DeletePropertyOrThrow(O,P)
+*** 7.3.10 GetMethod(V,P)
+*** 7.3.11 HasProperty(O,P)
+*** 7.3.12 HasOwnProperty(O,P)
+*** 7.3.13 Call(F,V[,argumentsList])
+*** 7.3.14 Construct(F[,argumentsList[,newTarget]])
+*** 7.3.15 SetIntegrityLevel(O,level)
+*** 7.3.16 TestIntegrityLevel(O,level)
+*** 7.3.17 CreateArrayFromList(elements)
+*** 7.3.18 LengthOfArrayLike(obj)
+*** 7.3.19 CreateListFromArrayLike(obj[,elementTypes])
+*** 7.3.20 Invoke(V,P[,argumentsList])
+*** 7.3.21 OrdinaryHasInstance(C,O)
+*** 7.3.22 SpeciesConstructor(O,defaultConstructor)
+*** 7.3.23 EnumerableOwnPropertyNames(O,kind)
+*** 7.3.24 GetFunctionRealm(obj)
+*** 7.3.25 CopyDataProperties(target,source,excludedItems)
+** 7.4 Iterator Objects上的操作
+  参看通用遍历接口（27.1）
+** 7.5
+** 7.6
+** 7.7
+** 7.8
 * 25
 ** 25.1
 
