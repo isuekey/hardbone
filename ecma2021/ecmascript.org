@@ -1717,7 +1717,7 @@ preferredType到想要的类型。被调用时执行下列步骤：
     a. 让methodNames是<<"toString", "valueOf">>
 4. 否则
     a. 让methodNames是<<"valueOf", "toString">>
-5. 遍历methodNames的元素name，执行
+5. 遍历methodNames的每个元素name，执行
     a. 让method是?Get(O, name)
     b. 如果IsCallable(method)是true，那么
         i. 让result是?Call(method, O)
@@ -2143,6 +2143,171 @@ Number值。被调用时执行下列步骤：
 *** 7.2.14 抽象相等比较 \=\=
 *** 7.2.15 严格相等比较 \=\=\=
 ** 7.3 Object上的操作
+*** 7.3.14 Construct(F[,argumentsList[,newTarget]])
+*** 7.3.15 SetIntegrityLevel(O,level)
+  抽象操作SetIntegrityLevel接受参数O和level。用于固定对象的自有性质。被调用时
+执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：level是sealed或frozen
+3. 让status是?O.\[\[PreventExtensions]]()
+4. 如果status是false，返回false
+5. 让keys是?O.\[\[OwnPropertyKeys]]()
+6. 如果level是sealed，那么
+    a. 遍历keys的每个元素key，执行
+        i. 执行?DefinePropertyOrThrow(O,k,PropertyDescriptor{\[\[Configurable]]:false})
+7. 否则
+    a. Assert：level是frozen
+    b. 遍历keys的每个元素key，执行
+        i. 让currentDesc是?O.\[\[GeOwnProperty]](key)
+       ii. 如果currentDec不是undefined，那么
+            1. 如果IsAccessorDescriptor(currentDesc)是true，那么
+                a. 让desc是PropertyDescriptor{\[\[Configurable]]:false}
+            2. 否则
+                a. 让desc是PropertyDescriptor{\[\[Configurable]]:false,
+                   [\[Writable]]:false}
+            3. 执行?DefinePropertyOrThrow(O,k,desc)
+8. 返回true
+*** 7.3.16 TestIntegrityLevel(O,level)
+  抽象操作TestIntegrityLevel接受参数O和level。用于明确对象的自有性质是否已经固
+定。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：level是sealed或frozen
+3. 让extensible是?IsExtensible(O)
+4. 如果extensible是true，返回false
+5. 注意：如果对象是extensible，没有性质需要检查
+6. 让keys是?O.\[\[OwnPropertyKeys]]()
+7. 遍历keys的每个元素key，执行
+    a. 让currentDesc是?O.\[\[GetOwnProperty]](key)
+    b. 如果currentDesc不是undefined
+        i. 如果currentDesc.\[\[Configurable]]是true，返回false
+       ii. 如果level是frozen而且IsDataDescriptor(currentDesc)是true,那么
+            1. 如果currentDesc.\[\[Writable]]是true，返回false
+8. 返回true
+*** 7.3.17 CreateArrayFromList(elements)
+  抽象操作CreateArrayFromList接受List参数elements。用于创建元素是elemnts提供的
+元素的Array对象。被调用时执行下列步骤
+1. Assert：elments是一个List，元素都是ECMAScript语言值
+2. 让array是!ArrayCreate(0)
+3. 让n是0
+4. 遍历elements的每个元素e，执行
+    a. 执行!CreateDataPropertyOThrow(array, !ToString(F(n)), e)
+    b. 设置n为n+1
+5. 返回array
+*** 7.3.18 LengthOfArrayLike(obj)
+  抽象操作LengthOfArrayLike接受参数obj。返回貌似数组的对象的length性质（作为
+非负整数）。被调用时执行下列步骤：
+1. Assert：Type(obj)是Object
+2. 返回 R(?ToLength(?Get(obj,"length")))
+  貌似数组的对象是任何在执行本操作时返回整数而不是意外完结的对象
+**** 注意1 通常貌似数组对象还有一些性质的名字是整数，但是不是本定义需要的。
+**** 注意2 Array对象和String对象就是貌似数组对象的例子
+*** 7.3.19 CreateListFromArrayLike(obj[,elementTypes])
+  抽象操作CreateListFromArrayLike接受参数obj和可选参数elementTypes（有ECMAScript
+类型的名称组成的List）。用于创建一个List，其元素是obj的索引键上的性质。
+elementTypes包含其名称的ECMAScript语言类型的值可以被List接受。被调用时执行
+下列步骤：
+1. 如果elementTypes不存在，设置elementTypes是<<Undefined, Null, Boolean, String,
+   Symbol, Number, BigInt, Object>>
+2. 如果Type(obj)不是Object，投掷TypeError异常
+3. 让len是?LengthOfArrayLike(obj)
+4. 让list是新的空List
+5. 让index是0
+6. 当index < len时 重复，
+    a. 让indexName时!ToString(F(index))
+    b. 让next时?Get(obj, indexName)
+    c. 如果Type(next)不是elementTypes的元素，投掷TypeRrror异常
+    d. 附加next到list最后一个元素后
+    e. 甚至index为index + 1
+7. 返回list
+*** 7.3.20 Invoke(V,P[,argumentsList])
+  抽象操作Invoke接受参数V（ECMAScript语言值）、P（性质键）和可选参数
+argumentList（ECMAScript语言值构成的List）。用于调用ECMAScript语言值上的方法性
+质。V作为性质的检索点和调用的this值。argumentsList是传入方法的参数值。如果
+argumentsList不存在，一个新的空List作为这个值。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 如果argumentsList不存在，设置arugmentsList是一个新的空List
+3. 让func是?GetV(V,P)
+4. 返回?Call(func,V,argumentsList)
+*** 7.3.21 OrdinaryHasInstance(C,0)
+  抽象操作OrdinaryHasInstance接受参数C（ECMAScript语言值）和O。实现了检测O继承
+自某个继承了C的实例的默认算法。
+1. 如果IsCallable(C)是false，返回false
+2. 如果C有\[\[BoundTargetFunction]]内置占位那么
+    a. 让BC是C.\[\[BoundTargetFunction]]
+    b. 返回?InstanceOfOperator(O, BC)
+3. 如果Type(O)不是Object，返回false
+4. 让P是?Get(C,"prototype")
+5. 如果Type(P)不是Object，投掷TypeError异常
+6. 重复
+    a. 设置O是?O.\[\[GetPrototypeOf]]()
+    b. 如果O是null，返回false
+    c. 如果SameValue(P,O)是true，返回true
+*** 7.3.22 SpeciesConstructor(O, defaultConstructor)
+  抽象操作SpeciesConstructor接受参数O（Object值）和defaultConstrucor（构造范）。
+用于在用O派生新的对象时检索需要的构造范。在O中找不到@@species性质指定的构造
+范时使用defaultConstructor构造范。被调用时执行下列步骤：
+1. Assert：Type(O)时Object
+2. 让C是?Get(O,"construcotr")
+3. 如果C是undefined，返回defaultConstructor
+4. 如果Type(C)不是Object，投掷TypeError异常
+5. 让S是?Get(C,@@species)
+6. 如果S是undefined或者null，返回defualtConstructor
+7. 如果IsConstructor(S)是true，返回S
+8. 投掷TypeError异常
+*** 7.3.23 EnumerableOwnPropertyNames(O, kind)
+  抽象操EnumerableOwnPropertyNames接受参数O（Object值）和kind（key,value或者
+key+value).被调用时执行下列步骤
+1. Assert：Type(O)是Object
+2. 让ownKesy是?O.\[\[OwnPropertyKeys]]()
+3. 让properties是新的空List
+4. 遍历ownKeys的每个元素key，执行
+    a. 如果Type(key)是String，那么
+        i. 让desc是?O.\[\[GetOwnProperty]](key)
+       ii. 如果desc不是undefined而且desc.\[\[Enumerable]]是true，那么
+            1. 如果kind是key，追加key到properties
+            2. 否则
+                a. 让value是?Get(O,key)
+                b. 如果kind是value，追加value到properties
+                c. 否则
+                    i. Assert：kind是key+value
+                   ii. 让entry是!CreateArrayFromList(<<key,value>>)
+                  iii. 追加entry到properties
+5. 返回properties
+*** 7.3.24 GetFunctionRealm(obj)
+  抽象操作GetFunctionReale接受参数obj.被调用时执行下列步骤
+1. Assert：!IsCallable(obj)是true
+2. 如果obj有\[\[Realm]]内置占位
+    a. 返回obj.\[\[Realm]]
+3. 如果obj是绑定的函数对象，那么
+    a. 让target是obj.\[\[BoundTargetFunction]]
+    b. 返回?GetFunctionRealm(target)
+4. 如果obj是Proxy对象，那么
+    a. 如果obj.\[\[ProxyHandler]]是null，投掷TypeError异常
+    b. 让proxyTarget是obj.\[\[ProxyTarget]]
+    c. 然会?GetFunctionRealm(proxyTarget)
+5. 返回当前的Realm记录
+**** 注意 步骤5仅在对象是一个非标准的没有\[\[Realm]]内置占位的函数对象才会
+           触发。
+*** 7.3.25 CopyDataProperties(target, source, excludedItems)
+  抽象操作CopyDataProperties接受参数target、source、excludedItems。被调用时执行
+下列步骤：
+1. Assert：Type(target)是Object
+2. Assert：excludedItems是性质键组成的List
+3. 如果source是undefined或null，返回target
+4. 让from是!ToObject(source)
+5. 让keys是?from.\[\[OwnPropertyKeys]]()
+6. 遍历keys的每个元素nextKey，执行
+    a. 让excluded是false
+    b. 遍历excludedItems的每个元素e，执行
+        i. 如果SameValue(e, nextKey)和true，那么
+            1. 设置excluded是true
+    c. 如果excluded是false，那么
+        i. 让desc是?from\.\[GetOwnProperty]](nextKey)
+       ii. 如果desc不是undefined且desc.\[\[Enumerable]]是true，那么
+            1. 让propValue是?Get(from, nextKey)
+            2. 执行!CreateDataPropertyOrThrow(target, nextKey, propValue)
+7. 返回target
+**** 注意 这里的target永远是新创建的对象，且是在投掷异常时无法直接访问的。
 ** 7.4
 ** 7.5
 ** 7.6
