@@ -2214,15 +2214,99 @@ Number值。被调用时执行下列步骤：
 5. 如果success是false而且Throw是true，投掷TypeError异常
 6. 返回success
 *** 7.3.5 CreateDataProperty(O,P,V)
+  抽象操作CreateDataProperty接受参数O（Object）、P（性质键）和V（ECMAScript语言
+值）。用于在对象上创建一个新的自有性质。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：IsPropertyKey(P)是true
+3. 让newDesc是PropertyDescriptor { \[\[Value]]:V \[\[Writable]]:true,
+   \[\[Enumerable]]:true, \[\[Configurable]]:true }
+4. 返回?O.\[\[DefineOwnProperty]](P, newDesc)
+**** 注意 本抽象操作创建的性质拥有的属性与ECMAScript语言中赋值语句创建的性质
+           的属性相同。通常这个性质不在对象上。如果已经存在且不可设置的，
+           或者O是不可扩展的，\[\[DefineOwnProperty]]会返回false
 *** 7.3.6 CreateMethodProperty(O,P,V)
+  抽象操作CreateMethodProperty接受参数O（Object）、P（性质键）和V（ECMAScript语言
+值）。用于在对象上创建新的自有性质。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：IsPropertyKey(P)是true
+3. 让newDesc是PropertyDescriptor { \[\[Value:V,\[\[Writable]]:true,
+   \[\[Enumerable]]:false, \[\[Configurable]]:true }
+4. 返回 ?O.\[\[DefineOwnProperty]](P, newDesc)
+**** 注意 本抽象操作创建的性质拥有的属性与使用类声明语法的方法或者内置方法
+           的属性相同。通常这个性质不在对象上。如果已经存在且不可设置的，
+           或者O是不可扩展的，\[\[DefineOwnProperty]]会返回false
 *** 7.3.7 CreateDataPropertyOrThrow(O,P,V)
+  抽象操作CreateDataPropertyOrThrow恶疾首参数O（Object）、P（性质键）和V（
+ECMAScript语言值）。在对象上创建新的性质。如果请求的性质修改不能执行，投掷
+TypeError异常。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：IsPropertyKey(P)是true
+3. 让success是?CreateDataProperty(O,P,V)
+4. 如果success是false，投掷TypeError异常
+5. 返回success
+**** 注意 本抽象操作创建的性质拥有的属性与ECMAScript语言中赋值操作创建的性质
+           的属性相同。通常这个性质不在对象上。如果已经存在且不可设置，或者
+           O是不可扩展的，\[\[DefineOwnProperty]]会返回false，导致本操作投掷
+           TypeError异常。
 *** 7.3.8 DefinePropertyOrThrow(O,P,desc)
+  抽象操作DefinePropertyOThrow接受参数O（Object）、P（性质键）和desc（
+PropertyDescriptor）。被用于以在不能执行修改请求的性质时会投掷TypeError异常的
+方式调用对象上\[\[DefineOwnProperty]]内部方法。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：IsPropertyKey(P)是true
+3. 让success是?O.\[\[DefineOwnProperty]](P,desc)
+4. 如果success是false，投掷TypeError异常
+5. 返回success
 *** 7.3.9 DeletePropertyOrThrow(O,P)
+  抽象操作DeletePropertyOrThrow接受参数O（Object）、P（性质键）。被用于移除对
+象上的指定的自有性质。如果性质不可设置，会投掷异常。被调用时执行下列步骤：
+1. Assert：Type(O)时Object
+2. Assert：IsPropertyKey(P)时true
+3. 让success时?O.\[\[Delete]](P)
+4. 如果success是false，投掷TypeError异常
+5. 返回success
 *** 7.3.10 GetMethod(V,P)
+  抽象操作GetMethod接受参数V（ECMAScript语言值）和P（性质键）。被用于当性质的
+值被期望是函数时，在ECMAScript语言值上取得指定性质值。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让func是?GetV(V,P)
+3. 如果func是undefined或null，返回undefined
+4. 如果IsCallable(func)是false，投掷TypeError异常
+5. 返回func
 *** 7.3.11 HasProperty(O,P)
+  抽象操作HasProperty接受参数O（Object）和P（性质键），返回Boolean。用于明确
+对象是否有指定性质。性质可以是自有的或者继承的。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：IsPropertyKey(P)是true
+3. 返回?O.\[\[HasProperty]]
 *** 7.3.12 HasOwnProperty(O,P)
+  抽象操作HasOwnProperty接受参数O（Object）和P（性质键），返回Boolean。用于明确
+对象是否有指定自有性质。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. Assert：IsPropertyKey(P)是true
+3. 让desc是?O.\[\[GetOwnProperty]](P)
+4. 如果des是undefined，返回false
+5. 返回true
 *** 7.3.13 Call(F,V[,argumentsList])
+  抽象操作Call接受参数F（ECMAScript语言值）、V（ECMAScript语言值）和可选参数
+argumentsList（元素是ECMAScript语言值的List）。被用于调用函数对象的\[\[Call]]
+内部方法。F是函数对象，V是作为\[\[Call]]的this值的ECMAScript语言值，而
+argumentsList是传递给内部方法的相应参数值。如果argumentsList不存在，设置
+一个新的空List。被调用时执行下列步骤：
+1. 如果argumentsList不存在，设置argumentsList是一个新的空List
+2. 如果IsCallable(F)是false，投掷TypeError异常
+3. 返回?F.\[\[Call]](V, argumentsList)
 *** 7.3.14 Construct(F[,argumentsList[,newTarget]])
+  抽象操作Constructor接受参数F（函数对象）和可选参数arugmentsList和newTarget。
+被用于调用函数对象的\[\[Constructor]]内置方法。argumentsList和newTarget是传递给
+内部方法的行营参数值。如果argumentsList不存在，设置一个新的空List。如果
+newTarget不存在，设置为F。被调用时执行下列步骤：
+1. 如果newTarget不存在，设置newTaget为F
+2. 如果argumentsList不存在，设置argumentsList是新的空List
+3. Assert：IsConstructor(F)是true
+4. Assert：IsConstructor(newTarget)是true
+5. 返回?F.\[\[Constrcut]](argumentsList, newTarget)
+**** 注意 如果newTarget不存在，本操作与new F(...argumentsList)等价
 *** 7.3.15 SetIntegrityLevel(O,level)
   抽象操作SetIntegrityLevel接受参数O和level。用于固定对象的自有性质。被调用时
 执行下列步骤：
@@ -2389,10 +2473,268 @@ key+value).被调用时执行下列步骤
 **** 注意 这里的target永远是新创建的对象，且是在投掷异常时无法直接访问的。
 ** 7.4 Iterator Objects上的操作
   参看通用遍历接口（27.1）
-** 7.5
-** 7.6
-** 7.7
-** 7.8
+*** 7.4.1 GetIterator(obj[,hint[,method]])
+  抽象操作GetIterator接受参数obj和可选参数hint、method。被调用时执行下列步骤：
+1. 如果hint不存在，设置hint是sync
+2. Assert: hint是sync或者async
+3. 如果method不存在，那么
+    a. 如果hint是async，那么
+        i. 设置method是?GetMethod(obj, @@asyncIterator)
+       ii. 如果method是undefined，那么
+            1. 让syncMethod是?GetMethod(obj, @@iterator)
+            2. 让syncIteratorRecord是?GetIterator(obj, sync, syncMethod)
+            3. 返回!CreateAsyncFromSyncIterator(syncIteratorRecord)
+    b. 否则，设置method是?GetMethod(obj, @@iterator)
+4. 让iterator是?Call(method, obj)
+5. 如果Type(iterator)不是Object，投掷TypeError异常
+6. 让nextMethod是?GetV(iterator, "next")
+7. 让iteratorRecord是Record {\[\[Iterator]]:iterator, \[\[NextMethod]]:nextMethod,
+   \[\[Done]]:false }
+8. 返回itratorRecord
+*** 7.4.2 IteratorNext(iteratorRecord[,value])
+  抽象操作IteratorNext接受参数iteratorRecord和可选参数value。被调用时执行下列
+步骤：
+1. 如果value不存在，那么
+    a. 让result是?Call(iteratorRecord.\[\[NextMethod]], iteratorRecord.\[\[Iterator]])
+2. 否则
+    a. 让result是?Call(iteratorRecord.\[\[NextMethod]], iteratorRecord.\[\[Iterator]],
+       <<value>>)
+3. 如果Type(result)不是Object，投掷TypeError异常
+4. 返回result
+*** 7.4.3 IteratorComplete(iterResult)
+  抽象操作IteratorComplete接受参数iterResult。被调用时执行下列步骤：
+1. Assert：Type(iterResult)是Object
+2. 返回!ToBoolean(?Get(iterResult,"done"))
+*** 7.4.4 IteratorValue(iterResult)
+  抽象操作IteratorValue接受参数iterResult。被调用时执行下列步骤
+1. Assert：Type(iterResult)是Object
+2. 返回?Get(iterResult,"value")
+*** 7.4.5 IteratorStep(iteratorRecord)
+  抽象操作IteratorStep接受参数iteratorRecord。通过iteratorRecord.\[\[NextMethod]]
+请求iteratorRecord.\[\[Iterator]]的下一个值，如果iterator已经结束了，返回false，
+否则返回IteratorResult对象。被调用时执行下列步骤：
+1. 让result是?IteratorNext(iteratorRecord)
+2. 让done是?IteratorComplete(result)
+3. 如果done是true，返回false
+4. 返回result
+*** 7.4.6 IteratorClose(iteratorRecord, completion)
+  抽象操作IteratorClose接受参数iteratorRecord和completion。被用于通知遍历器在到
+达完结状态时照常执行任何动作。被调用时执行下列步骤：
+1. Assert：Type(iteratorRecord.\[\[Iterator]])是Object
+2. Assert：completion是CompletionRecord
+3. 让iterator是iteratorRecord.\[\[Iterator]]
+4. 让innerResult是GetMethod(iterator, "return")
+5. 如果innerResult.\[\[Type]]是nromal，那么
+    a. 让return是innerResult.\[\[Value]]
+    b. 如果return是undefined，返回Completion(completion)
+    c. 设置innerResult是Call(return, iterator)
+6. 如果completion.\[\[Type]]是throw，返回Completion(completion)
+7. 如果innerResult.\[\[Type]]是throw，返回Completion(innerResult)
+8. 如果Type(innerResult.\[\[Value]])不是Object，投掷TypeError异常
+9. 返回Completion(completion)
+*** 7.4.7 AsyncIteratorClose(iteratorRecord, completion)
+  抽象操作AsyncIteratorClose接受参数iteratorRecord和completion。被用于通知遍历
+器在到达完结时照常执行任何动作。被调用时执行下列步骤：
+1. Assert：Type(iteratorRecord.\[\[Iterator]])是Object
+2. Assert：completion是CompletionRecord值
+3. 让iterator是iteratorRecord.\[\[Iterator]]
+4. 让innerResult是GetMethod(iterator,"return")
+5. 如果innerResult.\[\[Type]]是normal，那么
+    a. 让return是innerResult.\[\[Value]]
+    b. 如果return是undefined，返回Completion(completion)
+    c. 设置innerResult是Call(return, iterator)
+    d. 如果innerResult.\[\[Type]]是normal，设置innerResult是
+       Await(innerResult.\[\[Value]])
+6. 如果completion.\[\[Type]]是throw，返回Completion(completion)
+7. 如果innerResult.\[\[Type]]是throw，返回Completion(completion)
+8. 如果Type(innerResult.\[\[Value]])不是Object，投掷TypeError异常
+9. 返回Compeltion(completion)
+*** 7.4.8 CreateIterResultObject(value, done)
+  抽象操作CreateIteResultObject接受参数value和done。创建支持IteratorResult接口的
+对象。被调用时执行下列步骤：
+1. Assert：Type(donw)是Boolean
+2. 让obj是!OrdinaryObjectCreate(%Object.prototype%)
+3. 执行!CreateDataPropertyOrThrow(obj, "value", value)
+4. 执行!CreateDataPropertyOrThrow(obj,"done",done)
+5. 返回obj
+*** 7.4.9 CreateListIteratorRecord(list)
+  抽象操作CrateListIteratorRecord接受参数list。创建Iterator(27.1.1.2)对象记录，
+其next方法返回list上连续的元素。被调用时执行下列步骤：
+1. 让closure是新的没有因素的AbstrctClosure，捕获list，被调用时执行下列步骤：
+    a. 遍历list的每个元素E，运行
+        i. 执行?Yield(E)
+    b. 返回undefined
+2. 让iterator是!CreateIteratorFromClosure(closure, empty, %IteratorPrototype%)
+3. 返回Record{ \[\[Iterator]]:iterator,
+   \[\[NextMethod]]:%GeneratorFunction.prototype.prototype.next%, \[\[Done]]:false }
+**** 注意 这里的list不能被ECMAScript代码直接访问到
+*** 7.4.10 IterableToList(items[,method])
+  抽象操作IterableToList接受参数items和可选参数method。被调用时执行下列步骤：
+1. 如果method存在，那么
+    a. 让iteratorRecord是?GetIterator(items, sync, method)
+2. 否则
+    a. 让iteratorRecord是?GetIterator(items, sync)
+3. 让values是一个新的空List
+4. 让next是true
+5. 当next不是false时，重复运行
+    a. 设置next是?IteratorStep(iteratorRecord)
+    b. 如果next不是false，那么
+        i. 让nextValue是?IteratorValue(next)
+       ii. 附加nextValue到values（List）的末端
+6. 返回value
+* 8 Syntax-Direted Operations 面向句法的操作
+  除了本节定义的之外，特定的面向句法的操作的定义贯穿本规范。
+** 8.1 Scope Analysis 范围分析（我更倾向于将scope翻译为闭）
+*** 8.1.1 静态语法：BoundNames
+**** 注意 "*default*"在被规范中被用作人为的名称以表示使用export声明定义的
+           可提升的匿名函数。
+BindingIdentifier : Identifier
+    1. 返回一个只有Identifier的String值作元素的List
+BindingIdentifier : yield
+    1. 返回一个只有"yeild"元素的List
+BindingIdentifier : await
+    1. 返回一个只有"await"元素的List
+LexicalDeclaration : LetOrConst BindingList ;
+    1. 返回BindingList的BoundNames
+BindingList : BindingList , LexicalBinding
+    1. 让names是BingdingList的BoundNames
+    2. 将LexicalBinding的BoundNames的元素附加到names中。
+    3. 返回names
+LexicalBinding : BindingIdentifier Initializer_opt
+    1. 返回BindingIdentifier的BoundNames
+LexicalBinding : BindingPattern Initializer
+    1. 返回Bindingattern的BoundNames
+VariableDeclarationList : VariableDeclarationList , VariableDeclaration
+    1. 让names是VariableDeclarationList的BoundNames
+    2. 将VariableDeclaration的BoundNames的元素附加到names中
+    3. 返回names
+VariableDeclaration : BindingIdentifier Initializer_opt
+    1. 返回BindingIdentifier的BoundNames
+VariableDeclaration : BindingPattern Initializer
+    1. 返回BindingPattern的BoundNames
+ObjectBindingPattern : { }
+    1. 返回新的空List
+ObjectBindingPattern : { BindingPropertyList , BindingRestProperty }
+    1. 让names是BindingPropertyList的BoundNames
+    2. 将BindingRestProperty的BoundNames的元素附加到names中
+    3. 返回names
+ArrayBindingPattern : [ Elision_opt ]
+    1. 返回新的空List
+ArrayBindingPattern : [ Elision_opt BindingRestElement ]
+    1. 返回BindingRestElement的BoundNames
+ArrayBindingPattern : [ BindingElementList, Elision_opt ]
+    1. 返回BindingElementList的BoundNames
+ArrayBindingPattern : [ BindingElementList , Elision_opt BindingRestElement ]
+    1. 让names是BindingElementList的BoundNames
+    2. 将BindingRestElement的BoundNames的元素附加到names中
+    3. 返回names
+BindingPropertyList : BindingPropertyList , BindingProperty
+    1. 让names是BindingPropertyList的BoundNames
+    2. 将BindingProperty的BoundNames的元素附加到names中
+    3. 返回names
+BindingElementList : BindingElementList , BindingElisionElement
+    1. 让names是BindingElementList的BoundNames
+    2. 将BindingElisionElement的BoundNames的元素附加到names中
+    3. 返回names
+BindingElisionElement : Elision_opt BindingElement
+    1. 返回BindingElement的BoundNames
+BindingProperty : PropertyName : BindingElement
+    1. 返回BindingElement的BoundNames
+SingleNameBinding : BindingIdentifier Initializer_opt
+    1. 返回BindingIdentifier的BoundNames
+BindingElement : BindingPattern Initializer_opt
+    1. 返回BindingPattern的BoundNames
+ForDeclaration : LetOrConst ForBinding
+    1. 返回ForBinding的BoundNames
+FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+    1. 返回BindingIdentifier的BoundNames
+FunctionDeclaration : function （FormalParameters ) { FunctionBody }
+    1. 返回<<"*default*">>
+FormalParameters : [empty]
+    1. 返回新的空List
+FormalParameters : FormalParameterList , FunctionRestParameter
+    1. 让names是FormalParameterList的BoundNames
+    2. 将FunctionRestParameter的BoundNames的元素附加到names中
+    3. 返回names
+FormalParameterList : FormalParameterList , FormalParameter
+    1. 让names是FormalParameterList的BoundNames
+    2. 将FormalParameter的BoundNames的元素附加到names中
+    3. 返回names
+ArrowParameters : CoverParenthesizedExpressionAndArrowParameterList
+    1. 让formals是CoverParenthesizedExpressionAndArraowParameterList的
+       CoveredFormalsList
+    2. 返回formals的BoundNames
+GeneratorDeclaration : function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
+    1. 返回BindingIdentifier的BoundNames
+GeneratorDeclaration : function * ( FormalParameters ) { GeneratorBody }
+    1. 返回<<"*default*">>
+AsyncGeneratorDeclaration : async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+    1. 返回BindingIdentier的BoundNames
+AsyncGeneratorDeclaration : async function * ( FormalParameters ) { AsyncGeneratorBody }
+    1. 返回<<"*default*">>
+ClassDeclaration : class BindingIdentifier ClassTail
+    1. 返回BindingIdentifier的BoundNames
+ClassDeclaration : class ClassTail
+    1. 返回<<"*default*">>
+AsyncFunctionDeclaration : async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+    1. 返回BindingIdentifier的BoundNames
+AsyncFunctionDeclaration : async function (FormalParameters ) { AsyncFunctionBody }
+    1. 返回<<"*default*">>
+CoverCallExpressionAndAsyncArrowHead : MemberExpression Arguments
+    1. 让head是CoverCallExpressionAndAsyncArrowHead的CoveredAsyncArraowHead
+    2. 返回head的BoundNames
+ImportDeclaration : import ImportClause FromClause ;
+    1. 返回ImportClause的BoundNames
+ImportDeclaration : import ModuleSpecifier ;
+    1. 返回新的空List
+ImportClause : ImportedDefaultBinding , NameSpaceImport
+    1. 让names是ImportedDefaultBinding的BoundNames
+    2. 将NameSpaceImport的BoundNames的元素附加到names中
+    3. 返回names
+ImportClause : ImportedDefaultBinding , NamedImports
+    1. 让names是ImportedDefaultBinding的BoundNames
+    2. 将NamedImports的BoundNames的元素附加到names中
+    3. 返回names
+NamedImports : { }
+    1. 返回新的空List
+ImportsList : ImportsList , ImportSpecifier
+    1. 让names是ImportsList的BoundNames
+    2. 将IMportSpecifier的BoundNames的元素附加到names中
+    3. 返回names
+ImportSpecifier : IdentifierNames as ImportedBinding
+    1. 返回ImportedBinding的BoundNames
+ExportDeclaration :
+  export ExportFromClause FromClause ;
+  export NamedExports ;
+    1. 返回新的空List
+ExportDeclaration : export VariableStatement
+    1. 返回VariableStatement的BoundNames
+ExportDeclaration : export Declaration
+    1. 返回Declaration的BoundNames
+ExportDeclaration : export default HostableDeclaration
+    1. 让declarationNames是HoistableDeclaration的BoundNames
+    2. 如果declarationNames没有包含"*default*"，将"*default*"附加到declarationNames
+    3. 返回declarationNames
+ExportDeclaration : export default ClassDeclaration
+    1. 让declarationNames是ClassDeclaration的BoundNames
+    2. 如果declarationNames不含有"*default*"，将"*default*"附加到declarationNames
+    3. 返回declarationNames
+ExportDeclaration : export default AssignmentExpression ;
+    1. 返回<<"*default*">>
+*** 8.1.2 静态语法：DeclarationPart 
+HoistableDeclaration : FunctionDeclaration
+    1. 返回 FunctionDeclaration
+HoistableDeclaration : GeneratorDeclaration
+    1. 返回 GeneratorDeclaration
+HoistableDeclaration : AsyncFunctionDeclaration
+    1. 返回 AsyncFunctionDeclaration
+HoistableDeclaration : AsyncGeneratorDeclaration
+    1. 返回 AsyncGeneratorDeclaration
+Declaration : ClassDeclaration
+    1. 返回 ClassDeclaration
+Declaration : LexicalDeclaration
+    1. 返回 LexicalDeclaration
+*** 8.1.3 静态语法：IsConstantDeclaration
 * 25
 ** 25.1
 
