@@ -2735,6 +2735,41 @@ Declaration : ClassDeclaration
 Declaration : LexicalDeclaration
     1. 返回 LexicalDeclaration
 *** 8.1.3 静态语法：IsConstantDeclaration
+LexicalDeclaration : LetOrConst BindingList ;
+    1. 返回LetOrConst的IsConstantDeclaration
+LetOrConst : let
+    1. 返回false
+LetOrConst : const
+    1. 返回 true
+FunctionDeclaration :
+  function BindingIdentifier ( FormalParameters ) { FunctionBody }
+  function ( FormalParameters ) { FunctionBody }
+GeneratorDeclaration :
+  function * BidningIdentifer ( FormalParameters ) { GeneratorBody }
+  function * ( FormalParameters ) { GeneratorBody }
+AsyncGeneratorDeclaration : 
+  async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+  async function * ( FormalParameters ) { AsyncGeneratorBody }
+AsyncFunctionDeclaration :
+  async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+  async function ( FormalParameters ) { AsyncFunctionBody }
+    1. 返回false
+ClassDeclaration :
+  class BindingIdentifier ClassTail
+  class ClassTail
+    1. 返回false
+ExportDeclaration :
+  export ExportFromClause FromClause ;
+  export NamedExports ;
+  export default AssignmentExpression ;
+    1. 返回false
+**** 注意 无须将export default AssignmentExpression作为常量声明。因为不存在这样
+           的句法对module的default对象的内部名称进行赋值。
+*** 8.1.4 静态语法：LexicallyDeclaredNames
+Block : { }
+    1. 返回新的空List
+StatementList : StatementList StatementListItem
+*** 8.1.5 静态语法：LexciallyScopedDeclarations
 * 25
 ** 25.1
 
