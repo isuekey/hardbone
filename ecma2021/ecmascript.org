@@ -2606,191 +2606,706 @@ key+value).被调用时执行下列步骤
 * 8 Syntax-Direted Operations 面向句法的操作
   除了本节定义的之外，特定的面向句法的操作的定义贯穿本规范。
 ** 8.1 Scope Analysis 范围分析（我更倾向于将scope翻译为闭）
-*** 8.1.1 静态语法：BoundNames
+*** 8.1.1 静态语义：BoundNames
 **** 注意 "*default*"在被规范中被用作人为的名称以表示使用export声明定义的
            可提升的匿名函数。
 BindingIdentifier : Identifier
-    1. 返回一个只有Identifier的String值作元素的List
+1. 返回一个只有Identifier的String值作元素的List
 BindingIdentifier : yield
-    1. 返回一个只有"yeild"元素的List
+1. 返回一个只有"yeild"元素的List
 BindingIdentifier : await
-    1. 返回一个只有"await"元素的List
+1. 返回一个只有"await"元素的List
 LexicalDeclaration : LetOrConst BindingList ;
-    1. 返回BindingList的BoundNames
+1. 返回BindingList的BoundNames
 BindingList : BindingList , LexicalBinding
-    1. 让names是BingdingList的BoundNames
-    2. 将LexicalBinding的BoundNames的元素附加到names中。
-    3. 返回names
+1. 让names是BingdingList的BoundNames
+2. 将LexicalBinding的BoundNames的元素附加到names中。
+3. 返回names
 LexicalBinding : BindingIdentifier Initializer_opt
-    1. 返回BindingIdentifier的BoundNames
+1. 返回BindingIdentifier的BoundNames
 LexicalBinding : BindingPattern Initializer
-    1. 返回Bindingattern的BoundNames
+1. 返回Bindingattern的BoundNames
 VariableDeclarationList : VariableDeclarationList , VariableDeclaration
-    1. 让names是VariableDeclarationList的BoundNames
-    2. 将VariableDeclaration的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是VariableDeclarationList的BoundNames
+2. 将VariableDeclaration的BoundNames的元素附加到names中
+3. 返回names
 VariableDeclaration : BindingIdentifier Initializer_opt
-    1. 返回BindingIdentifier的BoundNames
+1. 返回BindingIdentifier的BoundNames
 VariableDeclaration : BindingPattern Initializer
-    1. 返回BindingPattern的BoundNames
+1. 返回BindingPattern的BoundNames
 ObjectBindingPattern : { }
-    1. 返回新的空List
+1. 返回新的空List
 ObjectBindingPattern : { BindingPropertyList , BindingRestProperty }
-    1. 让names是BindingPropertyList的BoundNames
-    2. 将BindingRestProperty的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是BindingPropertyList的BoundNames
+2. 将BindingRestProperty的BoundNames的元素附加到names中
+3. 返回names
 ArrayBindingPattern : [ Elision_opt ]
-    1. 返回新的空List
+1. 返回新的空List
 ArrayBindingPattern : [ Elision_opt BindingRestElement ]
-    1. 返回BindingRestElement的BoundNames
+1. 返回BindingRestElement的BoundNames
 ArrayBindingPattern : [ BindingElementList, Elision_opt ]
-    1. 返回BindingElementList的BoundNames
+1. 返回BindingElementList的BoundNames
 ArrayBindingPattern : [ BindingElementList , Elision_opt BindingRestElement ]
-    1. 让names是BindingElementList的BoundNames
-    2. 将BindingRestElement的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是BindingElementList的BoundNames
+2. 将BindingRestElement的BoundNames的元素附加到names中
+3. 返回names
 BindingPropertyList : BindingPropertyList , BindingProperty
-    1. 让names是BindingPropertyList的BoundNames
-    2. 将BindingProperty的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是BindingPropertyList的BoundNames
+2. 将BindingProperty的BoundNames的元素附加到names中
+3. 返回names
 BindingElementList : BindingElementList , BindingElisionElement
-    1. 让names是BindingElementList的BoundNames
-    2. 将BindingElisionElement的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是BindingElementList的BoundNames
+2. 将BindingElisionElement的BoundNames的元素附加到names中
+3. 返回names
 BindingElisionElement : Elision_opt BindingElement
-    1. 返回BindingElement的BoundNames
+1. 返回BindingElement的BoundNames
 BindingProperty : PropertyName : BindingElement
-    1. 返回BindingElement的BoundNames
+1. 返回BindingElement的BoundNames
 SingleNameBinding : BindingIdentifier Initializer_opt
-    1. 返回BindingIdentifier的BoundNames
+1. 返回BindingIdentifier的BoundNames
 BindingElement : BindingPattern Initializer_opt
-    1. 返回BindingPattern的BoundNames
+1. 返回BindingPattern的BoundNames
 ForDeclaration : LetOrConst ForBinding
-    1. 返回ForBinding的BoundNames
+1. 返回ForBinding的BoundNames
 FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
-    1. 返回BindingIdentifier的BoundNames
+1. 返回BindingIdentifier的BoundNames
 FunctionDeclaration : function （FormalParameters ) { FunctionBody }
-    1. 返回<<"*default*">>
+1. 返回<<"*default*">>
 FormalParameters : [empty]
-    1. 返回新的空List
+1. 返回新的空List
 FormalParameters : FormalParameterList , FunctionRestParameter
-    1. 让names是FormalParameterList的BoundNames
-    2. 将FunctionRestParameter的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是FormalParameterList的BoundNames
+2. 将FunctionRestParameter的BoundNames的元素附加到names中
+3. 返回names
 FormalParameterList : FormalParameterList , FormalParameter
-    1. 让names是FormalParameterList的BoundNames
-    2. 将FormalParameter的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是FormalParameterList的BoundNames
+2. 将FormalParameter的BoundNames的元素附加到names中
+3. 返回names
 ArrowParameters : CoverParenthesizedExpressionAndArrowParameterList
-    1. 让formals是CoverParenthesizedExpressionAndArraowParameterList的
-       CoveredFormalsList
-    2. 返回formals的BoundNames
+1. 让formals是CoverParenthesizedExpressionAndArraowParameterList的
+   CoveredFormalsList
+2. 返回formals的BoundNames
 GeneratorDeclaration : function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
-    1. 返回BindingIdentifier的BoundNames
+1. 返回BindingIdentifier的BoundNames
 GeneratorDeclaration : function * ( FormalParameters ) { GeneratorBody }
-    1. 返回<<"*default*">>
+1. 返回<<"*default*">>
 AsyncGeneratorDeclaration : async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
-    1. 返回BindingIdentier的BoundNames
+1. 返回BindingIdentier的BoundNames
 AsyncGeneratorDeclaration : async function * ( FormalParameters ) { AsyncGeneratorBody }
-    1. 返回<<"*default*">>
+1. 返回<<"*default*">>
 ClassDeclaration : class BindingIdentifier ClassTail
-    1. 返回BindingIdentifier的BoundNames
+1. 返回BindingIdentifier的BoundNames
 ClassDeclaration : class ClassTail
-    1. 返回<<"*default*">>
+1. 返回<<"*default*">>
 AsyncFunctionDeclaration : async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
-    1. 返回BindingIdentifier的BoundNames
+1. 返回BindingIdentifier的BoundNames
 AsyncFunctionDeclaration : async function (FormalParameters ) { AsyncFunctionBody }
-    1. 返回<<"*default*">>
+1. 返回<<"*default*">>
 CoverCallExpressionAndAsyncArrowHead : MemberExpression Arguments
-    1. 让head是CoverCallExpressionAndAsyncArrowHead的CoveredAsyncArraowHead
-    2. 返回head的BoundNames
+1. 让head是CoverCallExpressionAndAsyncArrowHead的CoveredAsyncArraowHead
+2. 返回head的BoundNames
 ImportDeclaration : import ImportClause FromClause ;
-    1. 返回ImportClause的BoundNames
+1. 返回ImportClause的BoundNames
 ImportDeclaration : import ModuleSpecifier ;
-    1. 返回新的空List
+1. 返回新的空List
 ImportClause : ImportedDefaultBinding , NameSpaceImport
-    1. 让names是ImportedDefaultBinding的BoundNames
-    2. 将NameSpaceImport的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是ImportedDefaultBinding的BoundNames
+2. 将NameSpaceImport的BoundNames的元素附加到names中
+3. 返回names
 ImportClause : ImportedDefaultBinding , NamedImports
-    1. 让names是ImportedDefaultBinding的BoundNames
-    2. 将NamedImports的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是ImportedDefaultBinding的BoundNames
+2. 将NamedImports的BoundNames的元素附加到names中
+3. 返回names
 NamedImports : { }
-    1. 返回新的空List
+1. 返回新的空List
 ImportsList : ImportsList , ImportSpecifier
-    1. 让names是ImportsList的BoundNames
-    2. 将IMportSpecifier的BoundNames的元素附加到names中
-    3. 返回names
+1. 让names是ImportsList的BoundNames
+2. 将IMportSpecifier的BoundNames的元素附加到names中
+3. 返回names
 ImportSpecifier : IdentifierNames as ImportedBinding
-    1. 返回ImportedBinding的BoundNames
+1. 返回ImportedBinding的BoundNames
 ExportDeclaration :
-  export ExportFromClause FromClause ;
-  export NamedExports ;
-    1. 返回新的空List
+    export ExportFromClause FromClause ;
+    export NamedExports ;
+1. 返回新的空List
 ExportDeclaration : export VariableStatement
-    1. 返回VariableStatement的BoundNames
+1. 返回VariableStatement的BoundNames
 ExportDeclaration : export Declaration
-    1. 返回Declaration的BoundNames
+1. 返回Declaration的BoundNames
 ExportDeclaration : export default HostableDeclaration
-    1. 让declarationNames是HoistableDeclaration的BoundNames
-    2. 如果declarationNames没有包含"*default*"，将"*default*"附加到declarationNames
-    3. 返回declarationNames
+1. 让declarationNames是HoistableDeclaration的BoundNames
+2. 如果declarationNames没有包含"*default*"，将"*default*"附加到declarationNames
+3. 返回declarationNames
 ExportDeclaration : export default ClassDeclaration
-    1. 让declarationNames是ClassDeclaration的BoundNames
-    2. 如果declarationNames不含有"*default*"，将"*default*"附加到declarationNames
-    3. 返回declarationNames
+1. 让declarationNames是ClassDeclaration的BoundNames
+2. 如果declarationNames不含有"*default*"，将"*default*"附加到declarationNames
+3. 返回declarationNames
 ExportDeclaration : export default AssignmentExpression ;
-    1. 返回<<"*default*">>
-*** 8.1.2 静态语法：DeclarationPart 
+1. 返回<<"*default*">>
+*** 8.1.2 静态语义：DeclarationPart 
 HoistableDeclaration : FunctionDeclaration
-    1. 返回 FunctionDeclaration
+1. 返回 FunctionDeclaration
 HoistableDeclaration : GeneratorDeclaration
-    1. 返回 GeneratorDeclaration
+1. 返回 GeneratorDeclaration
 HoistableDeclaration : AsyncFunctionDeclaration
-    1. 返回 AsyncFunctionDeclaration
+1. 返回 AsyncFunctionDeclaration
 HoistableDeclaration : AsyncGeneratorDeclaration
-    1. 返回 AsyncGeneratorDeclaration
+1. 返回 AsyncGeneratorDeclaration
 Declaration : ClassDeclaration
-    1. 返回 ClassDeclaration
+1. 返回 ClassDeclaration
 Declaration : LexicalDeclaration
-    1. 返回 LexicalDeclaration
-*** 8.1.3 静态语法：IsConstantDeclaration
+1. 返回 LexicalDeclaration
+*** 8.1.3 静态语义：IsConstantDeclaration
 LexicalDeclaration : LetOrConst BindingList ;
-    1. 返回LetOrConst的IsConstantDeclaration
+1. 返回LetOrConst的IsConstantDeclaration
 LetOrConst : let
-    1. 返回false
+1. 返回false
 LetOrConst : const
-    1. 返回 true
+1. 返回 true
 FunctionDeclaration :
-  function BindingIdentifier ( FormalParameters ) { FunctionBody }
-  function ( FormalParameters ) { FunctionBody }
+    function BindingIdentifier ( FormalParameters ) { FunctionBody }
+    function ( FormalParameters ) { FunctionBody }
 GeneratorDeclaration :
-  function * BidningIdentifer ( FormalParameters ) { GeneratorBody }
-  function * ( FormalParameters ) { GeneratorBody }
+    function * BidningIdentifer ( FormalParameters ) { GeneratorBody }
+    function * ( FormalParameters ) { GeneratorBody }
 AsyncGeneratorDeclaration : 
-  async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
-  async function * ( FormalParameters ) { AsyncGeneratorBody }
+    async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+    async function * ( FormalParameters ) { AsyncGeneratorBody }
 AsyncFunctionDeclaration :
-  async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
-  async function ( FormalParameters ) { AsyncFunctionBody }
-    1. 返回false
+    async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+    async function ( FormalParameters ) { AsyncFunctionBody }
+1. 返回false
 ClassDeclaration :
-  class BindingIdentifier ClassTail
-  class ClassTail
-    1. 返回false
+    class BindingIdentifier ClassTail
+    class ClassTail
+1. 返回false
 ExportDeclaration :
-  export ExportFromClause FromClause ;
-  export NamedExports ;
-  export default AssignmentExpression ;
-    1. 返回false
+    export ExportFromClause FromClause ;
+    export NamedExports ;
+    export default AssignmentExpression ;
+1. 返回false
 **** 注意 无须将export default AssignmentExpression作为常量声明。因为不存在这样
            的句法对module的default对象的内部名称进行赋值。
-*** 8.1.4 静态语法：LexicallyDeclaredNames
+*** 8.1.4 静态语义：LexicallyDeclaredNames
 Block : { }
-    1. 返回新的空List
+1. 返回新的空List
 StatementList : StatementList StatementListItem
-*** 8.1.5 静态语法：LexciallyScopedDeclarations
+1. 让names是StatementList的LexicallyDeclaredNames
+2. 将StatementListItem的LexicallyDeclaredNames的元素附加到names中
+3. 返回names
+StatementListItem : Statement
+1. 如果Statement是 Statement : LabelledStatement 返回 LabelledStatement的
+   LexicallyDeclaredNames
+2. 返回新的空List
+StatementListItem : Declaration
+1. 返回Declaration的BoundNames
+CaseBlock : { }
+1. 返回新的空List
+CaseBlock : { CaseClause_opt DefaultClause CaseClauses_opt }
+1. 如果第一个CaseClauses存在，让names是第一个CaseClauses的LexicallyDeclaredNames
+2. 否则names是新的空List
+3. 将DefaultClause的LexicallyDeclaredNames的元素附加到names中
+4. 如果第二个CaseClauses不存在，返回names
+5. 返回将第二个CaseClauses的LexicallyDeclaredNames的元素附加到names后的结果
+CaseClauses : CaseClauses CaseClause
+1. 让names是CaseClauses的LexicallyDeclaredNames。
+2. 将CaseClause的LexicallyDeclaredNames的元素附加到names中
+3. 返回names
+CaseClause : case Expression : StatementList_opt
+1. 如果StatementList存在，返回StatementList的LexicallyDeclaredNames
+2. 返回新的空List
+DefaultClause : default : StatementList_opt
+1. 如果StatementList存在，返回StatementList的LexicallyDeclaredNames
+2. 返回新的空List
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 返回LabelledItem的LexicallyDeclaredNames
+LabelledItem : Statement
+1. 返回新的空List
+LabelledItem : FunctionDeclaration
+1. 返回FunctionDeclaration的BoundNames
+FunctionStatementList : [ empty ]
+1. 返回新的空List
+FunctionStatementList : StatementList
+1. 返回StatementList的TopLevelLexicallyDeclaredNames
+ConciseBody : ExpressionBody
+1. 返回新的空List
+AsyncConciseBody : ExpressionBody
+1. 返回新的空List
+ScriptBody : StatementList
+1. 返回StatementList的TopLevelLexicallyDeclaredNames
+**** 注意1 在Script的顶层，对待函数声明像var声明而不是像词法声明。
+**** 注意2 Module的LexicallyDeclaredNames包含其引入的绑定信息。
+ModuleItemList : ModuleItemList ModuleItem
+1. 让names是ModuleItemList的LexicallyDeclaredNames
+2. 将ModuleItem的LexicallyDeclaredNames的元素附加到names中
+3. 返回names
+ModuleItem : ImportDeclaration
+1. 返回ImportDeclaration的BoundNames
+ModuleItem : ExportDeclaration
+1. 如果ExportDeclaration是export VariableStatement，返回新的空List
+2. 返回ExportDeclaration的BoundNames
+ModuleItem : StatementListItem
+1. 返回StatementListItem的LexicallyDeclaredNames
+**** 注意3 在Module的顶层，对待函数声明像词法声明而不是var声明
+*** 8.1.5 静态语义：LexciallyScopedDeclarations
+StatementList : StatementList StatementListItem
+1. 让declarations是StatementList的LexicallyScopedDeclarations
+2. 将StatementListItem的LexicallyScopedDeclarations的元素附加到declarations中
+3.返回declarations
+StatementListItem : Statement
+1. 如果Statement是Statement : LabelledStatement，返回LabelledStatement的
+   LexicallyScopedDeclarations
+2. 返回新的空List
+StatementListItem : Declaration
+1. 返回仅有Declaration的DeclarationPart的List
+CaseBlock : { }
+1. 返回新的空List
+CaseBlock : { CaseClauses_opt DefaultClasue CaseClauses_opt }
+1. 如果第一个CaseClauses存在，让declarations是第一个CaseClauses的
+   LexicallyScopedDeclarations
+2. 否则让declarations是新的空List
+3. 将DefaultClause的LexicallyScopedDeclarations的元素附加到declarations中
+4. 如果第二个CaseClauses不存在，返回Declarations
+5. 返回将第二个CaseClauses的LexicallyScopedDeclarations的元素附加到
+   declarations中的结果
+CaseClauses : CaseClauses CaseClause
+1. 让declarations是CaseClauses的LexciallyScopedDeclarations
+2. 将CaseClause的LexiclallyScopedDeclarations的元素附加到declarations中
+3. 返回declarations
+CaseClause : case Expression : StatementList_opt
+1. 如果StatementList存在，返回StatementList的LexicallyScopedDeclarations
+2. 返回新的空List
+DefaultClause: default : StatementList_opt
+1. 如果StatementList存在，返回StatementList的LexicallyScopedDeclarations
+2. 返回新的空List
+LabelledStatement : LabelIdentifier : LbelledItem
+1. 返回LabelledItem的LexicallyScopedDeclarations
+LabelledItem : Statement
+1. 返回新的空List
+LabelledItem : FunctionDeclaration
+1. 返回只有FunctionDeclaration的List
+FunctionStatementList : [ empty ]
+1. 返回新的空List
+FunctionStatementList : StatementList
+1. 返回StatementList的TopLevelLexicallyScopedDeclarations
+ConciseBody : ExpressionBody
+1. 返回新的空List
+AsyncConciseBody : ExpressionBody
+1. 返回新的空List
+ScriptBody : StatementList
+1. 返回Statementist的TopLevelLexciallyScopedDeclarations
+Module : [ empty ]
+1. 返回新的空List
+ModuleItemList : ModuleItemList ModuleItem
+1. 让declarations是ModuleItemList的LexicallyScopedDeclarations
+2. 将ModuleItem的LexicallyScopedDeclarations的元素附加到declarations
+3. 返回declarations
+ModuleItem : ImportDeclaration
+1. 返回新的空List
+ExportDeclaration :
+    export ExportFromClause FromClause ;
+    export NamedExports ;
+    export VariableStatement
+1. 返回新的空List
+ExportDeclaration : export Declaration
+1. 返回只有Declaration的DeclarationPart的List
+ExportDeclaration : export default HoistableDeclaration
+1. 返回只有HoistableDeclaration的DeclarationPart的List
+ExportDeclaration : export default ClassDeclaration
+1. 返回只有ClassDeclaration的List
+ExportDeclaration : export default AssignmentExpression ;
+1. 返回只有ExportDeclaration的List
+*** 8.1.6 静态语义：VarDeclaredNames
+Statement :
+    EmptyStatement
+    ExpressionStatement
+    ContinueStatement
+    BreakStatement
+    ReturnStatement
+    ThrowStatement
+    DebuggerStatement
+1. 返回新的空List
+Block : { }
+1. 返回新的空List
+StatementList : StatementList StatementListItem
+1. 让names是StatementList的VarDeclaredNames
+2. 将StatementListItem的VarDeclaredNames的元素附加到names中
+3. 返回names
+StatementListItem : Declaration
+1. 返回新的空List
+StatementListItem : var VariableDeclarationList ;
+1. 返回VariableDeclarationList的BoundNames
+IfStatement : if ( Expression ) Statement else Statement
+1. 让names是第一个Statement的VarDeclaredNames
+2. 将第二个Statement的VarDeclaredNames的元素附加到names中
+3. 返回names
+IfStatement : if ( Expression ) Statement
+1. 返回Statement的VarDeclaredNames
+DoWhileStatement : do Statement while ( Expression ) ;
+1. 返回Statement的VarDeclaredNames
+WhileStatement : while ( Expression ) Statement
+1. 返回Statement的VarDeclaredNames
+ForStatement : for ( Expression_opt ; Expression_opt ; Expression_opt ) Statement
+1. 返回Statement的VarDeclaredNames
+ForInOfStatement
+    for ( LeftHandSideExpression in Expression ) Statement
+    for ( ForDeclaration in Expression ) Statement
+    for ( LeftHandSideExpression of AssignmentExpression ) Statement
+    for ( ForDeclaration of AssignmentExpression ) Statement
+    for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+    for await ( ForDeclaration of AssignmentExpression ) Statement
+1. 返回Statement的VarDeclaredNames
+ForInOfStatement :
+    for ( var ForBinding in Expression ) Statement
+    for ( var ForBinding of AssignmentExpression ) Statement
+    for await ( var ForBinding of AssignmentExpression ) Statement
+1. 让names是ForBinding的BoundNames
+2. 将Statement的VarDeclaredNames的元素附加到names中
+3. 返回names
+**** 注意 本节内容被附件B.3.6扩展了。
+WithStatement : with ( Expression ) Statement 
+1. 返回Statement的VarDeclaredNames
+SwitchStatement : switch ( Expression ) CaseBlock
+1. 返回CaseBlock的VarDeclaredNames
+CaseBlock : { }
+1. 返回新的空List
+CaseBlock : { CaseClauses_op DefaultClause CaseClause_opt }
+1. 如果第一个CaseClauses存在，让names是第一个CaseClauses的VarDeclaredNames
+2. 否则names是新的空List
+3. 将DefaultClause的VarDeclaredNames的元素附加到names中
+4. 如果第二个CaseClauses不存在，返回names
+5. 返回将第二个CaseClauses的VarDeclaredNames的元素附加到names后的结果
+CaseClauses : CaseClauses CaseClause
+1. 让names是CaseClauses的VarDeclaredNames。
+2. 将CaseClause的VarDeclaredNames的元素附加到names中
+3. 返回names
+CaseClause : case Expression : StatementList_opt
+1. 如果StatementList存在，返回StatementList的VarDeclaredNames
+2. 返回新的空List
+DefaultClause : default : StatementList_opt
+1. 如果StatementList存在，返回StatementList的VarDeclaredNames
+2. 返回新的空List
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 返回LabelledItem的VarDeclaredNames
+LabelledItem : FunctionDeclaration
+1. 返回新的空List
+TryStatement : try Block Catch
+1. 让names是Block的VarDeclaredNames
+2. 将Catch的VarDeclaredNames的元素附加到names中
+3. 返回names
+TryStatement : try Block Finally
+1. 让names是Block的VarDeclaredNames
+2. 将Finally的VarDeclaredNames的元素附加到names中
+3. 返回names
+TryStatement : try Block Catch Finally
+1. 让names是Block的VarDeclaredNames
+2. 将Catch的VarDeclaredNames的元素附加到names中
+3. 将Finally的VarDeclaredNames的元素附加到names中
+4. 返回names
+Catch : catch ( CatchParameter ) Block
+1. 返回Block的VarDeclaredNames
+FunctionStatementList : [ empty ]
+1. 返回新的空List
+FunctionStatementList : StatementList
+1. 返回StatementList的TopLevelVarDeclaredNames
+ConciseBody : ExpressionBody
+1. 返回新的空List
+AsyncConciseBody : ExpressionBody
+1. 返回新的空List
+ScriptBody : StatementList
+1. 返回StatementList的TopLevelVarDeclaredNames
+Module : [empty]
+1. 返回新的空List
+ModuleItemList : ModuleItemList ModuleItem
+1. 让names是ModuleItemList的VarDeclaredNames
+2. 将ModuleItem的VarDeclaredNames的元素附加到names中
+3. 返回names
+ModuleItem : ImportDeclaration
+1. 返回新的空List
+ModuleItem : ExportDeclaration
+1. 如果ExportDeclaration是export VariableStatement，返回ExportDeclaration的
+   BoundNames
+2. 返回新的空List
+*** 8.1.7 静态语义：VarScopedDeclarations
+Statement :
+    EmptyStatement
+    ExpressionStatement
+    ContinueStatement
+    BreakStatement
+    ReturnStatement
+    ThrowStatement
+    DebuggerStatement
+1. 返回新的空List
+Block : { }
+1. 返回新的空List
+StatementList : StatementList StatementListItem
+1. 让names是StatementList的VarScopedDeclarations
+2. 将StatementListItem的VarScopedDeclarations的元素附加到names中
+3. 返回names
+StatementListItem : Declaration
+1. 返回新的空List
+VariableDeclarationList : VariableDeclaration
+1. 返回只有VariableDeclaration的List
+VariableDeclarationList : VariableDelarationList , VariableDeclaration
+1. 让decalrations是VariableDeclarationList的VarScopedDeclarations
+2. 将VariableDeclaration附加到declarations
+3. 返回declarations
+IfStatement : if ( Expression ) Statement else Statement
+1. 让declarations是第一个Statement的VarScopedDeclarations
+2. 将第二个Statement的VarScopedDeclarations的元素附加到declarations中
+3. 返回declarations
+IfStatement : if ( Expression ) Statement
+1. 返回Statement的VarScopedDeclarations
+DoWhileStatement : do Statement while ( Expression ) ;
+1. 返回Statement的VarScopedDeclarations
+WhileStatement : while ( Expression ) Statement
+1. 返回Statement的VarScopedDeclarations
+ForStatement : for ( Expression_opt ; Expression_opt ; Expression_opt ) Statement
+1. 返回Statement的VarScopedDeclarations
+ForStatement : 
+    for ( var VariableDeclarationList ; Expression_opt ; Expresion_opt ) Statement
+1. 让declarations是VariableDeclarationList的VarScopedDeclarations
+2. 将Statement的VarScopedDeclarations的元素附加到declarations中
+3. 返回declarations
+ForStatement : for ( LexicalDeclaration Expression_op ; Expression_opt ) Statement
+1. 返回Statement的VarScopedDeclarations
+ForInOfStatement :
+    for ( LeftHandSideExpression in Expression ) Statement
+    for ( ForDeclaration in Expression ) Statement
+    for ( LeftHandSideExpression of AssignmenetExpression ) Statement
+    for ( ForDeclaration of AssignmentExpression ) Statement
+    for await ( LeftHandSideExpression of AssigmentExpression ) Statement
+    for await ( ForDeclaration of AssignmentExpression ) Statement 
+1. 返回Statement的VarScopedDeclarations
+ForInOfStatement :
+    for ( var ForBinding in Expression ) Statement
+    for ( var ForBidning of AssignmentExpression ) Statement
+    for await ( var ForBinding of AssignmentExpression ) Statement
+1. 让declarations是只有ForBinding的List
+2. 将Statement的VarScopedDeclarations的元素附加到declarations
+3. 返回declarations
+**** 注意 本节内容被附件B.3.6扩展了。
+WithStatement : with ( Expression ) Statement 
+1. 返回Statement的VarScopedDeclarations
+SwitchStatement : switch ( Expression ) CaseBlock
+1. 返回CaseBlock的VarScopedDeclarations
+CaseBlock : { }
+1. 返回新的空List
+CaseBlock : { CaseClauses_op DefaultClause CaseClause_opt }
+1. 如果第一个CaseClauses存在，让declarations是第一个CaseClauses的
+   VarScopedDeclarations
+2. 否则delcarations是新的空List
+3. 将DefaultClause的VarScopedDeclarations的元素附加到declarations中
+4. 如果第二个CaseClauses不存在，返回declarations
+5. 返回将第二个CaseClauses的VarScopedDeclarations的元素附加到declarations后的结果
+CaseClauses : CaseClauses CaseClause
+1. 让declarations是CaseClauses的VarScopedDeclarations。
+2. 将CaseClause的VarScopedDeclarations的元素附加到declarations中
+3. 返回declarations
+CaseClause : case Expression : StatementList_opt
+1. 如果StatementList存在，返回StatementList的VarScopedDeclarations
+2. 返回新的空List
+DefaultClause : default : StatementList_opt
+1. 如果StatementList存在，返回StatementList的VarScopedDeclarations
+2. 返回新的空List
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 返回LabelledItem的VarScopedDeclarations
+LabelledItem : FunctionDeclaration
+1. 返回新的空List
+TryStatement : try Block Catch
+1. 让declarations是Block的VarScopedDeclarations
+2. 将Catch的VarScopedDeclarations的元素附加到declarations
+3. 返回declarations
+TryStatement : try Block Finally
+1. 让declarations是Block的VarScopedDeclarations
+2. 将Finally的VarScopedDeclarations的元素附加到declarations
+3. 返回declarations
+TryStatement : try Block Catch Finally
+1. 让declarations是Block的VarScopedDeclarations
+2. 将Catch的VarScopedDeclarations的元素附加到declarations
+3. 将Finally的VarScopedDeclarations的元素附加到declarations
+4. 返回declarations
+Catch : catch ( CatchParameter ) Block
+1. 返回Block的VarScopedDeclarations
+FunctionStatementList : [ empty ]
+1. 返回新的空List
+FunctionStatementList : StatementList
+1. 返回StatementList的TopLevelVarScopedDeclarations
+ConciseBody : ExpressionBody
+1. 返回新的空List
+AsyncConciseBody : ExpressionBody
+1. 返回新的空List
+ScriptBody : StatementList
+1. 返回Statementist的TopLevelVarScopedDeclarations
+Module : [empty]
+1. 返回新的空List
+ModuleItemList : ModuleItemList ModuleItem
+1. 让declarations是ModuleIemList的VarScopedDeclarations
+2. 将ModuleItem的VarScopedDeclarations的元素附加到declarations中
+3. 返回declarations
+ModuleItem : ExportDeclaration
+1. 如果ExportDeclaration是export VariableStatement，返回VariableStatement
+   的VArScopedDeclarations
+2. 返回新的空List
+*** 8.1.8 静态语义：TopLevelLexicallyDeclaredNames
+StatementList : StatementList StatementListItem
+1. 让names是StatementList的TopLevelLexicallyDeclaredNames
+2. 将StatementListItem的TopLevelLexciallyDeclaredNames的元素附加到names中
+3. 返回names
+StatementListItem : Statement
+1. 返回新的空List
+StatementListItem : Declaration
+1. 如果Declaration是Declaration : HoistableDeclaration, 那么
+    a. 返回<<>>
+2. 返回Declaration的BoundNames
+**** 注意 在function或Scipt的顶层，对待函数声明像var声明而不是词法声明
+LabelledStatement : LabelIdentifier : LabelledItem
+    1. 返回新的空List
+*** 8.1.9 静态语义：TopLevelLexicallyScopedDeclarations
+Block : { }
+1. 返回新的空List
+StatementList : StatementList StatementListItem
+1. 让declarations是StatementList的TopLevelLexicallyScopedDeclarations
+2. 将StatementListItem的TopLevelLexicallyScopedDeclarations的元素附加到declarations
+3. 返回declarations
+StatementListItem : Statement
+1. 返回新的空List
+StatementListItem : Declaration
+1. 如果Declaration是 Declaration : HoistableDeclaration，那么
+    a. 返回<<>>
+2. 返回只有Declaration的List
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 返回新的空List
+*** 8.1.10 静态语义：TopLevelVarDeclaredNames
+Block : { }
+1. 返回新的空List
+StatementList : StatementList StatementListItem
+1. 让names是StatementList的TopLevelVarDeclaredNames
+2. 将StatementListItem的TopLevelVarDeclaredNames的元素附加到names
+3. 返回names
+StatementListItem : Declaration
+1. 如果Declaration是Declaration : HoistableDeclaration，那么
+    a. 返回HoistableDeclaration的BoundNames
+2. 返回新的空List
+StatementListItem : Statement
+1. 如果Statement是Statement : LabelledStatement，返回Statement的
+   TopLevelVarDeclaredNames
+2. 返回Statement的VarDeclaredNames
+**** 在function和script的顶层，对待内部函数声明像var声明
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 返回LabelledItem的TopLevelVarDeclaredNames
+LabelledItem : Statement
+1. 如果Statemnet是Statement : LabelledStatement，返回Statment的
+   TopLevelVarDeclaredNames
+2. 返回Statement的VarDeclaredNames
+LabelledItem : FunctionDeclaration
+1. 返回FunctionDeclaration的BoundNames
+*** 8.1.11 静态语义：TopLevelVarScopedDeclarations
+Block : { }
+1. 返回新的空List
+StatementList : StatementList StatementListItem
+1. 让declarations是StatementList的TpLevelVarScopedDeclarations
+2. 将StatementListItem的TopLevelVarScopedDeclarations的元素附加到declarations中
+3. 返回declarations
+StatementListItem : Statement
+1. 如果Statement是 Statement : LabelledStatement，返回Statement的
+   TopLevelVarScopedDeclarations
+2. 返回Statement的VarScopedDeclarations
+StatementListItem : Declaration
+1. 如果Declaration是Declarations : HoistableDeclaration，那么
+    a. 让declaration是HoistableDeclaration的DeclarationPart
+    b. 返回<<declaration>>
+2. 返回新的空List
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 返回LabelledItem的TopLevelVarScopedDeclarations
+LabelledItem : FunctionDeclaration
+1. 返回只有FunctionDeclaration的List
+** 8.2 Labels标签
+*** 8.2.1 静态语义：ContainsDuplicateLabels
+带有参数labelSet
+Statement:
+    VariableStatement
+    EmptyStatement
+    ExpressionStatement
+    ContinueStatement
+    BreakStatement
+    ReturnStatement
+    ThrowStatement
+    DebuggerStatement
+Block : { }
+StatementListItem : Declaration
+1. 返回false
+StatementList : StatementList StatementListItem
+1. 让hasDuplicates是StatementList带labelSet参数的ContainsDuplicatedLabels
+2. 如果hasDuplicates是true，返回true
+3. 返回StatementListItem带labelSet参数的ContinsDuplicateLabels
+IfStateMent : if ( Expression ) Statement else Statement 
+1. 让hasDuplicate是第一个Statement带labelSet参数的ContainsDuplicateLabels
+2. 如果hasDuplicates是true，返回true
+3. 返回第二个Statement带labelSet参数的ContainsDuplicateLabels
+IfStatement : if ( Expression ) Statement
+1. 返回Statement带labelSet参数的ContainsDuplicateLabels
+DoWhileStatement : do Statement while ( Expression ) ;
+1. 返回Statement带labelSet参数的ContainsDuplicateLabels
+WhileStatement : while ( Expression ) Statement
+1. 返回Statement带labelSet参数的ContainsDuplicateLabels
+ForStatement :
+    for ( Expression_opt ; Expression_opt ; Expression_opt ) Statement
+    for ( var VariableDeclarationList ; Expression_opt ; Expression_opt ) Statement
+    for ( LexicalDeclaration Expression_opt ; Expression_opt ) Statement
+1. 返回Statement带labelSet参数的ContainsDuplicateLabels
+ForInOfStatement :
+    for ( LeftHandSideExpression in Expression ) Statement
+    for ( var ForBinding in Expression ) Statement
+    for ( ForDeclaration in Expression ) Statement
+    for ( LeftHandSideExpression of AssignmentExpression ) Statement
+    for ( var ForBinding of AssignmentExpression ) Statement
+    for ( ForDeclaration of AssignmentExpression ) Statement
+    for await ( LeftHandSideExpression of AssignmentExpreesion ) Statement
+    for await ( var ForBinding of AssignmentExpreesion ) Statement
+    for await ( ForDeclaration of AssignmentExpression ) Statement
+1. 返回Statement带labelSet参数的ContainsDupicateLabels
+**** 注意 本节被附录B.3.6扩展
+WithStatement : with ( Expression ) Statement
+1. 返回Statement带labelSet参数的ContainsDuplicateLabels
+SwitchStatement : switch ( Expression ) CaseBlock
+1. 返回CaseBlock带labelSet参数的ContainsDuplicateLabels
+CaseBlock : { }
+1. 返回false
+CaseBlock : { CaseClauses_opt DefaultCaluse CaseClauses_opt }
+1. 如果第一个CaseClauses存在，那么
+    a. 让hasDuplicates是CaseClauses带labelSet参数的ContainsDuplicateLabels
+    b. 如果hasDuplicates是true，返回true
+2. 让hasDuplicates是DefaultClause带labelSet参数的ContainsDuplicateLabels
+3. 如果hasDuplicates是true，返回true
+4. 如果第二个CaseClauses不存在，返回false
+5. 返回第二个CaseClauses带labelSet参数的ContainsDuplicateLabels
+CaseClauses : CaseClauses CaseClause
+1. 让hasDuplicates是CaseClauses带labelSet参数的ContainsDuplicateLabels
+2. 如果hasDuplicates是true，返回true
+3. 返回CaseClause带labelSet参数的ContainsDuplicateLabels
+CaseClause : case Expression : StatementList_opt
+1. 如果StatementList存在，返回StatementList带labelSet参数的ContainsDuplicateLabels
+2. 返回false
+DefaultClause : default : StatementList_opt
+1. 如果StatementList存在，返回StatementList带labelSet参数的ContainsDuplicateLabels
+2. 返回false
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 让label是LabelIdentifier的Sting值
+2. 如果label是labelSet的元素，返回true
+3. 让newLabelSet是labeSet附加label后的复制
+4. 返回LabelledItem带newLabelSet参数的ContainsDuplicateLabel
+LabelledItem : FunctionDeclaration
+1. 返回false
+TryStatement : try Block Catch
+1. 让hasDuplicates是Block带labelSet参数的ContainsDuplicateLabels
+2. 如果hasDuplicates是true，返回true
+3. 返回Catch带labelSet参数的ContainsDuplicateLabels
+TryStatement : try Block Finally
+1. 让hasDuplicates是Block带labelSet参数的ContainsDuplicateLabels
+2. 如果hasDuplicates是true，返回true
+3. 返回Finally带labelSet参数的ContainsDuplicateLabels
+*** 8.2.2 
 * 25
 ** 25.1
 
