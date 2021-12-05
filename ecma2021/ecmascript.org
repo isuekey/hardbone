@@ -4112,6 +4112,429 @@ OptionalChain : OptionalChain . IdentifierName
 带symbol参数
 PropertyName : LiteralPropertyName
 1. 返回false
+
+PropertyName : ComputedPropertyName
+1. 返回ComputedPropertyName带symbol参数的Contains
+
+MethodDefinition : 
+    PropertyName ( UniqueFormalParameters ) { FunctionBody }
+    get PropertyName ( ) { FunctionBody }
+    set PropertyName ( PropertySetParameterList ) { FuncitonBody }
+1. 返回PropertyName带symbol参数的ComputedPropertyContains
+
+GeneratorMethod : * PropertyName ( UniqueFormalParameters ) { GeneratorBody }
+1. 返回PropertyName带symbol参数的ComputedPropertyContains
+
+AsyncGeneratorMethod :
+    async * PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody }
+1. 返回PropertyName带symbol参数的ComputedPropertyContains
+
+ClassElementList : ClassElementList ClassElement
+1. 让inList是ClassElementList带symbol参数的ComputedPropertyContains
+2. 如果inList是true，返回true
+3. 返回ClassElement带symbol参数的ComputedPropertyContains
+
+ClassElement : 
+1. 返回false
+
+AsyncMethod : async PropertyName ( UniqueFormalParameters ) { AsyncFunctionBody }
+1. 返回PropertyName带symbol参数的ComputedPropertyContains
+** 8.5 Miscellaneous杂七杂八（我觉得可以用其他来翻译）
+  这些操作用于本规范的多处地方。
+*** 8.5.1 运行时语义：InstantiateFunctionObject
+带scope参数
+FunctionDeclaration :
+    function BindingIdentifier ( FormalParameters ) { FunctionBody }
+    function ( FormalParameters ) { FunctionBody }
+1. 返回FunctionDeclaration带scope参数的?InstantiateOrdinaryFunctionObject
+
+GeneratorDeclaration :
+    function BindingIdentifier ( FormalParameters ) { GeneratorBody }
+    function ( FormalParameters ) { GeneratorBody }
+1. 返回GeneratorDeclaration带scope参数的?InstantiateGeneratorFunctionObject
+
+AsyncGeneratorDeclaration :
+    async function *  BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+    async function * ( FormalParameters ) { AsyncGeneratorBody }
+1. 返回AsyncGeneratorDeclaration带scope参数的?InstantiateAsyncGeneratorFunctionObject
+
+AsyncFunctionDeclaration :
+    async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+    async function ( FormalParameters ) { AsyncFunctionBody }
+1. 返回AsyncFunctionDeclaration带scope参数的?InstantiateAsyncFunctionObject
+*** 8.5.2 运行时语义：BindingInitialization
+带value和environment参数
+**** 注意 给environment传递undefined表明PutValue操作应该被赋予初始化值。这种情况发生在
+         var语句和非严格模式下函数的形式参数中（见于10.2.10）。在这些情况中文法绑定被提升
+	 了，而且在评估其初始化前就已经提前初始化了。
+BindingIdentifier : Identifier
+1. 让name是Identifier的String值
+2. 返回?InitializeBoundName(name, value , environment)
+
+BindingIdentifier : yield
+1. 返回?InitializeBoundName("yield", value, environment)
+
+BindingIdentifier : await
+1. 返回?InitializeBoundName("await", value, environment)
+
+BindingPattern : ObjectBindingPattern
+1. 执行?RequireObjectCoercible(value)
+2. 返回ObjectBindingPattern带value和environment参数的BindingInitialization的结果
+
+BindingPattern : ArrayBindingPattern
+1. 让iteratorRecord是?GetIterator(value)
+2. 让result是ArrayBindingPattern带iteratorRecord和environment参数的
+   IteratorBindingInitialization
+3. 如果iteratorRecord.\[\[Done]]是false，返回?IteratorClose(iteratorRecord, result)
+4. 返回result。
+
+ObjectBindingPattern : { }
+1. 返回NormalCompletion(empty)
+
+ObjectBindingPattern : 
+    { BindingPropertyList }
+    { BindingPropertyList , }
+1. 执行BindingPropertyList带value和environment参数的?PropertyBindingInitialization
+2. 返回NromalCompletion(empty)
+
+ObjectBindingPattern : { BindingRestProperty }
+1. 让excludeNames是新的空List
+2. 返回BindingRestProperty带value、environment和excludedNames参数的
+   RestBindingInitialization
+
+ObjectBindingPattern : { BindingPropertyList , BindingRestProperty }
+1. 让excludedNames是BindingPropertyList带value和environment参数的
+   ?PropertyBindingInitialization
+2. 返回BindingRestProperty带value、environment和excludedNames参数的
+   RestBindingInitialization
+**** 8.5.2.1 InitializeBoundName(name, value, environment)
+  抽象操作InitializeBoundName接受参数name、value和environment。被调用时执行下列步骤：
+1. Assert：Type(name)是String
+2. 如果environment不是undefined，那么
+    a. 执行environment.InitializeBinding(name, value)
+    b. 返回NormalCompletion(undefined)
+3. 否则
+    a. 让lhs是ResolveBinding(name)
+    b. 返回?PutValue(lhs, value)
+*** 8.5.3 运行时语义：IteratorBindingInitialization
+带参数iteratorRecord和environment
+**** 注意 给environment传递undefined表明PutValue操作应该被赋予初始化值。这种情况发生在
+         非严格模式下函数的形式参数中。在这情况形式参数法绑定被提升了，而且在评估其初始化前
+	 就已经提前初始化了。
+ArrayBindingPattern : [ ]
+1. 返回NormalCompletion(empty)
+
+ArrayBindingPattern : [ Elision ]
+1. 返回Elsion带iteratorRecord参数的IteratorDestructuringAssignmentEvaluation
+
+ArrayBindingPattern : [ Elision_opt BindingRestElement ]
+1. 如果Elision存在，那么
+    a. 执行Elision带iteratorRecord参数的?IteratorDestructuringAssignmentEvaluation
+2. 返回BindingRestElement带iteratorRecord和Environment参数的
+   IteratorBindingInitialization
+
+ArrayBindingPattern : [ bindingElementList , elision ]
+1. 执行BindingElementList带iteratorRecord和environment参数的
+   ?IteratorBindingInitialization
+2. 返回Elision带iteratorRecord参数的IteratorDestructuringAssignmentEvaluation
+
+ArrayBindingPattern : [ BindingElementList , Elision_opt BindingRestElement ]
+1. 执行BindingElementList带iteratorrecord和environment的
+   ？IteratorBindingInitialization
+2. 如果Elision存在，那么
+    a. 执行Elision带iteratorRecord参数的?IteratorDestructuringAssignmentEvaluation
+3. 返回BindingRestElement带iteratorRecord和environment参数的
+   IteratorBindingInitialization
+
+BindingElementList : BindingElementList , BindingElisionElement
+1. 执行BindingElementList带iteratorRecord和environment参数的
+   ?IteratorBindingInitialization
+2. 返回BindingElisionElement带iteratorRecord和environment参数的
+   IteratorBindingInitialization
+
+BindingElisionElement : Elision BindingElement
+1. 执行Elision带iteratorRecord参数的?IteratorDestructuringAssignmentEvaluation
+2. 返回BindingElement带iteratorRecord和environment参数的IteratorBindingInitialization
+
+SingleNameBinding : BindingIdentifier Initializer_opt
+1. 让bindingId是BindingIdentifier的String值
+2. 让lhs是?ResolveBinding(bindingId, environment)
+3. 如果iteratorRecord.\[\[Done]]是false，那么
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，设置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+    e. 否则
+        i. 让v是IteratorValue(next)
+       ii. 如果v是意外完结，设置iteratorRecord.\[\[Done]]是true
+      iii. ReturnIfAbrupt(v)
+4. 如果iteratorRecord.\[\[Done]]是true，让v是undefined
+5. 如果Initializer存在，而且v是undefined，那么
+    a. 如果IsAnonymousFunctionDefinition(initializer)是true，那么
+        i. 设置v是Initializer带bindingId参数的NamedEvaluation
+    b. 否则
+        i. 让defaultValue是Initializer的评估结果
+       ii. 设置v是?GetValue(defaultValue)
+6. 如果environment是undefined，返回?PutValue(lhs, v)
+7. 返回InitializeReferenceBinding(lhs, v)
+
+BindingElement : BindingPattern Initializer_opt
+1. 如果iteratorRecord.\[\[Done]]是false，那么
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，设置iterator.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d  如果next是false，设置iteratorRecord.\[\[Done]]是true
+    e. 否则
+        i. 让v是IteratorValue(next)
+       ii. 如果v是意外完结，设置iteratorRecord.\[\[Done]]是true
+      iii. ReturnIfAbrupt(v)
+2. 如果iteratorRecord.\[\[Done]]是true，让v是undefined
+3. 如果Initializer存在，而且v是undefined，那么
+    a. 让defaultValue是评估Initializer的评估
+    b. 设置v是?GetValue(defaultValue)
+4. 返回BindigPattern带v和environment参数的BindingInitialization
+
+BindingRestElement : ...BindingIdentifier
+1. 让lhs是?ResolveBinding(BindingIdentifier的String值，environment)
+2. 让A是!ArrayCreate(0)
+3. 让n是0
+4. Repeat
+    a. 如果iteratorRecord.\[\[Done]]是false，那么
+        i. 让next是IteratorStep(iteratorRecord)
+       ii. 如果next是意外完结，设置iteratorRecord.\[\[Done]]是true
+      iii. ReturnIfAbrupt(next)
+       iv. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+    b. 如果iteratorRecord.\[\[Done]]是true，那么
+        i. 如果environment是undefined，返回?PutValue(lhrs, A)
+       ii. 返回InitializeReferencedBinding(lhr, A)
+    c. 让nextValue是IteratorValue(next)
+    d. 如果nextValue是意外完结，设置iteratorRecord.\[\[Done]]是true
+    e. ReturnIfAbrupt(nextValue)
+    f. 执行!CreateDataPropertyOrThrow(A, !ToString(F(n)), nextValue)
+    g. 设置n是n+1
+
+BindingRestElement : ...BindingPattern
+1. 让A是!ArrayCreate(0)
+2. 让n是0
+3. Repeat
+    a. 如果iteratorRecord.\[\[Done]]是false，那么
+        i. 让next是IteratorStep(iteratorRecord)
+       ii. 如果next是意外完结，设置iteratorRecord.\[\[Done]]是true
+      iii. ReturnIfAbrupt(next)
+       iv. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+    b. 如果iteratorRecord.\[\[Done]]是true，那么
+        i. 如果environment是undefined，返回?PutValue(lhrs, A)
+       ii. 返回InitializeReferencedBinding(lhr, A)
+    c. 让nextValue是IteratorValue(next)
+    d. 如果nextValue是意外完结，设置iteratorRecord.\[\[Done]]是true
+    e. ReturnIfAbrupt(nextValue)
+    f. 执行!CreateDataPropertyOrThrow(A, !ToString(F(n)), nextValue)
+    g. 设置n是n+1
+
+FromalParameters : [empty]
+1. 返回NormalCompletion(empty)
+
+FormalParameters : FormalParameterList , FunctionRestParameter
+1. 执行FormalParameterList带iteratorRecord和environment参数的
+   ?IteratorBindingInitialization
+2. 返回FunctionRestParameter带iteratorRecord和environment参数的
+   IteratorBindingInitialization
+
+FormalParameterList : FormalParameterList , FormalParameter
+1. 执行FormalParameterList带iteratorRecord和environment参数的
+   ?IteratorBindingInitialization
+2. 返回FormalParameter带iteratorRecord和environment参数的IteratorBindingInitialization
+
+ArrowParameters : BindingIndetifier
+1. Assert：iteratorRecord.\[\[Done]]是false
+2. 让next是IteratorStep(iteratorRecord)
+3. 如果next是意外完结，设置iteratorRecord.\[\[Done]]是true
+4. ReturnIfAbrupt(next)
+5. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+6. 否则
+    a. 让v是IteratorValue(next)
+    b. 如果v是意外完结，设置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(v)
+7. 如果iteratorRecord.\[\[Done]是true，让v是undefined
+8. 返回BindingIdentifier带v和environment参数的BindingInitialization
+
+ArrowParameters : CoverParenthesizedExpressionAndArrowParameterList
+1. 让formals是CoverParenthesizedExpressionAndArrowParameterList的CoveredFormalsLst
+2. 返回formals带iteratorRecord和environment参数的IteratorBindingInitialization
+
+AsyncArrowBindingIdentifier : BindingIdentifier
+1. Assert：iteratorRecord.\[\[Done]]是false
+2. 让next是IteratorStep(iteratorRecord)
+3. 如果next是意外完结，设置iteratorRecord.\[\[Done]]是true
+4. ReturnIfAbrupt(next)
+5. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+6. 否则
+    a. 让v是IteratorValue(next)
+    b. 如果v是意外完结，设置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(v)
+7. 如果iteratorRecord.\[\[Done]]是true，让v是undefined
+8. 返回BindingIdentifier带v和environment参数的Bindinginitialization
+*** 8.5.4 静态语义：AssignmentTargetType
+IdentifierReference : identifier
+1. 如果IdentifierReference在严格模式里，而且Identifier的String值是"eval"或"arguments"，
+   返回invalid
+2. 返回 simple
+
+IdentifierReference : 
+    yield
+    await
+CallExpression : 
+    CallExpression [ Expression ]
+    CallExpression . IdentifierName
+MemberExpression :
+    MemberExpression [ Expression ]
+    MemberExpression . IdentifierName
+    SuperProperty
+1. Return simple
+
+PrimaryExpression :
+    CoverParenthesizedExpressionAndArrowParameterList
+1. 让expr是CoverParenthesizedExpressionAndArrowParameterList
+2. 返回expr的AssignmentTargetType
+
+PrimaryExpression : 
+    this
+    Literal
+    ArrayLiteral
+    ObjectLiteral
+    FunctionExpression
+    ClassExpression
+    GeneratorExpression
+    AsyncFunctionExpression
+    AsyncGeneratorExpression
+    RegularExpressionLiteral
+    TempalteLiteral
+CallExpression :
+    CoverCallExpressionAndAsyncArrowHead
+    SuperCall
+    ImportCall
+    CallExpression Arguments
+    CallExpression TempalteLiteral
+NewExpression :
+    new NewExpression
+MemberExpression :
+    memberExpression TempalteLiteral
+    new MemberExpression Arguments
+NewTarget :
+    new . target
+ImportMeta :
+    import . meta
+LeftHandSideExpression :
+    OptionalExpression
+UpdateExpression :
+    LeftHandSideExpression ++
+    LeftHandSideExpression --
+    ++ UnaryExpression
+    -- UnaryExpression
+UnaryExpression :
+    delete UnaryExpression
+    void UnaryExpression
+    typeof UnaryExpression
+    + UnaryExpression
+    - UnaryExpression
+    ~ UnaryExpression
+    ! UnaryExpression
+    AwaitExpression
+ExponentiationExpression :
+    UpdateExpression ** ExponentiationExpression
+MultiplicativeExpression :
+    MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
+AdditiveExpression :
+    AdditiveExpression + MultiplicativeExpression
+    AdditiveExpression - MultiplicativeExpression
+ShiftExpression :
+    ShiftExpression \<\< AdditiveExpression
+    ShiftExpression \>\> AdditiveExpression
+    ShiftExpression \>\>\> AdditiveExpression
+RelationalExpression :
+    RelationalExpression \< ShiftExpression
+    RelationalExpression \> ShiftExpression
+    RelationalExpression \<\= ShiftExpression
+    RelationalExpression \>\= ShiftExpression
+    RelationalExpression instanceof ShiftExpression
+    RelationalExpression in ShiftExpression
+EqualityExpression : 
+    EqualityExpression \=\= RelationalExpression
+    EqualityExpression \!\= RelationalExpression
+    EqualityExpression \=\=\= RelationalExpression
+    EqualityExpression \=\=\= RelationalExpression
+BitwiseANDExpression :
+    BitwiseANDExpression & EqualityExpression
+BitwiseXORExpression :
+    BitwiseXORExpression ^ BitwiseANDExpreesion
+BitwiseOrExpression :
+    BitwiseORExpression | BitwiseXORExpression
+LogicalANDExpression :
+    LogicalANDExpression && BitwiseORExpression
+LogicalORExpression :
+    LogicalORExpression || LogicalANDExpression
+CoalesceExpression :
+    CoalesceExpressionHead ?? BitwiseORExpression
+ConditionalExpression :
+    ShortCircuitExpression ? AssignmentExpression : AssignmentExpression
+AssignmentExpression :
+    YieldExpression
+    ArrowFunction
+    AsyncArrowFunction
+    LeftHandSideExpression = AssignmentExpression
+    LeftHandSideExpression AssignmentOperator AssignmentExpression
+    LefthandSideExpression &&= AssignmentExpression
+    LeftHandSizeExpression ||= AssignmentExpression
+    LeftHandSideExpression ??= AssignmentExpression
+Expression :
+    Expression, assignmentExpression
+1. 返回invalid
+*** 8.5.5 静态语义：PropName
+PropertyDefinition : IdnetifierReference
+1. 返回IdentifierRefrence的String值。
+
+PropertyDefinition : ... AssignmentExpression
+1. 返回empty
+
+PropertyDefinition : Propertyname : AssignmentExpression
+1. 返回PropertyName的PropName
+
+LiteralPropertyName : IdentifierName
+1. 返回StringLiteral的String值
+
+LiteralPropertyName : NumericLiteral
+1. 让nbr是NumericLiteral的numericValue
+2. 返回!ToString(nbr)
+
+ComputedPropertyName : [ AssignmentExpression ]
+1. 返回empty
+
+MethodDefinition : 
+    PropertyName ( UniqueFormalParameters ) { FunctionBody }
+    get PropertyName ( ) { FunctionBody }
+    set PropertyName ( PropertySetParameterList ) { FunctionBody }
+1. 返回PopertyName的PropName
+
+GeneratorMethod : * PropertyName ( UniqueFormalParameters ) { GeneratorBody }
+1. 返回PopertyName的PropName
+
+AsyncGenratorMethod : 
+    async * PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody }
+1. 返回PopertyName的PropName
+
+ClassElment : ;
+1. 返回empty
+
+Asyncmethod : async PropertyNae ( UniqueFormalParameters ) { AsyncFunctionBody }
+1. 返回PopertyName的PropName
+* 9 可执行代码与执行背景（执行上下文 Execution Contexts）
+** 9.1 环境记录 Environment Records
+  EnvironmentRecord是用在基于ECMAScript代码的词法嵌套结构上定义Identifiers与指定的变量、
+函数的联结关系的规范类型。通常EnvironmentRecord被联结到ECMAScript代码的特定句法结构，比如：
+FunctionDeclaration、blockStatement或者TryStatement的Catch语句。这些代码每次被评估时，
+新的EnvironmentRecord就被创建出来记录被代码创建处理的identifier的绑定关系。
+  每个EnvironmentRecord都有一个\[\[OterEnv]]字段，可能是null或者一个指向外层
+EnvironmentRecord的饮用。
 * 25 
 ** 25.1
 
