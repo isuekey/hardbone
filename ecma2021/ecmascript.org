@@ -19,6 +19,8 @@
 ** 字位 一个二进制位
 ** 字节 8个连续的二进制位。至于大小端，如果没有明确说明，就不考虑。
 ** 修圆 指用有限精度数字描述准确数字的处理过程。
+** 活 artefact，人工造物
+** 圈(juan`) 表示scope
 *** 根据编译原理，大小端由其他编译层处理。
 * 前言 [44,46]
 * 第一章 范围
@@ -4529,13 +4531,140 @@ Asyncmethod : async PropertyNae ( UniqueFormalParameters ) { AsyncFunctionBody }
 1. 返回PopertyName的PropName
 * 9 可执行代码与执行背景（执行上下文 Execution Contexts）
 ** 9.1 环境记录 Environment Records
-  EnvironmentRecord是用在基于ECMAScript代码的词法嵌套结构上定义Identifiers与指定的变量、
-函数的联结关系的规范类型。通常EnvironmentRecord被联结到ECMAScript代码的特定句法结构，比如：
-FunctionDeclaration、blockStatement或者TryStatement的Catch语句。这些代码每次被评估时，
-新的EnvironmentRecord就被创建出来记录被代码创建处理的identifier的绑定关系。
+  EnvironmentRecord是用在基于ECMAScript代码的词法嵌套结构上定义Identifiers与指定
+的变量、函数的联结关系的规范类型。通常EnvironmentRecord被联结到ECMAScript代码
+的特定句法结构，比如：FunctionDeclaration、blockStatement或者TryStatement的Catch
+语句。这些代码每次被评估时，新的EnvironmentRecord就被创建出来记录被代码创建
+处理的identifier的绑定关系。
   每个EnvironmentRecord都有一个\[\[OterEnv]]字段，可能是null或者一个指向外层
-EnvironmentRecord的饮用。
-* 25 
+EnvironmentRecord的引用。（内层）EnvironmentRecord的这个外层引用指向逻辑上包围了
+这个内层EnvironmentRecord的EnvironmentRecord，当然，这个外层EnvironmentRecord还有
+自己的外层EnvironmentRecord。一个环境记录服务多个内层环境记录。例如，一个
+FunctionDeclaration包含了两个嵌套的FunctionDelaration，那么每个嵌套函数的
+EnvironmentRecord都由这个外层函数的当前评估的EnvironmentRecord作为自己的外层
+EnvironmentRecord。
+  EnvironmentRecord是纯粹的规范机制，没有必要与ECMAScript实现中的任何活一致。
+ECMAScript程序不可以直接访问或者修改环境记录值。
+*** 9.1.1 环境记录类型的层次体系
+  EnvironmentRecord可以被认为是一个简单的面向对象的层级结构，其中
+EnvironmentRecord是一个抽象类，有三个实现的子类：declarative EnvironmentRecord, 
+object EnvironmentRecord, global EnvironmentRecord。function EnvironmentRecord和 module
+EnvironmentRecord是declarative EnvironmentRecord的子类。
+. EnvironmentRcord(抽象的）
+    。declarative EnvironmentRecord是用于定义ECMAScript语言中例如
+      FunctionDeclaration，VariableDeclaration和Catch语句等直接联结标识符与
+      ECMAScript语言值的句法元素的效果。
+        . function EnvironmentRecord与ECMAScript函数对象的调用一致，且包含这个
+          函数内的顶层声明的绑定。可能建立一个新的this绑定。为了支持super
+          方法的调用，还会捕获必要的状态。
+        . module EnvironmentRecord包含了Module内的顶层声明的绑定。也包含了被
+          Module显式引入的绑定。其\[\[OuterEnv]]是global EnvironmentRecord。
+    。object EnvironmentRecord用于定义例如WithStatement这种用于联结标识符与某些
+      对象性质的ECMAScript元素的效果。
+    。global EnvironmentRecord用于Script的全局声明。它没有外层环境，其
+      \[\[OuterEnv]]是null。它可以预填充标识符绑定，而且包括一个联结的全局对象
+      其性质提供了这个全局环境的某些标识符绑定。当ECMAScript代码被执行了，
+      额外的性质有可能被增加到全局对象中，而且其初始性质也会被修改。
+  EnvironmentRecord抽象类包含了定义在表17中的抽象规范方法。这些抽象方法在每个
+具体子类里有确切的具体算法。
+| 方法                         | 目的                                                                                                                                                                                                                                                |
+| HasBinding(N)                | 明确EnvironmentRecord是否含有String值N的绑定。如果有返回true，否则返回false                                                                                                                                                                         |
+| CreateMutableBinding(N, D)   | 在EnvironmentRecord中创建一个新的没有初始化的可修改绑定。String值N是绑定的名称。Boolean参数D是true的话，这个绑定可能会被随后删除。                                                                                                                  |
+| CreateImmutableBinding(N, S) | 在EnvironmentRecord中创建一个新的没有初始化的可修改绑定。String值N是绑定的名称。如果S是true的话，那么在其初始化之后试图赋值时会投掷异常，不管这个操作的严格模式设置。                                                                               |
+| InitializeBinding(N, V)      | 在EnvironmentRecord中设置一个已经存在但是没有初始化的绑定的值。String值N是绑定的名称。ECMAScript语言类型值V是这个绑定的值。                                                                                                                         |
+| SetMutableBinding(N, V, S)   | 在EnvironmentRecord中设置一个已经存在的可修改绑定。String值N是绑定的名称。ECMAScript语言类型值V是这个绑定的值。S是Boolean值标记。如果S是true，这个绑定不会因设置值而投掷TypeError异常                                                               |
+| GetBindingValue(N, S)        | 返回EnvironmentRecord中一个已经存在的绑定的值。String值N是绑定的名称。S用于标识引用源于严格模式或这其他要求严格模式的语义。如果S是true，且绑定不存在，会投掷ReferenceError异常。如果绑定存在，但是没有初始化，无论S何值，都会投掷ReferenceError异常 |
+| DeleteBinding(N)             | 从EnvironmentRecord中删除一个绑定。String值N是绑定的名称。如果绑定N存在，能移除这个绑定，就返回true；不能移除就返回false。如果绑定不存在，返回true                                                                                                  |
+| HasThisBinding()             | 明确EnvironmentRecord建立了this绑定。如果建立了返回true，否则返回false。                                                                                                                                                                            |
+| HasSuperBinding()            | 明确EnvironmentRecord建立了super方法绑定。如果建立了返回true，否则返回false。                                                                                                                                                                       |
+| WithBaseObject()             | 如果EnvironmentRecord联结的with语句，返回这个with对象，否则返回undefined。                                                                                                                                                                                              |
+**** 9.1.1.1 Declarative Environment Records 
+  每个DelcarativeEnvironmentRecord联结一个ECMAScript程序圈，包含：variable、
+constant、let、class、module、import及function声明。DeclarativeEnvironmentRecord
+绑定了这个圈内被声明定义的整套标识符。
+  DeclarativeEnvironmentRecords的具体规范方法的行为在下方算法中定义。
+***** 9.1.1.1.1 HasBinding(N)
+  DeclarativeEnvironmentRecord envRec的HasBinding方法接受参数String值N。明确
+参数标识是否已经绑定在记录中。被调用时执行下列步骤：
+1. 如果envRec有标识的名字与N一致，返回true。
+2. 返回false。
+***** 9.1.1.1.2 CreateMutalbeBinding(N, D)
+  DeclarativeEnvironmentRecord envRec的CreateMutableBinding方法接受参数String值N和
+Boolean值D。创建一个可变的名字为N的未初始化绑定。这个EnvironmentRecord必须要
+没有名称N的绑定。如果D是true，这个新的绑定标记为可删除的。被调用时执行
+下列步骤：
+1. Assert：envRec没有绑定N
+2. 在envRec上创建可变绑定N，并且记为未初始化的。如果D是true，记录这个新建的
+   绑定会被随后的DeleteBinding调用删除。
+3. 返回NormalCompletion(empty)
+***** 9.1.1.1.3 CreateImmutableBinding
+  DeclarativeEnvironmentRecord envRec的CreateImmutableBinding方法接受参数String值N
+和Boolean值S。创建一个不变的名字为N的未初始化绑定。这个EnvironmentRecord必须
+没有名称N的绑定。如果S是true，这个新的绑定被标记为严格绑定。被调用时执行
+下列步骤：
+1. Assert：envRec没有绑定N
+2. 在envRec上创建不变绑定N，并且记为未初始化的。如果S是true，记录这个新建的
+   绑定是严格绑定。
+3. 返回NormalCompletion(empty)
+***** 9.1.1.1.4 InitializeBinding
+  DeclarativeEnvironmentRecord envRec的InitializeBinding方法接受参数String值N和
+ECMAScript语言值V。用于将绑定N的值替换为V。未初始化的绑定N必须已经存在。
+被调用时执行下列步骤：
+1. Assert：envRec必须有未初始化的绑定N
+2. 设置envRec上绑定N的值为V
+2. 记录envRec上绑定N已经初始化。
+3. 返回NormalCompletion(empty)
+***** 9.1.1.1.5 SetMutableBinding
+  DeclarativeEnvironmentRecord envRec的SetMutableBinding方法接受参数String值N、
+ECMAScript语言值V和Boolean值S。尝试将绑定N的当前值替换为参数V的值。绑定N通常
+已经存在，但在罕见的情况下也可能没有。如果绑定N是不变绑定，且S是true，会
+投掷一个TypeError异常。被调用时执行下列步骤：
+1. 如果envRec没有绑定N，那么
+    a. 如果S是true，投掷一个ReferenceError异常
+    b. 执行envRec.CreateMutableBinding(N, true)
+    c. 执行envRec.InitializeBinding(N, V)
+    d. 返回 NormalCompletion(empty)
+2. 如果envRec的绑定N是严格绑定，设置S是true。
+3. 如果envRec的绑定N还没有初始化，投掷ReferenceError异常
+4. 如果envRec的绑定N是可变绑定，修改其值为V
+5. 否则
+    a. Assert：此时试图修改一个不变绑定的值
+    b. 如果S是true，投掷TypeError异常
+6. 返回NormalCompletion(empty)
+****** 注意 会因为缺失绑定触发步骤1的ECMAScript代码：
+             function f() { eval("var x; x = (delete x, 0);"); }
+***** 9.1.1.1.6 GetBindingValue
+  DeclarativeEnvironmentRecord envRec的GetBindingValue方法接受参数String值N和
+Boolean值S。返回envRec上绑定N的值。如果绑定存在但是没有初始化，会投掷
+ReferenceError异常，无论S的值。被调用时执行下列步骤：
+1. Assert：envRec有绑定N
+2. 如果envRec的绑定N没有初始化，投掷ReferenceError异常
+3. 返回envRec的绑定N的值。
+***** 9.1.1.1.7 DeleteBinding
+  DeclarativeEnvironmentRecord envRec的DeleteBinding方法接受参数String值N。只能删除
+已经明确指定为可删除的绑定。被调用时执行下列步骤：
+1. Assert：envRec有绑定N
+2. 如果envRec的绑定N不可删除，返回false
+3. 从envRec上移除绑定N
+4. 返回true
+***** 9.1.1.1.8 HasThisBinding
+  DeclarativeEnvironmentRecord envRec的HasThisBinding方法不接受参数。被调用时执行
+下列步骤：
+1. 返回false。
+****** 注意 一个合规的DeclarativeEnvironmentRecord（既不是FuncitonEnvironmentRecord
+             也不是ModuleEnvironmentRecord）不会提供this的绑定
+***** 9.1.1.1.9 HasSuperBinding
+  DeclarativeEnvironmentRecord envRec的HasSuperBinding方法不接受参数。被调用时执行
+下列步骤：
+1. 返回false。
+****** 注意 一个合规的DeclarativeEnvironmentRecord（既不是FuncitonEnvironmentRecord
+             也不是ModuleEnvironmentRecord）不会提供super的绑定
+***** 9.1.1.1.10 WithBaseObject
+  DeclarativeEnvironmentRecord envRec的WithBaseObject方法不接受参数。被调用时执行
+下列步骤：
+1. 返回undefined。
+**** 9.1.1.2 Object Environment Records
+  每个ObjectEnvironmentRecord被联结到对象，这个对象称为绑定对象。
 ** 25.1
 
 
