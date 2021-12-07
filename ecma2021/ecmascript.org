@@ -675,16 +675,16 @@ Number值按照下列方式选中。（Number值都是有限精度的有理数�
 在[[7.1]]。
   Number::unit的值是1_F
 ***** 6.1.6.1.1 Number::unaryMinus(x)
-  抽象操作Number::unaryMinus接受参数Number值x，被调用时执行下列两步：
+  抽象操作Number::unaryMinus接受参数：Number值x，被调用时执行下列两步：
 1. 如果x是NaN，返回NaN。
 2. 返回相反的x；就是带有相反符号但是相同规模的Number值。
 ***** 6.1.6.1.2 Number::bitwiseNOT(x)
-  抽象操作Number::bitwiseNOT接受参数Number值x，被调用时执行下列两步：
+  抽象操作Number::bitwiseNOT接受参数：Number值x，被调用时执行下列两步：
 1. 让oldValue是!ToInt32(x).
 2. 返回oldValue的二进制补码。结果的数学值可以准确表示为32位二进制补码的字
 符串。
 ***** 6.1.6.1.3 Number::exponentiate(base, exponent)
-  抽象操作Number::exponentiate接受参数Number值base与exponent，返回一个基于实现的
+  抽象操作Number::exponentiate接受参数：Number值base与exponent，返回一个基于实现的
 近似于base上幂乘exponent的结果（也就是说相同算式在不同实现上结果可能不同）。
 被调用时按照如下步骤执行：
 1. 如果exponent是NaN，返回NaN。
@@ -848,7 +848,7 @@ R(n)/R(y)的规模的情况下尽可能大。
 4. 如果x、y是相同的Number值，返回true
 5. 返回false
 ***** 6.1.6.1.16 NumberBitwiseOp(op, x, y)
-  抽象操作NumberBitwiseOp接受参数op（Unicode字符串）、Number值x和Number值y。被调
+  抽象操作NumberBitwiseOp接受参数：op（Unicode字符串）、Number值x和Number值y。被调
 用时执行下列步骤：
 1. Assert：op是"&"、"^"或者"|"
 2. 让lnum是!ToInt32(x)
@@ -1550,7 +1550,7 @@ Property Descriptor必须是两者之一，其属性与对应的表3或者表4�
 被调用时执行下列步骤：
 1. 如果Desc是undefined，返回undefined。
 2. 让obj是!OrdinaryObjectCreate(%Object.prototype%)
-3. Assert: obj是可扩展的不含性质的基础对象
+3. Assert: obj是可扩展的不含性质的基本对象
 4. 如果Desc有\[\[Value]]字段，那么
     a. 执行!CreateDataPropertyOrThrow(obj, "value", Desc.\[\[Value]])
 5. 如果Desc有\[\[Writable]]字段，那么
@@ -4584,41 +4584,41 @@ constant、let、class、module、import及function声明。DeclarativeEnvironme
 绑定了这个圈内被声明定义的整套标识符。
   DeclarativeEnvironmentRecords的具体规范方法的行为在下方算法中定义。
 ***** 9.1.1.1.1 HasBinding(N)
-  DeclarativeEnvironmentRecord envRec的HasBinding方法接受参数String值N。明确
+  DeclarativeEnvironmentRecord envRec的HasBinding方法接受参数N（String）。明确
 参数标识是否已经绑定在记录中。被调用时执行下列步骤：
 1. 如果envRec有标识的名字与N一致，返回true。
 2. 返回false。
 ***** 9.1.1.1.2 CreateMutalbeBinding(N, D)
-  DeclarativeEnvironmentRecord envRec的CreateMutableBinding方法接受参数String值N和
-Boolean值D。创建一个可变的名字为N的未初始化绑定。这个EnvironmentRecord必须要
+  DeclarativeEnvironmentRecord envRec的CreateMutableBinding方法接受参数N（String）和
+D（Boolean）。创建一个可变的名字为N的未初始化绑定。这个EnvironmentRecord必须要
 没有名称N的绑定。如果D是true，这个新的绑定标记为可删除的。被调用时执行
 下列步骤：
 1. Assert：envRec没有绑定N
 2. 在envRec上创建可变绑定N，并且记为未初始化的。如果D是true，记录这个新建的
    绑定会被随后的DeleteBinding调用删除。
 3. 返回NormalCompletion(empty)
-***** 9.1.1.1.3 CreateImmutableBinding
-  DeclarativeEnvironmentRecord envRec的CreateImmutableBinding方法接受参数String值N
-和Boolean值S。创建一个不变的名字为N的未初始化绑定。这个EnvironmentRecord必须
+***** 9.1.1.1.3 CreateImmutableBinding(N, s)
+  DeclarativeEnvironmentRecord envRec的CreateImmutableBinding方法接受参数N（String）
+和S（Boolean）。创建一个不变的名字为N的未初始化绑定。这个EnvironmentRecord必须
 没有名称N的绑定。如果S是true，这个新的绑定被标记为严格绑定。被调用时执行
 下列步骤：
 1. Assert：envRec没有绑定N
 2. 在envRec上创建不变绑定N，并且记为未初始化的。如果S是true，记录这个新建的
    绑定是严格绑定。
 3. 返回NormalCompletion(empty)
-***** 9.1.1.1.4 InitializeBinding
-  DeclarativeEnvironmentRecord envRec的InitializeBinding方法接受参数String值N和
-ECMAScript语言值V。用于将绑定N的值替换为V。未初始化的绑定N必须已经存在。
+***** 9.1.1.1.4 InitializeBinding(N, V)
+  DeclarativeEnvironmentRecord envRec的InitializeBinding方法接受参数N（String）和
+V（ECMAScript语言值）。用于将绑定N的值替换为V。未初始化的绑定N必须已经存在。
 被调用时执行下列步骤：
 1. Assert：envRec必须有未初始化的绑定N
 2. 设置envRec上绑定N的值为V
 2. 记录envRec上绑定N已经初始化。
 3. 返回NormalCompletion(empty)
-***** 9.1.1.1.5 SetMutableBinding
-  DeclarativeEnvironmentRecord envRec的SetMutableBinding方法接受参数String值N、
-ECMAScript语言值V和Boolean值S。尝试将绑定N的当前值替换为参数V的值。绑定N通常
-已经存在，但在罕见的情况下也可能没有。如果绑定N是不变绑定，且S是true，会
-投掷一个TypeError异常。被调用时执行下列步骤：
+***** 9.1.1.1.5 SetMutableBinding(N, V, S)
+  DeclarativeEnvironmentRecord envRec的SetMutableBinding方法接受参数N（String）、
+V（ECMAScript语言值）和S（Boolean）。尝试将绑定N的当前值替换为参数V的值。
+绑定N通常已经存在，但在罕见的情况下也可能没有。如果绑定N是不变绑定，且
+S是true，会投掷一个TypeError异常。被调用时执行下列步骤：
 1. 如果envRec没有绑定N，那么
     a. 如果S是true，投掷一个ReferenceError异常
     b. 执行envRec.CreateMutableBinding(N, true)
@@ -4633,38 +4633,262 @@ ECMAScript语言值V和Boolean值S。尝试将绑定N的当前值替换为参数
 6. 返回NormalCompletion(empty)
 ****** 注意 会因为缺失绑定触发步骤1的ECMAScript代码：
              function f() { eval("var x; x = (delete x, 0);"); }
-***** 9.1.1.1.6 GetBindingValue
-  DeclarativeEnvironmentRecord envRec的GetBindingValue方法接受参数String值N和
-Boolean值S。返回envRec上绑定N的值。如果绑定存在但是没有初始化，会投掷
+***** 9.1.1.1.6 GetBindingValue(N, S)
+  DeclarativeEnvironmentRecord envRec的GetBindingValue方法接受参数N（String）和
+S（Boolean）。返回envRec上绑定N的值。如果绑定存在但是没有初始化，会投掷
 ReferenceError异常，无论S的值。被调用时执行下列步骤：
 1. Assert：envRec有绑定N
 2. 如果envRec的绑定N没有初始化，投掷ReferenceError异常
 3. 返回envRec的绑定N的值。
-***** 9.1.1.1.7 DeleteBinding
-  DeclarativeEnvironmentRecord envRec的DeleteBinding方法接受参数String值N。只能删除
+***** 9.1.1.1.7 DeleteBinding(N)
+  DeclarativeEnvironmentRecord envRec的DeleteBinding方法接受参数N（String）。只能删除
 已经明确指定为可删除的绑定。被调用时执行下列步骤：
 1. Assert：envRec有绑定N
 2. 如果envRec的绑定N不可删除，返回false
 3. 从envRec上移除绑定N
 4. 返回true
-***** 9.1.1.1.8 HasThisBinding
+***** 9.1.1.1.8 HasThisBinding()
   DeclarativeEnvironmentRecord envRec的HasThisBinding方法不接受参数。被调用时执行
 下列步骤：
 1. 返回false。
 ****** 注意 一个合规的DeclarativeEnvironmentRecord（既不是FuncitonEnvironmentRecord
              也不是ModuleEnvironmentRecord）不会提供this的绑定
-***** 9.1.1.1.9 HasSuperBinding
+***** 9.1.1.1.9 HasSuperBinding()
   DeclarativeEnvironmentRecord envRec的HasSuperBinding方法不接受参数。被调用时执行
 下列步骤：
 1. 返回false。
 ****** 注意 一个合规的DeclarativeEnvironmentRecord（既不是FuncitonEnvironmentRecord
              也不是ModuleEnvironmentRecord）不会提供super的绑定
-***** 9.1.1.1.10 WithBaseObject
+***** 9.1.1.1.10 WithBaseObject()
   DeclarativeEnvironmentRecord envRec的WithBaseObject方法不接受参数。被调用时执行
 下列步骤：
 1. 返回undefined。
 **** 9.1.1.2 Object Environment Records
-  每个ObjectEnvironmentRecord被联结到对象，这个对象称为绑定对象。
+  每个ObjectEnvironmentRecord被联结到对象，这个对象称为绑定对象。一个
+ObjectEnvironmentRecord绑定标识名称的集合，名称对应绑定绑定对象的性质名。性质
+键不是字符串形式的标识名不包含在绑定标识中。自有的和继承的性质都包含这个
+集合中无论其\[\[Enumrable]]属性是否。因为性质可以动态的在对象上添加和删除，
+被ObjectEnvironmentRecord绑定的标识集合会潜在的变动，作为性质增加或删除的副
+作用。任何因为这种负作用创建的绑定被认为是可修改的绑定，即使其
+\[\[Writable]]属性是fasle。不变绑定不存在于ObjectEnvironmentRecord中。
+  为with语句创建的ObjectEnvironmentRecord在函数调用中提供绑定对象作为隐式的
+this值。这个能力受联结在ObjectEnvironmentRecord上的Boolean值withEnvrionment的控
+制。其默认值是false。
+  ObjectEnvironmentRecords的具体规范方法的行为在下方算法中定义。  
+***** 9.1.1.2.1 HasBinding(N)
+  ObjectEnvironmentRecord envRec的HasBinding方法接受参数N（String）。明确
+参数标识是否已经绑定在记录中。被调用时执行下列步骤：
+1. 让bindings是envRec的绑定对象
+2. 让foundBinding是?HasProperty(bindings,N)
+3. 如果foundBinding是false，返回false
+4. 如果envRec.withEnvironment是false，返回true
+5. 让unscopables是?Get(bindings, @@unscopables)
+6. 如果Type(unscopables)是Object，那么
+    a. 让blocked是!ToBoolean(?Get(unscopables, N))
+    b. 如果blocked是true，返回true
+7. 返回true
+***** 9.1.1.2.2 CreateMutalbeBinding(N, D)
+  ObjectEnvironmentRecord envRec的CreateMutableBinding方法接受参数N（String）和
+D（Boolean）。在联结的绑定对象中创建一个名字为N，值为undefined的性质。如果
+D是true，这个新性质的\[\[Configurable]]设为true，否则设为false。被调用时执行
+下列步骤：
+1. 让bindings是envRec的绑定对象
+2. 返回?DefinePropertyOrThrow(bindings, N, PropertyDescriptor { \[\[Value]]:undefined,
+   \[\[Wriable]]:true, \[\[Enumerable]]:true, \[\[Configurable]]:D }
+****** 注意 通常envRec没有N绑定，但是如果有的话，DefinePropertyOrThrow的语义
+             会导致已存在的绑定被替换、遮蔽，或者引发返回意外完结
+***** 9.1.1.2.3 CreateImmutableBinding(N, S)
+  ObjectEnvironmentRecord envRec的CreateImmutableBinding按照本规范不会被使用。
+***** 9.1.1.2.4 InitializeBinding(N, V)
+  ObjectEnvironmentRecord envRec的InitializeBinding方法接受参数N（String）和
+V（ECMAScript语言值）。用于将绑定N的值替换为V。未初始化的绑定N必须已经存在。
+被调用时执行下列步骤：
+1. 返回?envRec.SetMutableBinding(N, V, false)
+****** 注意 在本规范中，使用ObjectEnvironmentRecord的CreateMutableBinding时都会
+             立即跟随InitializeBinding操作。因此本规范不用显式的追踪
+             ObjectEnvironmentRecord上绑定的初始化状态。
+***** 9.1.1.2.5 SetMutableBinding(N, V, S)
+  ObjectEnvironmentRecord envRec的SetMutableBinding方法接受参数N（String）、
+V（ECMAScript语言值）和S（Boolean）。尝试将EnvironmentRecord的绑定对象的性质N
+的当前值替换为参数V的值。性质N通常已经存在，但是如果没有或者目前不可写，
+由S决定错误如何处理。被调用时执行下列步骤：
+1. 让bindings是envRec的绑定对象
+2. 让stillExists时?hasProperty(bindings, N)
+3. 如果stillExists是false且S是true，投掷ReferenceError异常
+4. 返回?Set(bindings, N, V, S)
+***** 9.1.1.2.6 GetBindingValue(N, S)
+  ObjectEnvironmentRecord envRec的GetBindingValue方法接受参数N（String）和
+S（Boolean）。返回绑定对象性质N的值。性质应该已经存在，如果没有，则结果依赖
+S。被调用时执行下列步骤：
+1. 让bindings是envRec的绑定对象
+2. 让value是?HasProperty(bindings, N)
+3. 如果value是false，那么
+    a. 如果S是false，返回undefined，否则投掷ReferenceError异常
+5. 返回?Get(bindings, N)
+***** 9.1.1.2.7 DeleteBinding(N)
+  ObjectEnvironmentRecord envRec的DeleteBinding方法接受参数N（String）。只能删除
+绑定对象的性质N的\[\[Configurable]]是true的绑定。被调用时执行下列步骤：
+1. 让bindings是envRec的绑定对象
+2. 返回?bindings.\[\[Delete]](N)
+***** 9.1.1.2.8 HasThisBinding()
+  ObjectEnvironmentRecord envRec的HasThisBinding方法不接受参数。被调用时执行
+下列步骤：
+1. 返回false。
+****** 注意 ObjectEnvironmentRecord不会提供this的绑定
+***** 9.1.1.2.9 HasSuperBinding()
+  ObjectEnvironmentRecord envRec的HasSuperBinding方法不接受参数。被调用时执行
+下列步骤：
+1. 返回false。
+****** 注意 ObjectEnvironmentRecord不会提供super的绑定
+***** 9.1.1.2.10 WithBaseObject()
+  ObjectEnvironmentRecord envRec的WithBaseObject方法不接受参数。被调用时执行
+下列步骤：
+1. 如果envRec的withEnvironment标记是true，返回envRec的绑定对象
+2. 否则，返回undefined。
+**** 9.1.1.3 FunctionEnvironmentRecord
+  FunctionEnvironmentRecord是一个DeclarativeEnvironmentRecord，用于标识一个函数的
+顶层圈。如果函数不是ArrowFunction，提供一个this绑定。如果不是ArrowFunction，
+而且引用了super，其FunctionEnvironmentRecord应该包含能够在函数内执行super方法
+调用的状态。
+  FunctionEnvironmentRecords有表18列出的额外状态字段。
+| 字段名                  | 值                                            | 含义                                                       |
+| \[\[ThisValue]]         | 任何值                                        | 这是函数调用时的this值                                     |
+| \[\[ThisBindingStatus]] | lexical \vert initialized \vert uninitialized | 如果是lexical，这就是一个ArrowFunction，不需要本地的this值 |
+| \[\[FunctionObject]]    | Object                                        | 因其调用导致本EnvironmentRecord创建的函数对象              |
+| \[\[NewTarget]]         | Object \vert undefined                        | 如果本EnvironmentRecord被\[\[Construct]]内部方法创建的，则\[\[NewTarget]]是\[\[Construct]]的newTarget参数值。否则就是undefined。 |
+  FunctionEnvironmentRecord支持DeclarativeEnvironmentRecord在表17列出的全部方法。
+除了HasThisBinding和HasSuperBinding，其算法也与DeclarativeEnvironmentRecord的一致。
+FunctionEnvironmentRecord还额外支持列在表19的方法。
+| 方法             | 目的                                                                                                               |
+| BindThisValue(V) | 设置\[\[ThisValue]]并记录为已经初始化的                                                                            |
+| GetThisBinding() | 返回本EnvironmentRecords的this绑定。如果this绑定没有初始化，投掷ReferenceError异常                                 |
+| GetSuperBase()   | 返回本EnvironmentRecord绑定作为super性质访问的基础的这个对象。如果是undefined，表明super性质访问会产生运行时错误。 |
+  FunctionEnvironmentRecord的具体规范方法的行为定义如下列算法
+***** 9.1.1.3.1 BindThisValue(V)
+  FunctionEnvironmentRecord envRec的BindThisValue方法接受参数V（ECMAScript语言值）。
+被调用时执行下列步骤：
+1. Assert：envRec.\[\[ThisBindingStatus]]不是lexical
+2. 如果envRec.\[\[ThisBindingStatus]]是initialized，投掷ReferenceError异常
+3. 设置envRec.\[\[ThisValue]]为V
+4. 设置envRec.\[\[ThisBindingStatus]]为initialized
+5. 返回V
+***** 9.1.1.3.2 HasThisBinding()
+  FunctionEnvironmentRecord envRec的HasThisBinding方法不接受参数。被调用时执行
+下列步骤：
+1. 如果envRec.\[\[ThisBindingStatus]]是lexical，返回false；否则返回true
+***** 9.1.1.3.3 HasSuperBinding()
+  FunctionEnvironmentRecord envRec的HasSuperBinding方法不接受参数。被调用时执行
+下列步骤：
+1. 如果envRec.\[\[ThisBindingStatus]]是lexical，返回false
+2. 如果envRec.\[\[FunctionObject]].\[\[HomeObject]]是undefined，返回false；
+   否则返回true。
+***** 9.1.1.3.4 GetThisBinding()
+  FunctionEnvironmentRecord envRec的GetThisBinding方法不接受参数。被调用时执行
+下列步骤：
+1. Assert：envRec.\[\[ThisBindingStatus]]不是lexical
+2. 如果envRec.\[\[ThisBindingStatus]]是uninitialized，投掷ReferenceError异常
+3. 返回envRec.\[\[ThisValue]]
+***** 9.1.1.3.5 GetSuperBase()
+  FunctionEnvironmentRecord envRec的GetSuperBase方法不接受参数。被调用时执行
+下列步骤：
+1. 让home是envRec.\[\[FunctionObject]].\[\[HomeObject]]
+2. 如果home是undefined，返回undefined
+3. Assert：Type(home)是Object
+4. 返回?home.\[\[GetPrototypeOf]]()
+**** 9.1.1.4 Global Environment Record
+  GlobalEnvironmentRecord用于表示最外层的被运行在普通领的ECMAScript的Script元素
+共用的圈。GlobalEnvironmentRecord提供了内建global（条款19）的绑定，全局对象的
+性质，和在Script中发生的顶层声明（见于8.1.9、8.1.11）
+  GlobalEnvironmentRecord是逻辑上的单一记录，但是规定为ObjectEnvironmentRecord和
+DeclarativeEnvironmentRecord的组合封装。ObjectEnvironmentRecord将联结的RealmRecord
+的全局对象作为其基础的对象。这个全局对象是GlobalEnvironmentRecord的
+GetThisBinding方法的返回值。GlobalEnvironmentRecord的ObjectEnvironmentRecord组件包
+含所有内建global（条款19）的绑定和全局代码的FunctionDeclaration、
+GeneratorDeclaration、AsyncFunctionDeclaration、AsyncGeneratorDeclaration或者
+VariableStatement引入的绑定。至于全局代码的其他ECMAScript声明产生的绑定包含在
+GlobalEnvironmentRecord的DeclarativeEnvironmentRecord组件里。
+  可以直接在全局对象上创建性质。因此GlobalEnvironmentRecord的
+ObjectEnvironmentRecord组件会包含被FunctionDeclaration、GeneratorDeclaration、
+AsyncFunctionDeclaration、AsyncGeneratorDeclaration或者VariableDeclaration声明显式
+创建的绑定和全局对象性质隐式创建的绑定。为了区分哪些是声明显式创建的绑
+定，GlobalEnvironmentRecord维护了一个由使用CreateGlobalVarBinding和
+CreateGlobalFunctionBinding方法绑定的名称构成的List。
+  GlobalEnvironmentRecord还有列在表20的添加字段和列在表21的添加方法。
+| 字段名                  | 值                           | 含义                                                                                                                                                                      |
+| \[\[ObjectRecord]]      | ObjectEnvironmentRecord      | 其绑定对象是全局对象。包含联结领上的全局代码的FunctionDeclaration、GeneratorDeclaration、AsyncFunctionDeclaration、AsyncGeneratorDeclaration及VariableDeclaration产生的绑定 |
+| \[\[GlobalThisValue]]   | Object                       | 由全局圈的this返回的值。主机可能返回任何ECMAScript对象值。                                                                                                                |
+| \[\[DeclarativeRecord]] | DeclarativeEnvironmentRecord | 包含联结领上的全局代码的除FunctionDeclaration、GeneratorDeclaration、AsyncFunctionDeclaration、AsyncGeneratorDeclaration及BariableDeclaration外的声明产生的绑定 |
+| \[\[VarNames]]          | List<String>                 | 联结领上的全局代码的FunctionDeclaration、GeneratorDeclaration、AsyncFunctionDeclaration、AsyncGeneratorDeclaration及VariableDeclaration产生的绑定的名称List |
+
+| 方法                                 | 意图                                                                                                                                                                                                                                                                                                     |
+| GetThisBinding()                     | 返回本EnvironmentRecord的this绑定                                                                                                                                                                                                                                                                        |
+| HasVarDeclaration(N)                 | 明确本EnvironmentRecord的绑定N是否由VariableDeclaration,FunctionDeclaration,GeneratorDeclaration,AsyncFunctionDeclaration,AsyncGeneratorDeclaration产生的。                                                                                                                                              |
+| HasLexicalDeclaration(N)             | 明确本EnvironmentRecord的绑定N是否由LexicalDeclaration或者ClassDeclaration产生的。                                                                                                                                                                                                                       |
+| HasRestrictedGlobalProperty(N)       | 明确全局对象上的性质N能否被全局文法绑定遮蔽                                                                                                                                                                                                                                                              |
+| CanDeclareGlobalVar(N)               | 明确相应的CreateGlobalVarBinding带参数N的调用能否成功                                                                                                                                                                                                                                                    |
+| CanDeclareGlobalFunction(N)          | 明确相应的CreateGlobalFunctionBinding带参数N的调用能否成功                                                                                                                                                                                                                                               |
+| CreteGlobalVarBinding(N, D)          | 用于在GlobalEnvironmentRecord的\[\[ObjectRecord]]组件上创建并初始化为undefined的全局var绑定。这是个可变绑定。相应的全局对象的性质有对var合适的属性。String值N是绑定的名称。如果D是true，这个绑定可以被删除。逻辑上与CreateMutableBinding紧接着SetMutableBinding的效果一样，但是它允许特殊对待var声明。   |
+| CreateGlobalFunctionBinding(N, V, D) | 用于在GlobalEnvironmentRecord的\[\[ObjectRecord]]组件上创建并初始化一个全局function。这是个可变绑定。相应的全局对象的性质有对function合适的属性。String值N是绑定的名称。如果D是true，这个绑定可以被删除。逻辑上与CreateMutableBinding紧接着SetMutableBinding的效果一样，但是它允许特殊对待function声明。 |
+  GlobalEnvironmentRecord的具体规范方法的行为由下列算法定义。
+***** 9.1.1.4.1 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。明确本记
+录是否有绑定的名称与参数值一致。被调用时执行下列步骤：
+1. 让DclRec是envRec.\[\[DeclarativeRecord]]
+2. 如果DclRec.HasBinding(N)是true，返回true
+3. 让ObjRec是envRec.\[\[ObjectRecord]]
+4. 返回?ObjRec.HasBinding(N)
+***** 9.1.1.4.2 CreateMutableBinding(N, D)
+  GlobalEnvironmentRecord envRec的CreateMutableBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.3 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.4 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.5 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.6 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.7 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.8 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.9 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.10 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.11 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.12 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.13 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.14 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.15 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.16 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.17 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+***** 9.1.1.4.18 HasBinding(N)
+  GlobalEnvironmentRecord envRec的HasBinding方法接受参数N（String值）。
+被调用时执行下列步骤：
+**** 9.1.1.5 Module Environment Record
 ** 25.1
 
 
