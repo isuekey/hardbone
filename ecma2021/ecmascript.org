@@ -5174,8 +5174,196 @@ String值）和strict（Boolean值）。被调用时执行下列步骤：
 | Function              | 如果本执行背景在评估函数对象的代码，这个组件的值就是函数对象。如果是评估Script或者Module代码，值就是null                                   |
 | Realm                 | 用于联结代码访问ECMAScript资源的RealmRecord                                                                                                |
 | ScriptOrModule        | 联结代码创立的ModuleRecord或者ScriptRecord。如果没有起源脚本或者模块，比如在InitializeHostDefinedRealm创建的执行背景的起源，这个值就是null |
-
+  在本规范中运行时执行背景的代码评估会在各种位置被挂起。一旦这个运行时执行
+背景被挂起，一个不同的执行背景会成为运行时执行背景并着手评估自身的代码。
+后来一个挂起的执行背景会再次称为运行时背景，并从之前被挂起的位值继续评估
+其代码。执行背景中运行时执行背景的状态转变通常按照后入/先出的方式发生。然
+而，有些ECMAScript特生需要非LIFO方式转换运行时执行背景。
+  运行时背景的Realm组件的值也被称为CurrrentRealmRecord（当前领记录）。运行时执
+行背景的Function组件也被称为ActiveFunctionObject（活跃函数、活跃函数对象）。
+  ECMAScript代码的执行背景还有表25列出的额外状态组件。
+| 组件               | 目的                                                 |
+| LexicalEnvironment | 确认解释本执行背景的代码创建的标识引用需要的EnvrionmentRecord |
+| VariablEnvironment | 确认持有本执行背景的代码用VariableStatements创建的绑定的EnvironmentRecord |
+  执行背景的LexicalEnvironment和VariableEnvironment组件总是EnvironmentRecord。
+  表示GeneratorObject评估的执行背景还有列在表26的额外组件。
+| 组件      | 目的                                |
+| Generator | 本执行背景正在评估的GeneratorObject |
+  绝大多数情况只有运行时执行背景（ExecutionContextStack执行背景栈的顶）是被
+本规范的算法直接操作的。因此当无限定的使用术语LexicalEnvironment和
+VariableEnvironment时，他们都是指运行时执行环境上的。
+  执行背景是纯粹的规范机制，无需对应任何ECMAScript实现的任何特定内容。
+ECMAScript代码不能直接访问或察觉执行背景。
+*** 9.3.1 GetActiveScriptOrModule()
+  抽象操作GetActiveScriptOrModule不接受参数。用于明确基于运行时执行背景的正在
+运行的Script或者Module。被调用时执行下列步骤：
+1. 如果ExceuctionContextStack是空的，返回null
+2. 让ec是ExecutionContextStack上ScriptOrModule组件不是null的最顶部ExecutionContext
+3. 如果没有这种ExecutionContext存在，返回null。否则返回ec的ScriptOrModule
+*** 9.3.2 ResolveBinding(name[, env])
+  抽象操作ResolveBinding接受参数name（String值）和可选参数env（EnvironmentRecord
+值）。用于明确绑定#name。env用于显式提供EnvironmentRecord来搜索绑定。
+被调用时执行下列步骤：
+1. 如果env不存在，或者env是undefined，那么
+    a. 设置env是运行时执行背景的LexicalEnvironment
+2. Asset：env是EnvironmentRecord
+3. 如果句法产出对应的正在评估的代码被包含在严格模式代码中，让strict是true，
+   否则让strict是false
+4. 返回?GetIdentifierReference(env, name, strict)
+**** 注意 ResolveBinding用于返回ReferenceRecord，其\[\[ReferencedName]]是name
+*** 9.3.3 GetThisEnvironment()
+  抽象操作GetThisEnvironment不接受参数。寻找当前提供this绑定的
+EnvironmentRecord。被调用时执行下列步骤：
+1. 让env是RunningExecutionContext的LexicalEnvironment
+2. 重复
+    a. 让exists是env.HasThisBinding()
+    b. 如果exists是true，返回env
+    c. 让outer是env.\[\[OuterEnv]]
+    d. Assert：outer不是null
+    e. 设置env是outer
+**** 注意 循环的步骤2总是会终止，因为环境list会在在全局环境处终止，全局环境
+           必然有this绑定。
+*** 9.3.4 ResolveThisBinding()
+  抽象操作ResolveThisBinding不接受参数。使用RunningExecutionContext的
+LexicalEnvironment明确this绑定。被调用时执行下列步骤：
+1. 让envRec是GetThisEnvironment()
+2. 返回?envRec.GetThisBinding()
+*** 9.3.5 GetNewTarget()
+  抽象操作GetNewTarget不接受参数。使用RunningExecutionContext的LexicalEnvironment
+明确NewTarget的值。被调用时执行下列步骤：
+1. 让envRec是GetThisEnvironment()
+2. Assert：envRec有\[\[NewTarget]]字段
+3. 返回envRec.\[\[NewTaraget]]
+*** 9.3.6 GetGlobalObject()
+  抽象操作GetGlobalObject不接受参数。返回被当前运行时执行背景使用的全局对
+象。被调用时执行下列步骤：
+1. 让currentRealm是CurrentRealmRecord
+2. 返回currentRealm.\[\[GlobalObject]]
 ** 9.4 Jobs and Host Operations to Enqueue Jobs Job和主机对Job队列的操作
+  Job是一个无参数的AbstractClosure，在当前进程没有其他ECMAScript计算时初始化
+一个ECMAScript计算。
+  Job按ECMAScript主机实现的规划来执行。本规范描述了主机榫（HostHook）
+HostEnqueuePromiseJob安排的一类Job，主机可能定义额外的抽象操作来安排job。
+那些操作接受JobAbstractClosure作为参数，安排其在未来某时执行。这些实现必须
+与下列的要求一致。
+. 在未来某时，如果没有运行时执行背景而且ExecutionContextStack是空的，必须
+  实现：
+    1. 执行主机定义的准备步骤
+    2. 调用JoAbstractClosure
+    3. 执行主机定义的清理步骤。随后ExecutionContextStack必须是空的。
+. 任何时刻只能有一个Job被激活经受评估
+. 一旦Job的评估开始，在其他Job开始前必须完成运行
+. AbstractClosure必须返回一个普通完结，实现自有的错误处理。
+*** 注意1 在安排上主机环境不要求统一对待Job。比如网页浏览器与Node.js对待
+           PromiseHandling较其他工作有较高优先级；未来特征会引入不那么高优先
+           级的Job
+  在任何指定时间，如果下列条件都成立，scriptOrModule（ScriptRecord、ModuleRecord
+或者null）是活跃的Script或者Module:
+. GetActiveScriptOrModule()是scriptOrModule
+. 如果scriptOrModule是ScriptRecord或者ModuleRecord，让ec是ExecutionContextStack上
+其ScriptOrModule是scriptOrModule的最顶部ExecutionContext。ec的Realm组件是
+scriptOrModule.\[\[Realm]]
+  在任何指定时间，如果下列条件都成立，某执行准备评估ECMAScript代码
+. ExecutionContextStack不空
+. ExecutionContextStack的最顶部ExecutionContext（RunningExecutionContext）的Real组件
+是RealmRecord
+*** 注意2 主机环境可能通过将执行背景压到ExecutionContextStack上的方式来准备
+           执行评估代码。这个特殊步骤是实现自行定义的。
+           Realm的指定选择是由主机环境运行的。当Job的回调函数，例如Promise
+           句柄，被调用，这个调用推送自己的执行背景和Realm
+  特定类型的Job有额外的遵循需求。
+*** 9.4.1 JobCallback Records
+  JobCallbackRecord是用于存放函数对象的Record值，也是一个主机定义的值。通过
+主机排队的Job调用起的函数对象可能还有额外的主机定义的背景。为了传播这个
+状态，JobAbstractClosures不能直接捕获和调用函数对象。应该分别使用
+HostMakeJobCallback和HostCallJobCallback。
+**** 注意 例如：WHATWG HTML规定使用主机定义的值来为Promise回调传播现任的设置
+           对象。
+  JobCallbackRecord有列在表27的字段
+| 字段名            | 值                  | 含义                               |
+| \[\[Callback]]    | 函数对象            | 当Job被调用时，这个Job会调用的函数 |
+| \[\[HostDefined]] | 任何值，默认时empty | 保留给主机的字段                   |
+*** 9.4.2 HostMakeJobCallback(callback)
+  主机定义的抽象操作HostMakeJobCallback接受参数callback（函数对象）。
+  HostMakeJobCallback的实现必须遵循下列要求：
+. 必须总是常规完结（不会返回意外完结）
+. 必须返回\[\[Callback]]是callback的JobCallbackRecord
+  默认的HostMakeJobCallback实现被调用时执行下列步骤：
+1. Assert： IsCallable(callback)是true
+2. 返回JobCallbackRecord { \[\[Callback]]:callback, \[\[HostDefined]]:empty }
+  不是网页浏览器的ECMAScript主机必须使用HostMakeJobCallback的默认实现。
+**** 注意 这会在回调被传到负责最终安排和执行的函数时调用。例如
+           promise.then(thenAction)代码，在调用Promise.prototype.then时调用
+           MakeJobCallback(thenAction)，而不是在安排到回应Job的时候。
+*** 9.4.3 HostCallJobCallback(jobCallback, V, argumentsList)
+  主机定义的抽象操作HostCallJobCallback接受参数jobCallback（JobCallbackRecord）、
+V（ECMASCript语言值）和argumentsList（ECMAScript语言值的List）
+  HostCallJobCallback的实现必须遵循下列要求：
+. 必须总是执行并返回Call(jobCallback.\[\[Callback]], V, argumentsList)
+**** 注意 这个要求意味着主机不能修改函数对象在本规范中定义的\[\[Call]]行为
+  HostCallJobCallback的默认实现被调用时执行下列步骤：
+1. Assert：IsCallable(jobCallback.\[\[Callback]])是true
+2. 返回?Call(jobCallback.\[\[Callback]], V, argumentsList)
+  不是网页浏览器的ECMAScript主机必须使用HostCallJobCallback的默认实现。
+*** 9.4.4 HostEnqueuePromiseJob(job, realm)
+  主机定义的抽象操作HostEnqueuePromiseJob接受参数job（JobAbstractClosure）和
+realm（RealmRecord或者null）。安排job在后续被执行。本算法中使用的
+AbstractClosures被试图用于联系到Promise的处理，否则被安排到与Promise处理操作
+同优先级。
+  HostEnqueuePromiseJob的实现必须遵循9.4的要求和下列要求：
+. 如果realm不是null，每次job被调用时，实现必须执行实现层定义的步骤，那些在
+  job调用时被准备用于评估ECMAScript代码的执行。
+. HostEnqueuePromiseJob被调用时，让scriptOrModule是GetActiveScriptOrModule()。如果
+  realm不是null，每次job被调用，实现必须执行实现层定义的步骤，那些在job调
+  用时scriptOrModule时活跃Script或者Module
+. Job必须按照安排的HostEnqueuePromiseJob调用顺序执行。
+**** 注意 被NewPromiseResolveThenableJob返回的job的realm通常是在then函数对象上调
+           用GetFunctionRealm的结果。被NewPromiseReactionJob返回的job的realm通常
+           是，在如果句柄不是undefined时，句柄调用GetFunctionRealm的结果。如果
+           句柄是null，realm也是null。所有种类的Job，当GetFunctionRealm异常结束
+           （在Proxy调用时触发），realm是GetFunctionRealm调用是的Realm。当realm是
+           null，不能有用户的ECMAScript代码会被评估，也没有新的ECMAScript对象会
+           被创建。例如WHATWG HTML规范使用realm去检查实例概念和运行脚本的能力
+           。
+** 9.5 InitializeHostDefinedRealm()
+  抽象操作InitializeHostDefinedRealm不接受参数。被调用时执行下列步骤：
+1. 让realm是CreateRealm()
+2. 让newContext是新的执行背景
+3. 设置newContext的Function是null
+4. 设置newContext的Realm是realm
+5. 设置newContext的ScriptOrModule是null
+6. 推送newContext到ExecutionContextStack，newContext现在是RunningExecutionContext
+7. 如果主机需要使用奇异对象作为realm的全局对象，让global是一个以主机定义的
+   方式来创建的对象。否则global是undefined，表明应该创建一个基本对象作为全局
+   对象。
+8. 如果主机需要在realm的全局范围内this绑定返回其他全局对象，让thisValue是一
+   个以主机定义的方式来创建的对象。否则让thisValue是undefined，表明realm的
+   全局this绑定应该是全局对象。
+9. 执行SetRealmGlobalObject(realm, global, thisValue)
+10. 让globalObj是?SetDefaultGlobalBinding(realm)
+11. 在globalObj上创建主机定义的全局对象性质
+12. 返回NormalCompletion(empty)
+** 9.6 Agents 施动者
+  施动者是一套ECMAScript执行背景，ExecutionContextStack、RunningExecutionContext、
+AgentRecord和ExecutingThread。除了ExecutionThread，其他组成是施动者独占的。
+  agent的ExecutingThread在agent的独立于其他agent的执行背景上执行一个job，除了
+ExecutingThread会被多个agent用作ExecutingThread外，前提是共用这个线程的agent有
+一个\[\[CanBlock]]是true的AgentRecord
+*** 注意 例如有些网页浏览器在多个无关的浏览窗口中共用一个执行线程
+  当agent的ExecutingThread执行jobs，这个agent就是job代码的SurroundingAgent。代码
+使用SurroundingAgent访问其含有的规范级别的执行对象：RunningExecutionContext、
+ExecutionContextStack和其他AgentRecord的字段。
+| 字段名             | 值      | 含义 |
+| \[\[LittleEndian]] | Boolean | 被GetValueFromBuffer和StetValueInBuffer的算法需要的isLitterEndian的参数的值。这是实现定义的，且是可改的 |
+** 9.7 Agent Clusters
+** 9.8 Forward Progress
+** 9.9 Processing Modle of WeakRef and FinalizationRegistry Objects
+       终点注册对象和弱引用的进程模型
+** 9.10 ClearKeptObjects()
+** 9.11 AddToKeptObjects(object)
+** 9.12 CleanupFinalizationRegistry(finalizationRegistry)
+* 10 Ordinary and Exotic Ojbects Behaviours 基本与奇异对象的行为
+** 基本对象的内部方法和内部占位
 * 25
 ** 25.1
 
