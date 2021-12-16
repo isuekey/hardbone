@@ -5353,9 +5353,38 @@ ExecutingThread会被多个agent用作ExecutingThread外，前提是共用这个
   当agent的ExecutingThread执行jobs，这个agent就是job代码的SurroundingAgent。代码
 使用SurroundingAgent访问其含有的规范级别的执行对象：RunningExecutionContext、
 ExecutionContextStack和其他AgentRecord的字段。
-| 字段名             | 值      | 含义 |
-| \[\[LittleEndian]] | Boolean | 被GetValueFromBuffer和StetValueInBuffer的算法需要的isLitterEndian的参数的值。这是实现定义的，且是可改的 |
+| 字段名                   | 值                       | 含义                                                                                                                                                  |
+| \[\[LittleEndian]]       | Boolean                  | 被GetValueFromBuffer和StetValueInBuffer的算法需要的isLitterEndian的参数的值。这是实现定义的，且是实现最有效率的备选。一旦这个值被观察到就不可修改了。 |
+| \[\[CanBlock]]           | Boolean                  | 明确施动者是否可以阻塞                                                                                                                                |
+| \[\[Signifier]]          | 任何全局唯一值           | 在施动者集群中标识施动者                                                                                                                              |
+| \[\[IsLockFree1]]        | Boolean                  | true表示单字节的原子操作是免锁的，其他是false                                                                                                          |
+| \[\[IsLockFree2]]        | Boolean                  | true表示两字节的原子操作是免锁的，其他是false                                                                                                          |
+| \[\[IsLockFree8]]        | Boolean                  | true表示八字节的原子操作是免锁的，其他是false                                                                                                          |
+| \[\[CandidateExecution]] | CandidateExecutionRecord | 见于内存模型                                                                                                                                          |
+| \[\[KeptAlive]]          | 对象的List               | 初始化是空List，表示直到当前Job结束前保持活性的对象的列表                                                                                             |
+  一旦\[\[Signifier]]、\[\[IsLockFree1]]和\[\[isLockFree2]]被本集群中的任何施动者观察到，他们就
+不能变动了。
+*** 注意2 \[\[IsLockFree1]]和\[\[isLockFree2]]的值不必由硬件决定，但是会反映实现的选择，在不同
+         实现或者不同时期发生变动。
+         没有\[\[IsLockFree1]]性质，因为四字节的原子操作总是免锁的。
+         在实践上，如果一个原子操作被实现为某步带锁的，这个操作不是免锁的。免锁不是免等待，完成一个
+         免锁的原子操作需要多少机器步骤是没有上限的。
+         原子级访问n的大小是无锁的，不意味任何关于非原子访问n的大小的原子性的意义，尤其是，非原子访问
+         可能还会是执行一些离散的内存访问。见于ReadSharedemory和WriteSharedMemory。
+*** 注意3 施动者是规范机制，无需对应任何ECMAScript实现的任何活。
+*** 9.6.1 AgentSignifier()
+  抽象操作AgentSignifier不接受参数。被调用时执行下列步骤：
+1. 让AR是紧围施动者的AgentRecord
+2. 返回AR.\[\Signifier]]
+*** 9.6.2 AgentCanSuspend()
+  抽象操作AgentCanSuspend不接受参数。被调用时执行下列步骤：
+1. 让AR是紧围施动者的AgentRecord
+2. 返回AR.\[\[CanBlock]]
+**** 注意 在某些环境下可能没有理由让一个施动者挂起。比如在网页浏览器环境下，不让文档的主线程挂起就是
+         就是合理的，同时其工作线程就是可以挂起的。
 ** 9.7 Agent Clusters
+  AgentCLuster就是最大的可以通过公用内存进行通讯的agent集合。
+*** 注意 程序在不同的施动者间会通过不再规范内的方式公用内存。最少，Shared
 ** 9.8 Forward Progress
 ** 9.9 Processing Modle of WeakRef and FinalizationRegistry Objects
        终点注册对象和弱引用的进程模型
