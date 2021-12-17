@@ -5384,10 +5384,106 @@ ExecutionContextStack和其他AgentRecord的字段。
          就是合理的，同时其工作线程就是可以挂起的。
 ** 9.7 Agent Clusters
   AgentCLuster就是最大的可以通过公用内存进行通讯的agent集合。
-*** 注意 程序在不同的施动者间会通过不再规范内的方式公用内存。最少，Shared
-** 9.8 Forward Progress
+*** 注意1 程序在不同的施动者间会通过不在规范内的方式公用内存。至少，
+          SharedArrayBuffer对象的备份内存能够被集群中的施动者共用。
+          同时施动者可以通过消息通讯那些不能共用内存的内容，而且这些施动者
+          从来就没不在同一个集下。
+  每个施动者都明确从属于一个AgentCluster。
+*** 注意2 集群中的施动者完全不必同时存活。如果A创造了B，然后结束A，B创建C，
+           如果B可以共享A的某些内存，C可以共享B的某些内存，则A、B、C都在同一
+           个集群中。
+  同一个集群下的施动者的AgentRecord必须有相同的\[\[LittleEndian]]性质
+*** 注意3 如果同一集群下施动者有不同的\[\[LittleEndian]]值，多字节数据的共用会
+           异常困难。
+  同一个集群下的施动者的AgentRecord必须有相同的\[\[IsLockFree1]]性质，同样的
+\[\[IsLockFree2]]也是如此。
+  同一个集群下的施动者的AgentRecord必须有不同的\[\[Signifier]]性质
+  存在嵌入逻辑可以灭活（停止前进进程）或者活化（继续前进进程）施动者而不要
+此施动者的声明或配合。如果此嵌入逻辑触发，必须保证如果集群下有施动者被无
+限期的灭活，集群下就不能有其他施动者是活化的。
+*** 注意4 前面限制的目的是规避一种情况，即某个施动者发生死锁或者饥饿，因为
+           其他施动者被灭火。例如在HTML中，共享的worker，在任何窗体中有独立于
+           文档的生命周期，被允许分享内存给那些独立文档的专用worker，这个文档
+           和其专用worker在其持有锁的时候被灭活（也就是说，文档被推送到窗体
+           历史了），这个共享的worker试图获得这个锁，那么这个共享的worker就会
+           被锁住直到那个专有worker重新活化。如此同时其他窗体的试图访问这个
+           共享worker的其他worker会饥饿（没事干）。
+           这个限制的含义是不可以在不属于遵循嵌入逻辑的同时挂起/唤醒的同一
+           合集的施动者间共用内存。
+  嵌入逻辑可以终止一个施动者，无需其所在集群的其他施动者之前的声明或者配
+合。如果施动者不是因自己或者集群其他施动者的程序动作，而是因为集群外的强制
+行为而终结，嵌入逻辑必须选择一个策略：1、终结掉集群内的全部施动者，2、提供
+可靠的API允许集群的施动者配合，这样集群中至少存在一个成员能够侦测到这个终结
+命令，通过终结数据包含足够识别施动者会被终结的信息。
+*** 注意5 触发这种终结的例子：操作系统或者用户终止了在独立进程中运行的施动
+           者；嵌入逻辑根据其他施动者终止了一个正在运行的施动者，当每个施动
+           者的资源统计都表明那个施动者失控了。
+  在集群的任何施动者评估ECMAScript代码之前，集群里的所有施动者的AgentRecord的
+\[\[CandidateExecution]]字段被设置为特定初始化的CandidateExecution。这个初始化的
+CandidateExecution是空的CandidateExecution，其\[\[EventsRecords]]是AgentEventsRecord的
+List，每个AgentEventsRecord的\[\[AgentSignifier]]是其代表的施动者标记，而且
+CandidateExecution的\[\[EventList]]和\[\[AgentSynchronizesWith]]字段都是空的List。
+*** 注意6 同一集群下的全部施动者在其AgentRecord的\[\[CandidateExecution]]字段共用
+           相同的CandidateExecution。CandidateExecution是用于内存模型的规范机制。
+*** 注意7 施动者集群是一个规范机制，不对应任何ECMAScript实现的特定活。
+** 9.8 Forward Progress 前进进程
+  对于施动者引发前进进程是说它根据本规范执行了一步评估。
+  施动者在其运行时执行背景等待同步的无限期的外部事件时会变成阻塞的。在这种
+场景中，只有施动者的AgentRecord的\[\[CanBlock]]性质是true时才可以变成阻塞的。
+无障施动者是不能被阻塞的。
+  实现必须确保：
+. 每个无锁施动者最终带着一个专用的执行线程来引发前进进程
+. 在共用一个执行线程的施动者集合里，一个施动者最终引发前进进程
+. 施动者除非使用提供的显式API来阻塞，否则不能让其他施动者变成阻塞的。
+*** 注意 与内存模型的活性保证一起，这确保了所有的SeqCst写入最终都对施动者
+          可见。
 ** 9.9 Processing Modle of WeakRef and FinalizationRegistry Objects
        终点注册对象和弱引用的进程模型
+*** 9.9.1 Objectives 目标
+  本规范没有关于对象被回收的任何保证。失活的对象可能会很久之后，甚至永不，
+被释放。因为这个原因，本规范使用术语may来描述触发垃圾收集的行为。
+  WeakRef与FinalizationReigstry对象的语义是基于发生在特定时间的两个操作的。
+. 当WeakRef.prototype.deref被调用，被引（如果没有返回undefined）对象保持活性，
+  这样随后的同步访问仍然返回这个对象。在同步工作完成时使用ClearKeptObject抽象
+  操作来重置这个列表。
+. 当一个向FinalizationRegistry注册的对象变得不可及时，在同步的ECMAScript执行完成
+  后，FinalizationRegistry的清理行为的回调的调用可能最终被引发。
+  FinalizationRegistry清理随着CleanupFinalizationRegistry抽象操作被执行。
+  ClearKeptObjects或者CleanupFinalizationRegistry行为都不会中断同步的ECMAScript
+执行。因为主机会试图延长同步ECMAScript执行的运行，本规范延缓规划
+ClearKeptObjects和CleanupFinalizationRegistry到主机环境中。
+  有些ECMAScript实现包含了后台运行垃圾收集的实现，包含ECMAScript停滞的情况。
+让主机环境规划CleanupFinalizationRegistry，为了运行结束工作，允许其继续
+ECMAScript执行，会释放持有的值，减少总体内存使用。
+*** 9.9.2 Liveness 存活
+  对于对象的某些集合S，就S而言，HypotheicalWeakRef-oblivious（假设弱引用无感知）
+执行就是WeakRef的抽象操作WeakRefDeref的执行中获取S引用总是undefined。
+**** 注意1 弱引用无感知，与Liveness一起，描述了两个观念。一是WeakRef
+            本身不会保持对象存活，二是Liveness里的循环引用不表明对象是活的。
+            实现上来说，如果明确对象的活性依赖于其他弱引用的obj2的活性，而
+            obj2的活性不能假设obj的活性，因为其可能是循环的。
+**** 注意2 弱引用无感知被定义在对象集合上，而不是独立的对象，来明确环。
+            如果被定义在独立对象上，那么环里的对象会被认为是获得，即使这个
+            对象值仅可以通过环里其他对象的WeakRef来观察到。
+**** 注意3 一般如果包含对象的每个集合都是活的，我们说这个独立对象是获得。
+  在评估的任何点，集合对象S被认为是存活的，如果下列条件满足之一：
+. S中的任何元素被包含在施动者的\[\[KeptAlive]]列表里
+. 对于S而言，存在有效的未来的HypotheticalWeakRef-oblivious执行能够观察到S中的
+  任意对象值。
+**** 注意4 上面的第二个条件试图描述这样直觉：就是对象如果能不通过WeakRef方式
+            就观察的其标识的就是存活的。对象的标识可以被观测到通过观察到两个
+            对象的严格相等比较或者观察到其被作为Map的键。
+**** 注意5 对象是字段、内部占位或者是性质，不表明对象存活的。例如如果对象是
+            请求的参数，再也不会返回到程序中，那么它不能被观察到。
+            这处理WeakMap键，WeakSet成员，以及FinalizationRegistry单元记录的
+            \[\[WeakRefTarget]]和\[\[UnregisterToken]]字段的。
+            上述定义表明WeakMap的键是不存活的，那么其值也无需存活
+**** 注意6 Liveness是保证WeakRef引擎不空的下限。这里定义Liveness是出乎意料的。
+            事实上引擎使用保守的近似性比如可达性。这里被期望有显著的实现余
+            地。
+*** 9.9.3 Execution 执行
+*** 9.9.4 HostHooks 主机榫
+*** 9.9.4.1 HostEnquueFinalizationRegistryCleanupJob(finalizationRegistry)
 ** 9.10 ClearKeptObjects()
 ** 9.11 AddToKeptObjects(object)
 ** 9.12 CleanupFinalizationRegistry(finalizationRegistry)
