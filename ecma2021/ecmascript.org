@@ -5482,13 +5482,120 @@ ECMAScript执行，会释放持有的值，减少总体内存使用。
             事实上引擎使用保守的近似性比如可达性。这里被期望有显著的实现余
             地。
 *** 9.9.3 Execution 执行
+  任何时候，如果对象集合S失活，ECMAScript实现可能自动执行下列步骤
+1. 遍历集合S的每个元素对象obj，做
+    a. 遍历每个WeakRef，记做ref，如果ref.\[\[WeakRefTarget]]是obj，那么做
+        i. 设置ref.\[\[WeakRefTarget]]是空
+    b. 遍历每个FinalizationRegistry记作fg，如果fg.\[\[Cells]]包含一个Record，
+       记作cell，且cell.\[\[WeakRefTarget]]是obj，那么做
+        i. 设置cell.\[\[WeakRefTarget]]为空
+       ii. 可选项：执行!HostEnqueueFinalizationRegistryCleanupJob(fg)
+    c. 遍历每个WeakMap，记作map，如果map.\[\[WeakMapData]]包含一个Record，记作r，
+       r.\[\[Key]]是obj，那么做
+        i. 设置r.\[\[Key]]为空
+       ii. 设置r.\[\[Value]]是空
+    d. 遍历每个WeakSet，记作set，如果set.\[\[WeakSetData]]包含obj，那么做
+        i. 替换set.\[\[WeakSetData]]上obj所在位置的值为空。
+**** 注意1 和Liveness的定义一起，本条款提前描述了实现可能根据WeakRefs的合法优化。
+          没有观察到对象的标识，也有可能访问到这个对象。所以像非转义对象（就是无法观察
+	  到标识的对象）上的死亡变量清理和标量替换等优化都是允许的。这些优化这样被允许
+	  到可观测空WeakRef上，WeakRef的点指向那些对象。
+	  换句话说，如果对象的标识可以观察到，而且对象在WeakRef的内部占位
+	  \[\[WeakRefTarget]]，像重新物化这种可观测的置空WeakRef的优化是禁止的。
+	  因为调用HostEnqueueFinalizationRegistryCleanupJob是可选的，在
+	  FinalizationRegistry注册的对象无需保持FinalizationRegistry存活。实现可能
+	  会因为任何原因忽略finalizationRegistry的回调，比如FinalizationRegistry
+	  本身死亡了，或者应用关闭了。
+**** 注意2 实现没有义务清空WEakRefs以最大化非存活对象。
+          如果实现选择了一个非存活集合S来置空WeakRefs，必须同时为S中的所有对象置空
+	  WeakRef。也就是说，实现不能置空指向对象obj的WeakRef而不置空其外部的WeakRefs，
+	  如果外部不空的话，因为外部WeakRef会让执行观察到obj的对象值。
 *** 9.9.4 HostHooks 主机榫
 *** 9.9.4.1 HostEnquueFinalizationRegistryCleanupJob(finalizationRegistry)
+  抽象操作HostEnqueueFinalizationRegistryCleanupJob接受参数finalizationRegistry（
+FinalizationRegistry实例）。HostEnqueueFinalizationRegistryCleanupJob是实现定义的
+抽象操作，被期望在未来某些点上如果可能的话调用
+CleanupFinalizationRegistry(finalizationReigstry)。主机负责保证这个调用不会中断
+同步的ECMAScript代码执行。
 ** 9.10 ClearKeptObjects()
+  抽象操作ClearKeptObject不接受参数。ECMAScript实现被期望在一个ECMAScript执行序列完成后
+调用ClearKeptObjects。被调用时执行下列步骤：
+1. 让agentRecord是外围施动者的AgentRecord
+2. 设置agentRecord.\[\[KeptAlive]]是新的空List
 ** 9.11 AddToKeptObjects(object)
+  抽象操作AddTokeptObjects接受参数object（Object值）。被调用时执行下列步骤：
+1. 让agentRecord是外围施动者的AgentRecord
+2. 将object追加到agentRecord.\[\[KeptAlive]]中
+*** 注意 当抽象操作AddTokeptObject被调用于目标饮用上，将目标添加到一个列表中，这个列表会
+        强指向这个对象，直到ClearKeptObjects被调用。
 ** 9.12 CleanupFinalizationRegistry(finalizationRegistry)
+  抽象操作CleanupFinalizationRegistry接受参数finalizationRegistry（
+FinalizationRegistry）。被调用时执行下列步骤：
+1. Assert：finalizationRegistry有\[\[Cells]]和\[\[CleanupCallback]]内部占位
+2. 让callback是finalizationRegistry.\[\[CleanupCallback]]
+3. 当finalizationRegistry.\[\[Cells]]包含一个Record，记作cell，
+   cell.\[\[WeakRefTarget]]是空的，实现可能会执行下列步骤：
+    a. 选择cell
+    b. 从finalizationRegistry.\[\[Cells]]中移除cell
+    c. 执行?Call(callback, undefined, <<cell.\[\[heldValue]]>>)
+4. 返回undefined
 * 10 Ordinary and Exotic Ojbects Behaviours 基本与奇异对象的行为
-** 基本对象的内部方法和内部占位
+** 10.1 Ordinary Object Internal Methods and Internal Slots
+   基本对象的内部方法和内部占位
+  所有的基本对象都有\[\[Prototype]]的内部占位。这个占位的值是null或者一个用于实现继承的
+对象。\[\[Prototype]]对象的数据性质被继承（也就是会当作子对象的性质）于读取许可，但是没有
+写入许可。访问性质被继承了读取和写入许可。
+  每个基本对象都有一个布尔值的内部占位\[\[Extensible]]，用于实现规定在6.1.7.3中的扩展相关
+的内部方法的不变性。按本意，一旦对象的\[\[Extensible]]的值是false，这个对象就不再能添加
+性质，或者修改\[\[Prototype]]内部占位，或者随后修改\[\[Extensible]]为true。
+  在随后的算法描述中，预设O是基本对象，P是性质键值，V是ECMAScript语言值，Desc是
+PropertyDescriptorRecord
+  基本对象的每个内部方法都代表了一个相似名称的抽象操作。如果某个抽象操作依赖于其他内部方法，
+这个内部方法是以O来唤起的，而不是直接调用那个相似名称的抽象操作。这些语义确保了奇异对象能够
+覆盖内在方法的调用，当基本对象的内部方法被申请给这些奇异对象。
+*** 10.1.1 \[\[GetPrototypeOf]]()
+  基本对象O的内部方法\[\[GetPrototypeOf]]不接受参数。被调用时执行下列步骤：
+1. 返回!OrdinaryGetPrototypeof(O)
+**** 10.1.1.1 OrdinaryGetPrototypeOf(O)
+  抽象操作OrdianryGetPrototypeOf接受参数O（对象）。被调用时执行下列步骤：
+1. 返回O.\[\[Prototype]]
+*** 10.1.2 \[\[SetPrototypeOf]](V)
+  基本对象O的内部方法\[\[SetPrototypeOf]]接受参数V（对象值或者null）。被调用时执行下列
+步骤：
+1. 返回!OrdianrySetPrototypeOf(O, V)
+**** 10.1.2.1 OrdinarySetPrototypeOf(O, V)
+  抽象操作OrdianrySetPrototypeOf接受参数O（对象）和V（ECMAScript语言值）。被调用时
+执行下列步骤：
+1. Assert：Type(V)是Object或者Type(V)是Null
+2. 让current是O.\[\[Prototype]]
+3. 如果SameValue(V, current)是true，返回true。
+4. 让extensible是O.\[\[Extensible]]
+5. 股弱extensible是false，返回false。
+6. 让p是V
+7. 让done是false
+8. 当done是false时，重复
+    a. 如果p是null，设置done是true。
+    b. 如果SameValue(p, O)是true，返回false
+    c. 否则
+        i. 如果p.\[\[GetPrototypeOf]]不是定义在10.1.1的内部方法，设置done是true
+       ii. 否则，设置p是p.\[\[Prototype]]
+9. 设置O.\[\[Prototype]]是V
+10. 返回true
+***** 注意 步骤8的循环确保了在原型链上不会有循环，而且只含有使用基本对象定义的
+          \[\[GetPrototypeOf]]和\[\[SetPrototypeOf]]的对象。
+*** 10.1.3 \[\[isExtensible]]()
+*** 10.1.4 \[\[isExtensible]]()
+*** 10.1.5 \[\[isExtensible]]()
+*** 10.1.6 \[\[isExtensible]]()
+*** 10.1.7 \[\[isExtensible]]()
+*** 10.1.8 \[\[isExtensible]]()
+*** 10.1.9 \[\[isExtensible]]()
+*** 10.1.10 \[\[isExtensible]]()
+*** 10.1.11 \[\[isExtensible]]()
+*** 10.1.12 \[\[isExtensible]]()
+*** 10.1.13 \[\[isExtensible]]()
+*** 10.1.14 \[\[isExtensible]]()
+*** 10.1.15 \[\[isExtensible]]()
 * 25
 ** 25.1
 
