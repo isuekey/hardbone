@@ -5583,19 +5583,90 @@ PropertyDescriptorRecord
 10. 返回true
 ***** 注意 步骤8的循环确保了在原型链上不会有循环，而且只含有使用基本对象定义的
           \[\[GetPrototypeOf]]和\[\[SetPrototypeOf]]的对象。
-*** 10.1.3 \[\[isExtensible]]()
-*** 10.1.4 \[\[isExtensible]]()
-*** 10.1.5 \[\[isExtensible]]()
-*** 10.1.6 \[\[isExtensible]]()
-*** 10.1.7 \[\[isExtensible]]()
-*** 10.1.8 \[\[isExtensible]]()
-*** 10.1.9 \[\[isExtensible]]()
-*** 10.1.10 \[\[isExtensible]]()
-*** 10.1.11 \[\[isExtensible]]()
-*** 10.1.12 \[\[isExtensible]]()
-*** 10.1.13 \[\[isExtensible]]()
-*** 10.1.14 \[\[isExtensible]]()
-*** 10.1.15 \[\[isExtensible]]()
+*** 10.1.3 \[\[IsExtensible]]()
+  基本对象O的内部方法\[\[IsExtensible]]不接受参数。被调用时执行下列步骤：
+1. 返回!OrdinaryIsExtensible(O)
+**** 10.1.3.1 OrdinaryIsExtensible(O)
+  抽象操作OrdinaryIsExtensible接受参数O（对象值）。被调用时执行下列步骤：
+1. 返回O.\[\[Extensible]]
+*** 10.1.4 \[\[PreventExtensions]]()
+  基本对象O的内部方法\[\[PreventExtensions]]不接受参数。被调用时执行下列步骤：
+1. 返回!OrdinaryPreventExtensions(O)
+**** 10.1.4.1 OrdinaryPreventExtensions(O)
+  抽象操作OrdinaryPreventExtensions接受参数O（对象值）。被调用时执行下列步骤：
+1. 设置O.\[\[Extensible]]是false
+2. 返回true。
+*** 10.1.5 \[\[GetOwnProperty]](P)
+  基本对象O的内部方法\[\[GetOwnProperty]]接受参数P（性质键）。被调用时执行下
+列步骤：
+1. 返回!OrdinaryGetOwnProperty(O, P)
+**** 10.1.5.1 OrdinaryGetOwnProperty(O,P)
+  抽象操作OrdinaryGetOwnProperty接受参数O（对象值）和P（性质键）。被调用时执
+行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 如果O没有自有性质P，返回undefined
+3. 让D是新建的PropertyDescriptor，没有任何字段
+4. 让X是O的性质P
+5. 如果X是数据性质，那么
+    a. 设置D.\[\[Value]]是X.\[\[Value]]的值
+    b. 设置D.\[\[Writable]]是X.\[\[Writable]]的值
+6. 否则
+    a. Assert：X是访问性质
+    b. 设置D.\[\[Get]]是X.\[\[Get]]的值
+    c. 设置D.\[\[Set]]是X.\[\[Set]]的值
+7. 设置D.\[\[Enumerable]]是X.\[\[Enumerable]]的值
+8. 设置D.\[\[Configurable]]是X.\[\[Configurable]]的值
+9. 返回D
+*** 10.1.6 \[\[DefineOwnProperty]](P, Desc)
+  基本对象O的内部方法\[\[DefineOwnProperty]]接受参数P（性质键）和Desc（
+PropertyDescriptor）。被调用时执行下列步骤：
+1. 返回?OrdinaryDefineOwnProperty(O, P, Desc)
+**** 10.1.6.1 OrdinaryDefineOwnProperty(O, P, Desc)
+  抽象操作OrdinaryDefineOwnProperty接受参数O（对象值）、P（性质键）和Desc（
+PropertyDescriptor）。被调用时执行下列步骤：
+1. 让current是?O.\[\[GetOwnProperty]](P)
+2. 让extensible是?IsExtensible(O)
+3. 返回ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current)
+**** 10.1.6.2 IsCompatiblePropertyDescriptor(Extensible, Desc, Current)
+  抽象操作IsCompatiblePropertyDescriptor接受参数Extensible（Boolean）、Desc（
+PropertyDescriptor）和Current（PropertyDescriptor）。被调用时执行下列步骤：
+1. 返回ValidateAndApplyPropertyDescriptor(
+  undefined, undefined, Extensible, Desc, Current
+)
+**** 10.1.6.3 ValidateAndApplyPropertyDescriptor(O, P, extensible, Desc, current)
+  抽象操作ValidateAndApplyPropertyDescriptor接受参数O（对象值或者undefined）、P（
+性质键）、extensible（Boolean）、Desc（PropertyDescriptor）和current（
+PropertyDescriptor）。被调用时执行下列步骤：
+***** 注意 如果O是undefined，只执行校验，不修改任何对象。
+1. Assert：如果O不是undefined，那么IsPropertyKey(P)必然是true
+2. 如果current是undefined，那么
+    a. 如果extensible是false，返回false
+    b. Assert：extensible是true
+    c. 如果IsGenericDescriptor(Desc)是true或者IsDataDescriptor(Desc)是true，那么
+        i. 如果O不是undefined，根据Desc的\[\[Value]]、\[\[Writable]]、
+           \[\[Enumerable]]和\[\[Configurable]]在对象O上创建自有数据性质P。如果
+           Desc上的属性缺失，新性质的属性使用默认值。
+    d. 否则
+        i. Assert：!IsAccessorDescriptor(Desc)是true
+       ii. 如果O不是undefined，根据Desc的\[\[Get]]、\[\[Set]]、\[\[Enumerable]]和
+           \[\[Configurable]]在对象O上创建自有访问性质P。如果Desc上的属性缺失，
+           新性质的属性使用默认值。
+    e. 返回true
+3. 如果Desc中需要的属性都缺失，返回true
+4. 如果current.\[\[Configurable]]是false，那么
+    a. 如果Desc.\[\[Configurable]]是true，返回false
+    b. 如果Desc.\[\[Configurable]]存在，且!SameValue(Desc.\[\[Enumerable]],
+       current.\[\[Enumerable]])是false，返回false。
+5. 如果!IsGenericDescriptor(Desc)是true，那么
+*** 10.1.7 \[\[HasProperty]]()
+*** 10.1.8 \[\[Get]]()
+*** 10.1.9 \[\[Set]]()
+*** 10.1.10 \[\[Delete]]()
+*** 10.1.11 \[\[OwnPropertyKeys]]()
+*** 10.1.12 OrdinaryObjectCreate()
+*** 10.1.13 OrdinaryCreateFromConstructor()
+*** 10.1.14 GetPrototypeFromConstructor()
+*** 10.1.15 RequireInternalSlot()
 * 25
 ** 25.1
 
