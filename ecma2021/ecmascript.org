@@ -5658,15 +5658,251 @@ PropertyDescriptor）。被调用时执行下列步骤：
     b. 如果Desc.\[\[Configurable]]存在，且!SameValue(Desc.\[\[Enumerable]],
        current.\[\[Enumerable]])是false，返回false。
 5. 如果!IsGenericDescriptor(Desc)是true，那么
-*** 10.1.7 \[\[HasProperty]]()
-*** 10.1.8 \[\[Get]]()
-*** 10.1.9 \[\[Set]]()
-*** 10.1.10 \[\[Delete]]()
+    a. 注意：不在需要继续校验了。
+6. 否则，如果!SameValue(!IsDataDescriptor(current), !IsDataDescriptor(Desc))是false，
+   那么
+    a. 如果current.\[\[Configurable]]是false，返回false
+    b. 如果IsDataDescriptor(current)是true，那么
+        i. 如果O不是undefined，将O的P性质从数据性质转换到访问性质。保留
+           \[\[Configurable]]和\[\[Enumerable]]的值，若缺失属性则使用默认值
+    c. 否则
+        i. 如果O不是undefined，将O的P性质从访问性质转换到数据性质。保留
+           \[\[Configurable]]和\[\[Enumerable]]的值，若缺失属性则使用默认值
+7. 否则，如果IsDataDescriptor(current)和IsDataDescriptor(Desc)都是true，那么
+    a. 如果current.\[\[Configurable]]是false，且current.\[\[Writable]]是false，那么
+        i. 如果Desc.\[\[Writable]]是true，返回false
+       ii. 如果Desc.\[\[Value]]存在，且SameValue(Desc.\[\[Value]], current.\[\[Value]])
+           是false，返回false
+      iii. 返回true
+8. 否则
+    a. Assert：!IsAccessorDescriptor(current)和!IsAccessorDescriptor(Desc)都是true
+    b. 如果current.\[\[Configurable]]是false，那么
+        i. 如果Desc.\[\[Set]]存在，且SameValue(Desc.\[\[Set]], current.\[\[Set]])是
+           false，返回false
+       ii. 如果Desc.\[\[Get]]存在，且SameValue(Desc.\[\[Get]], current.\[\[Get]])是
+           false，返回false
+      iii. 返回true
+9. 如果O不是undefined，那么
+    a. 遍历Desc中的属性，将O的P性质对应的属性赋予相同的值
+10. 返回true
+*** 10.1.7 \[\[HasProperty]](P)
+  基本对象O的内部方法\[\[HasProperty]]接受参数P（性质键）。被调用时执行下
+列步骤：
+1. 返回!OrdinaryHasProperty(O, P)
+**** 10.1.7.1 OrdinaryHasProperty(O,P)
+  抽象操作OrdinaryHasProperty接受参数O（对象值）和P（性质键）。被调用时执
+行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让hasOwn是?O.\[\[GetOwnProperty]](P)
+3. 如果hasOwn不是undefined，返回true
+4. 让parent是?O.\[\GetPrototypeOf]]()
+5. 如果parent不是null，那么
+    a. 返回?parent.\[\[HasProperty]](P)
+6. 返回false
+*** 10.1.8 \[\[Get]](P, Receiver)
+  基本对象O的内部方法\[\[Get]]接受参数P（性质键）和Receiver（ECMAScript语言
+值）。被调用时执行下列步骤：
+1. 返回!OrdinaryGet(O, P, Receiver)
+**** 10.1.8.1 OrdinaryGet(O,P,Receiver)
+  抽象操作OrdinaryGet接受参数O（对象值）、P（性质键）和Receiver（ECMAScript语言
+值）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让desc是?O.\[\[GetOwnProperty]](P)
+3. 如果desc是undefined，那么
+    a. 让parent是?O.\[\[GetPrototypeOf]]()
+    b. 如果parent是null，返回undefined
+    c. 返回?parent.\[\[Get]](P, Receiver)
+4. 如果IsDataDescriptor(desc)是true，返回desc.\[\[Value]]
+5. Assert：IsAccessorDescriptor(desc)是true
+6. 让getter是desc.\[\[Get]]
+7. 如果getter是undefined，返回undefined
+8. 返回?Call(getter, Receiver)
+*** 10.1.9 \[\[Set]](P, V, Receiver)
+  基本对象O的内部方法\[\[Set]]接受参数P（性质键）、V（ECMAScript语言值）和
+Receiver（ECMAScript语言值）。被调用时执行下列步骤：
+1. 返回?OrdinarySet(O, P)
+**** 10.1.9.1 OrdinarySet(O,P,V,Receiver)
+  抽象操作OrdinarySet接受参数O（对象值）、P（性质键）、V（ECMAScript语言值）和
+Receiver（ECMAScript语言值）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让ownDesc是?O.\[\[GetOwnProperty]](P)
+3. 返回OrdinarySetWithOwnDescriptor(O,P,V,Reciver,ownDesc)
+**** 10.1.9.2 OrdinarySetWithOwnDescriptor(O,P,V,Receiver,ownDesc)
+  抽象操作OrdinarySet接受参数O（对象值）、P（性质键）、V（ECMAScript语言值）、
+Receiver（ECMAScript语言值）和ownDesc（PropertyDescriptor或者undefined）。被调用时
+执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 如果ownDesc是undefined，那么
+    a. 让parent是?O.\[\[GetPrototypeOf]]()
+    b. 如果parent不是null，那么
+        i. 返回?parent.\[\[Set]](P,V,Receiver)
+    c. 否则
+       ii. 设置ownDesc是PropertyDescriptor { \[\[Value]]:undefined,
+           \[\[Writable]]:true, \[\[Enumerable]]:true, \[\[Configurable]]:true }
+3. 如果IsDataDescriptor(ownDesc)是true，那么
+    a. 如果ownDesc.\[\[Writable]]是false，返回false
+    b. 如果Type(Receiver)不是Object，返回false
+    c. 让existingDescriptor是?Receiver.\[\[GetOwnProperty]](P)
+    d. 如果existingDescriptor不是undefined，那么
+        i. 如果IsAccessorDescriptor(existingDescriptor)是true，返回false
+       ii. 如果existingDescriptor.\[\[Writable]]是false，返回false
+      iii. 让valueDesc是PropertyDescriptor{\[\[Value]]:V}
+       iv. 返回?Receiver.\[\[DefineOwnProperty]](P, valueDesc)
+    e. 否则
+        i. Assert：Receiver现在没有性质P
+       ii. 返回?CreateDataProperty(Receiver, P, V)
+4. Assert：IsAccessorDescriptor(ownDesc)是true
+5. 让setter是ownDesc.\[\[Set]]
+6. 如果setter是undefined，返回false
+7. 执行?Call(setter, Receiver, <<V>>)
+8. 返回true
+*** 10.1.10 \[\[Delete]](P)
+  基本对象O的内部方法\[\[Delete]]接受参数P（性质键）。被调用时执行下列步骤：
+1. 返回?OrdinaryDelete(O, P)
+**** 10.1.10.1 OrdinaryDelete(O,P)
+  抽象操作OrdinaryDelete接受参数O（对象值）和P（性质键）。被调用时执行下列
+步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让desc是?O.\[\[GetOwnProperty]](P)
+3. 如果desc是undefined，返回true
+4. 如果desc.\[\[Configurable]]是true，那么
+    a. 从O上移除性质P
+    b. 返回true
+5. 返回false
 *** 10.1.11 \[\[OwnPropertyKeys]]()
-*** 10.1.12 OrdinaryObjectCreate()
-*** 10.1.13 OrdinaryCreateFromConstructor()
-*** 10.1.14 GetPrototypeFromConstructor()
-*** 10.1.15 RequireInternalSlot()
+  基本对象O的内部方法\[\[OwnPropertyKeys]]不接受参数。被调用时执行下列步骤：
+1. 返回!OrdinaryOwnPropertyKeys(O)
+**** 10.1.9.1 OrdinaryOwnPropertyKeys(O)
+  抽象操作OrdinaryOwnPropertyKeys接受参数O（对象值）。被调用时执行下列步骤：
+1. 让keys是新的空List
+2. 遍历O的每个自有性质的键P，如果P是数组索引，按照数字升序，做
+    a. 追加P到keys中
+3. 遍历O的每个自有性质的键P，如果Type(P)是字符串，且不是数组索引，按照创建
+   顺序升序，做
+    a. 追加P到keys中
+4. 遍历O的每个自有性质的键P，如果Type(P)是Symbol，按照创建顺序升序，做
+    a. 追加P到keys中
+5. 返回keys
+*** 10.1.12 OrdinaryObjectCreate(proto[, additionalInternalSlotsList])
+  抽象操作OrdinaryObjectCreate接受参数proto（对象值或者null）和可选参数
+additionalInternalSlotsList（内部占位的名称的List）。用于规定在运行时创建新的
+基本对象。additionalInternalSlotsList包含了创建对象时除了\[\[Prototype]]和
+\[\[Extensible]]外的必须的内部占位的名字。如果additionalInternalSlotsList没有被
+提供，一个新的空List被使用。被调用时执行下列步骤：
+1. 让internalSlotsList时<<\[\[Prototype]],\[\[Extensible]]>>
+2. 如果additionalInternalSlotsList存在，将其元素附加到internalSlotsList中
+3. 让O是!MakeBasicObject(internalSlotsList)
+4. 设置O.\[\[Prototype]]是proto
+5. 返回O
+**** 注意 尽管OrdinaryObjectCreate比调用MakeBasicObject多做了些事情，它表露的
+           意图仍然是创建基本对象，而不是奇异对象。因此，在本规范内，它不会
+           被任何会修改内部方法从而产生奇异对象的算法调用。产生奇异对象的
+           操作直接调用MakeBasicObject。
+*** 10.1.13 OrdinaryCreateFromConstructor(constructor, intrinsicDefaultProto[,
+    interanlSlotsList])
+  抽象操作OrdinaryCreateFromConstructor接受参数constructor和intrinsicDefaultProto和
+可选参数internalSlotsList（内部占位名的List）。创建一个基本对象，其
+\[\[Prototype]]是从constructor上检索到的"prototype"性质，如果存在的话。否则的话
+使用intrinsicDefaultProto作为\[\[Prototype]]的值。internalSlotList包含了创建对象的
+其他内部占位的名称。如果internalSlotList没有提供，使用新的空List。被调用时执
+行下列步骤：
+1. Assert：intrinsicDefaultProto是内在对象在本规范的名称的String值。对应的对象比
+   须是用作对象的\[\[Prototype]]的固有对象。
+2. 让proto是?GetPrototypeFromConstructor(constructor, intrinsicDefaultProto)
+3. 返回!OrdinaryObjectCreate(proto, internalSlotsList)
+*** 10.1.14 GetPrototypeFromConstructor(constructor, intrinsicDefaultProto)
+  抽象操作GetPrototypeFromConstructor接受参数constructor和intrinsicDefaultProto。
+明确用于创建对象的\[\[Prototype]]值是由指定的constructor对应的。这个值是从
+constructor的"prototype"性质检索到的，如果存在的话。否则使用intrinsicDefaultProto
+作为\[\[Prototype]]。被调用时执行下列步骤：
+1. Assert：intrinsicDefaultProto是内在对象在本规范的名称的String值。对应的对象比
+   须是用作对象的\[\[Prototype]]的固有对象。
+2. Assert：IsCallable(constructor)是true
+3. 让proto是?Get(constructor, "prototype")
+4. 如果Type(proto)不是object，那么
+    a. 让realm是?GetFunctionRealm(constructor)
+    b. 设置proto是realm的名称为intrinsicDefaultProto的内在对象
+5. 返回proto
+**** 注意 如果constructor不提供\[\[Prototype]]值，默认值是从constructor函数的
+           realm中取得默认值，而不是从运行时执行上下文。
+*** 10.1.15 RequireInternalSlot(O, internalSlot)
+  抽象操作RequireInternalSlot接受参数O和internalSlot。如果对象O没有给定的
+internalSlot就投掷异常。被调用时执行下列步骤：
+1. 如果Type(O)不是对象，投掷TypeError异常
+2. 如果O没有internalSlot内部占位，投掷TypeError异常
+** 10.2 ECMAScript Function Objects
+  ECMAScripFunction对象封装了参数化的ECMAScript代码，闭合了词法环境，支持代码
+的动态环境。一个ECMAScriptFunction对象是一个基本对象，有与其他基本对象相同的
+内部占位和内部方法。ECMAScriptFunction对象的代码分为严格模式和非严格模式两
+种。严格模式代码的ECMAScriptFunction对象称为严格函数。非严格模式代码的则称为
+非严格函数。
+  \[\[Extensible]]和\[\[Prototype]]之外，ECMAScript对象还有表29所列的内部占位
+| 内部占位                 | 类型                              | 描述                                                                                                                                                                                               |
+| \[\[Environment]]        | EnvironmentRecord                 | 函数对象闭合的EnvironmentRecord。作为评估函数时的外层环境。                                                                                                                                        |
+| \[\[FormalParameters]]   | ParseNode                         | 定义函数形式参数的源文本的解析节点的根节点                                                                                                                                                         |
+| \[\[ECMAScriptCode]]     | ParseNode                         | 定义函数体的源文本的解析节点的根节点                                                                                                                                                               |
+| \[\[ConstructorKind]]    | base \vert derived                | 函数是否是派生的类构造函数                                                                                                                                                                         |
+| \[\[Realm]]              | RealmRecord                       | 创建此函数的领，并为评估此函数时提供需要的固有对象                                                                                                                                                 |
+| \[\[ScriptOrModule]]     | ScriptRecord 或者 ModuleRecord    | 函数所在的脚本或者模块                                                                                                                                                                             |
+| \[\[ThisMode]]           | lexical \vert strict \vert global | 界定函数的形式参数与函数体的this如何解释。lexical意味着封闭在函数的词法this。strict意味着this就是此函数的调用。global意味着this是undefined或着null时，就解释成全局对象，否则使用ToObject转换后的值 |
+| \[\[Strict]]             | Boolean                           | 如果是严格函数就是true，非严格函数是false                                                                                                                                                          |
+| \[\[HomeObject]]         | Object                            | 如果函数使用了super，这就是其\[\[GEtPrototypeOf]]提供了查找super性质的开始位值的对象                                                                                                               |
+| \[\[SourceText]]         | Unicode编码点序列                 | 定义函数的源文本                                                                                                                                                                                   |
+| \[\[IsClassConstructor]] | Boolean                           | 指明此函数是否是一个类构造范。如果true，调用\[\[Call]]，会投掷一个TypeError异常                                                                                                                    |
+  那找这里的定义，所有的ECMAScript函数对象都有\[\[Call]]内部方法。ECMAScript函
+数对象有\[\[Construct]]内部方法时，也是一个构造范。
+*** 10.2.1 \[\[Call]](thisArgument, argumentsList)
+  ECMAScript函数对象F上的\[\[Call]]内部函数劫后参数thisArgument（ECMAScript语言
+值）和argumentsList（List<ECMAScript语言值>）。被调用时执行下列步骤
+1. Assert：F是ECMAScript函数对象
+2. 让callerContext是运行时执行背景
+3. 让calleeContext是PrepareForOrdinaryCall(F, undefined)
+4. Assert：calleeContext现在是运行时执行背景
+5. 如果F.\[\[IsClassConstructor]]是true，那么
+    a. 让error是新创建的TypeError对象
+    b. 注意：error是在calleeContext上带着F联结的RealmRecord被创建的
+    c. 从ExecutionContextStack上移除calleeContext，并恢复callerContext作为运行时
+       执行背景
+    d. 返回ThrowCompletion(error)
+6. 执行OrdinaryCallBindThis(F, calleeContext, thisArgument)
+7. 让result是OrdinaryCallEvaluateBody(F, argumentsList)
+8. 从ExecutionContextStack上移除calleeContext，并恢复callerContext作为运行时执行
+   背景。
+9. 如果result.\[\[Type]]是返回，返回NormalCompletion(result.\[\[Value]])
+10. ReturnIfAbrupt(result)
+11. 返回NormalCompletion(undefined)
+**** 注意 当calleeContext在第8步被从ExecutionContextStack上移除后，如果它是被挂
+           起并保留的，用于后来被可访问的Generator对象继续使用的话，它不能被
+           摧毁。
+**** 10.2.1.1 PrepareForOrdinaryCall(F, newTarget)
+  抽象操作PrepareForOrdianryCall接受参数F（函数对象）和newTarget（ECMAScript语言
+值）。被调用时执行下列步骤：
+1. Assert：Type(newTarget)是Undefined或Object
+2. 让callerContext是运行时执行背景
+3. 让calleeContext是一个新的ECMAScript代码的执行背景
+4. 设置calleeContext的Function是F
+5. 让calleeRealm是F.\[\[Realm]]
+6. 设置calleeContext的Realm是calleeRealm
+7. 设置calleeContext的ScriptOrModule是F.\[\[ScriptOrModule]]
+8. 让localEnv是NewFunctionEnvironment(F, newTarget)
+9. 设置calleeContext的LexicalEnvironment是localEnv
+10. 设置calleeContext的VariableEnvironment是localEnv
+11. 如果callerContext没有挂起，挂起callerContext
+12. 推送calleeContext到ExecutionContextStack；calleeContext现在是运行时执行背景
+13. 注意：指由所有的异常对象都联结到calleeRealm
+14. 返回calleeContext
+**** 10.2.1.2 OrdinaryCallBindThis(F, calleeContext, thisArgument)
+  抽象操作PrepareForOrdianryCall接受参数F（函数对象）和newTarget（ECMAScript语言
+值）。被调用时执行下列步骤：
+**** 10.2.1.3 Runtime Semantics: EvaluateBody
+**** 10.2.1.4 OrdianryCallEvaluateBody(F, argumentsList)
+  抽象操作PrepareForOrdianryCall接受参数F（函数对象）和newTarget（ECMAScript语言
+值）。被调用时执行下列步骤：
+* 11 ECMAScript Language: Source Code
+** 11.1 Source Text
+Syntax
+SourceCharacter::
+  any Unicode code pint
 * 25
 ** 25.1
 
