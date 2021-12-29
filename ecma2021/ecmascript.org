@@ -5892,12 +5892,249 @@ internalSlot就投掷异常。被调用时执行下列步骤：
 13. 注意：指由所有的异常对象都联结到calleeRealm
 14. 返回calleeContext
 **** 10.2.1.2 OrdinaryCallBindThis(F, calleeContext, thisArgument)
-  抽象操作PrepareForOrdianryCall接受参数F（函数对象）和newTarget（ECMAScript语言
-值）。被调用时执行下列步骤：
+  抽象操作PrepareForOrdianryCall接受参数F（函数对象）、calleeContext（执行背景）
+和thisArgument（ECMAScript语言值）。被调用时执行下列步骤：
+1. 让thisMode是F.\[\[ThisMode]]
+2. 如果thisMode是lexical，返回undefined
+3. 让calleeRealm是F.\[\[Realm]]
+4. 让localEnv是calleeContext的LexcicalEnvrionment
+5. 如果thisMode是strict，让thisValue是thisArgument
+6. 否则
+    a. 如果thisArgument是undefined或着null，那么
+        i. 让globalEnv是calleeRealm.\[\[GlobalEnv]]
+       ii. Assert：globalEnv是全局环境记录
+      iii. 让thisValue是globalEnv.\[\[GlobalThisValue]]
+    b. 否则
+        i. 让thisValue是!ToObject(thisArgument)
+       ii. 注意：ToObject使用calleeRealm封装对象
+7. Assert：localEnv是函数环境记录
+8. Assert：下一步不会意外终结，因为localEnv.\[\[ThisBindingStatus]]没有初始化
+9. 返回localEnv.BindThisValue(thisValue)
 **** 10.2.1.3 Runtime Semantics: EvaluateBody
+  带参数functionObject和argumentsList（List）
+FunctionBody : FunctionStatementList
+    1. 返回FunctionBody.?EvaluateFunctionBody(functionObject, argumentsList)
+ConciseBody : ExpressionBody
+    1. 返回ConciseBody.?EvaluateConciseBody(functionObject, argumentsList)
+GeneratorBody : FunctionBody
+    1. 返回GeneratorBody.?EvaluateGeneratorBody(functionObject, argumentsList)
+AsyncGeneratorBody : FunctionBody
+    1. 返回AsyncGeneratorBody.?EvaluateAsyncGeneratorBody(functionObject, argumentsList)
+AsyncFunctionBody : FunctionBody
+    1. 返回AsyncFunctionBody.?EvaluateAsyncFunctionBody(functionObject, argumentsList)
+AsyncConciseBody : ExpressionBody
+    1. 返回AsyncConciseBody.?EvaluateAsyncConciseBody(functionObject, argumentsList)
 **** 10.2.1.4 OrdianryCallEvaluateBody(F, argumentsList)
-  抽象操作PrepareForOrdianryCall接受参数F（函数对象）和newTarget（ECMAScript语言
-值）。被调用时执行下列步骤：
+  抽象操作OrdinaryCallEvaluateBody接受参数F（函数对象）和argumentsList（List）。
+被调用时执行下列步骤：
+1. 返回带参数F与argumentsList的F.\[\[ECMAScriptCode]]的已解析代码的EvaluateBody
+*** 10.2.2 \[\[Construct]](argumentsList, newTarget)
+  ECMAScript函数对象的内部方法\[\[Construct]]接受参数argumentsList（ECMAScript值
+的List）和newTarget（构造范）。被调用时执行下列步骤：
+1. Assert：F是ECMAScript函数对象
+2. Assert：Type(newTarget)是Object
+3. 让callerContext是运行时执行背景
+4. 让kind是F.\[\[ConstructorKind]]
+5. 如果kind是base，那么
+    a. 让thisArgument是?OrdinaryCreateFromConstructor(newTarget, "%Object.prototype%")
+6. 让calleeContext是PrepareForOrdianryCall(F, newTarget)
+7. Assert：calleeContext现在是运行时执行背景
+8. 如果kind是base，执行OrdinaryCallBindThis(F, calleeContext, thisArgument)
+9. 让constructorEnv是caleeContext的LexicalEnvironment
+10. 让result是OrdinaryCallEvaluateBody(F, argumentsList)
+11. 从ExecutionContextStack移除calleeContext，恢复callerContext是运行时执行背景
+12. 如果result.\[\[Type]]是return，那么
+    a. 如果Type(result.\[\[Value]])是对象，返回NormalCompletion(result.\[\[Value]])
+    b. 如果kind是base，返回NormalCompletion(thisArgument)
+    c. 如果result.\[\[Value]]不是undefined，投掷TypeError异常
+13. 否则 ReturnIfAbrupt(result)
+14. 返回?constructorEnv.GetThisBinding()
+*** 10.2.3 OrdinaryFunctionCreate(functionPrototype, sourceText, ParameterList, Body, 
+thisMode, Scope)
+  抽象操作OrdinaryFunctionCreate接受参数functionPrototype（Object），sourceText（
+Unicode编码点序列），ParameterList（ParseNode），Body（ParseNode），thisMode（
+lexical-this或者non-lexical-this）和Scope（环境记录）。sourceText是将创建的函数
+的句法定义的源文件。被调用时执行下列步骤：
+1. Assert：Type(functionPrototype)是Object
+2. 让internalSlotsList是表29所列的内部占位
+3. 让F是!OrdinaryObjectCreate(functionPrototype, internalSlotsList)
+4. 设置F.\[\[Call]]是规范10.2.1的定义
+5. 设置F.\[\[SourceText]]是sourceText
+6. 设置F.\[\[FormalParameters]]是ParameterList
+7. 设置F.\[\[ECMAScriptCode]]是Body
+8. 如果Body的源文本是严格模式代码，让Strict是true，否则String是false
+9. 设置F.\[\[Strict]]是Strict
+10. 如果thisMode是lexical-this，设置F.\[\[ThisMode]]是lexical
+11. 否则 如果Strict是true，设置F.\[\[ThisMode]]是strict
+12. 否则 设置F.\[\[ThisMode]]是global
+13. 设置F.\[\[IsCalassConstructor]]是false
+14. 设置F.\[\[Environment]]是Scope
+15. 设置F.\[\[ScriptOrModule]]是GetActiveScriptOrModule()
+16. 设置F.\[\[Realm]]是当前的RealmRecord
+17. 设置F.\[\[HomeObject]]是undefined
+18. 让len是ParameterList的ExpectedArgumentCount
+19. 执行!SetFunctionLength(F, len)
+20. 返回F
+*** 10.2.4 AddRestrictedFunctionProperties(F, realm)
+  抽象操作AddRestrictedFunctionProperties接受参数F（函数对象）和realm（
+RealmRecord）。被调用时执行下列步骤：
+1. Assert：realm.\[\[Intrinsics]].\[\[%ThrowTypeError%]]存在且已经初始化。
+2. 让thrower是realm.\[\[Intrinsics]].\[\[%ThrowTypeError%]]
+3. 执行!DefinePropertyOrThrow(F, "caller", PropertyDescriptor { \[\[Get]]:thrower,
+   \[\[Set]]:thrower, \[\[Enumerable]]:false, \[\[Configurable]]:true } )
+4. 执行!DefinePropertyOrThrow(F, "arguments", PropertyDescriptor { \[\[Get]]:thrower,
+   \[\[Set]]:thrower, \[\[Enumerable]]:false, \[\[Configurable]]:true } )
+**** 10.2.4.1 %ThrowTypeError%()
+  固有%ThrowTypeError%是匿名的内建函数对象，每个领都会定义一次。被调用时执
+行下列步骤：
+1. 投掷TypeError异常
+  %ThrowTypeError%的\[\[Extensible]]是false
+  %ThrowTypeError%的length性质的属性是{\[\[Wriable]]:false, \[\[Enumerable]]:false, 
+\[\[Configurable]]:false }
+  %ThrowTypeError%的name性质的属性是{\[\[Wriable]]:false, \[\[Enumerable]]:false, 
+\[\[Configurable]]:false }
+*** 10.2.5 MakeConstructor(F\[,writablePrototype\[,prototype]])
+  抽象操作MakeConstructor接受参数F（函数对象）和可选参数writablePrototype（
+Boolean）和prototype（对象）。将F转换为构造范。被调用时执行下列步骤：
+1. Assert：F是ECMAScript函数对象或者内键函数对象
+2. 如果F是ECMAScript函数对象，那么
+    a. Assert：IsConstructor(F)是false
+    b. Assert：F是可扩展对象，而且没有"prototype"自有性质
+    c. 设置F.\[\[Construct]]是10.2.2中规定的定义
+3. 设置F.\[\[ConstructorKind]]是base
+4. 如果writablePrototype不存在，设置writablePrototype是true
+5. 如果prototype不存在，那么
+    a. 设置prototype是!OrdinaryObjectCreate(%Object.prototype%)
+    b. 执行!DefinePropertyOrThrow(prototype, "constructor", PropertyDescriptor {
+       \[\[Value]]:F, \[\[Writable]]:writablePrototype, \[\[Enumerable]]:false,
+       \[\[Configurable]]:true })
+6. 执行!DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:writablePrototype, \[\[Enumerable]]:false,
+   \[\[Configurable]]:false })
+7. 返回NormalCompletion(undefined)
+*** 10.2.6 MakeClassConstructor(F)
+  抽象操作MakeClassConstructor接受参数F。被调用时执行下列步骤：
+1. Assert：F是ECMAScript函数对象
+2. Assert：F.\[\[IsClassConstructor]]是false
+3. 设置F.\[\[IsClassConstructor]]是true
+4. 返回NormalCompletion(undefined)
+*** 10.2.7 MakeMethod(F, homeObject)
+  抽象操作MakeMethod接受参数F和homeObject。设置F为方法。被调用时执行下列步骤：
+1. Assert：F是ECMAScript函数对象
+2. Assert：Type(homeObject)是Object
+3. 设置F.\[\[HomeObject]]是homeObject
+4. 返回NormalCompletion(undefined)
+*** 10.2.8 SetFunctionName(F,name \[,prefix])
+  抽象操作SetFunctionName接受参数F和name（性质键）和可选参数prefix（String）。
+在F上增加name性质。被调用时执行下列步骤：
+1. Assert：F是可扩展对象，而且没有name自有性质
+2. Assert：Type(name)是String或者Symbol
+3. Assert：如果prefix存在，Type(prefix)是String
+4. 如果Type(name)是Symbol，那么
+    a. 让description是name的\[\[Description]]值
+    b. 如果description是undefined，设置name是空字符串
+    c. 否则，设置name是"["、description和"]"拼接的字符串
+5. 如果F有\[\[InitialName]]的内部占位，那么
+    a. 设置F.\[\[InitialName]]是name
+6. 如果prefix存在，那么
+    a. 设置name是prefix，0x0020和name的字符串拼接
+    b. 如果F有\[\[InitialName]]内部占位，那么
+        i. 可选的，设置F.\[\[InitialName]]是name
+7. 返回!DefinePropertyOrThrow(F, "name", PropertyDescriptor { \[\[Value]]:name,
+   \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true })
+*** 10.2.9 SetFunctionLength(F, length)
+  抽象操作SetFunctionLength接受参数F（函数对象）和length（非负整数或者+∞）。
+在F上添加"length"性质。被调用时执行下列步骤：
+1. Assert：F是可扩展对象，而且没有length自有性质
+2. 返回!DefinePropertyOrThrow(F, "length", PropertyDescriptor {
+   \[\[Value]]:Number(length), \[\[Writable]]:false, \[\[Enumerable]]:false,
+   \[\[Configurable]]:true })
+*** 10.2.10 FunctionDeclarationInstantiation(func, argumentsList)
+**** 注意1 当为评估ECMAScript函数的执行背景建立后，新的函数环境记录也创建完，
+            而且在环境记录中绑定每个形式参数并初始化。在函数体的每个声明也
+            初始化。如果函数的形式参数没有包含任何初始化值，那么函数体的声
+            明也初始化到相同的环境记录中作为参数。如果参数的默认初始化值存
+            在，为函数体声明创建第二个环境记录。形式参数和函数初始化为
+            FunctionDeclarationInstantiation的某部分。其他的绑定都在评估函数体的
+            时候初始化。
+  抽象操作FunctionDeclarationInstantiation接受参数func（函数对象）和argumentsList。
+func是正在为之建立执行背景的函数对象。被调用时执行下列步骤：
+1. 让calleeContext是运行时执行背景
+2. 让code是func.\[\[ECMAScriptCode]]
+3. 让strict是func.\[\[Strict]
+4. 让formals是func.\[\[FormalParameters]]
+5. 让parameterNames是formals的BoundName
+6. 如果parameterNames有重复实体，让hasDuplicates是true，否则hasDuplicates是false。
+7. 让simpleParameterList是formals的IsSimpleParameterList
+8. 让hasParameterExpressions是formals的ContainsExpression
+9. 让varNames是code的VarDeclaredNames
+10. 让varDeclarations是code的VarScopedDeclarations
+11. 让lexicalNames是code的LexicallyDeclaredNames
+12. 让functionNames是新的空List
+13. 让functionsToInitialize是新的空List
+14. 按照反序遍历varDeclarations的元素，记为d，做
+    a. 如果d不是VariableDeclaration、ForBinding、BindingIdentifier那么
+        i. Assert：d必然是FunctionDeclaration、GeneratorDeclaration、
+           AsyncFunctionDeclaration或者AsyncGeneratorDeclaration之一
+       ii. 让fn是d的BoundNames中的那个唯一元素。
+      iii. 如果fn不是functionNames的元素，那么
+            1. 将fn作为第一个元素插入到functionNames中。
+            2. 注意：如果多个声明为相同名称的函数，最后一个生效
+            3. 将d作为第一个元素插入到functionsToInitialize
+15. 让argumentsObjectNeeded是true
+16. 如果func.\[\[ThisMode]]是lexical，那么
+    a. 注意：箭头函数没有arguments对象
+    b. 设置argumentsObjectNeeded是false
+17. 否则，如果arguments是parameterNames的元素，那么
+    a. 设置argumentsObjectNeeded是false
+18. 否则，如果hasParameterExpressions是false，那么
+    a. 如果arguments是functionNames或者lexicalNames的元素，那么
+        i. 设置argumentsObjectNeeded是false
+19. 如果strict是true或者hasParameterExpressions是false，那么
+    a. 注意：参数和顶层vars只需要一个环境记录
+    b. 让env是caleeContext的LexicalEnvironment
+20. 否则
+    a. 注意：需要一个隔离的环境记录来确保在形式参数中的直接使用eval创建的
+              绑定在参数声明的环境之外
+    b. 让calleeEnv是calleeContext的LexicalEnvironmnet
+    c. 让env是NewDeclarationEnvironment(calleeEnv)
+    d. Assert：calleeContext的VariableEnvironment是calleeEnv
+    e. 设置calleeContext的LexicalEnvironment是env
+21. 遍历parameterNames的字符串，记为paramName，做
+    a. 让alreadyDeclared是env.HasBinding(paramName)
+    b. 注意：前期错误确保了重复的参数名只会发生在非严格函数里，那么就不会有
+              参数默认值或者剩余参数
+    c. 如果alreadyDeclared是false，那么
+        i. 执行!env.CreateMutableBinding(paramName, false)
+       ii. 如果hasDuplicate，那么
+            1. 执行!env.InitializeBinding(paramName, undefined)
+22. 如果argumentsObjectNeeded是true，那么
+    a. 如果strict是true或者如果simpleParameterList是false，那么
+        i. 让ao是CreateUnmappedArgumentsObject(argumentsList)
+    b. 否则
+        i. 注意：
+       ii. 执行!env.CreateMutableBinding(paramName, false)
+    c. 如果alreadyDeclared是false，那么
+        i. 执行!env.CreateMutableBinding(paramName, false)
+    d. 如果alreadyDeclared是false，那么
+        i. 执行!env.CreateMutableBinding(paramName, false)
+    e. 如果alreadyDeclared是false，那么
+    f. 如果alreadyDeclared是false，那么
+23. 
+24. 
+25. 
+26. 
+27. 
+28. 
+29. 
+30. 
+31. 
+32. 
+33. 
+34. 
+35. 
+36. 
+           
 * 11 ECMAScript Language: Source Code
 ** 11.1 Source Text
 Syntax
