@@ -6112,29 +6112,80 @@ func是正在为之建立执行背景的函数对象。被调用时执行下列�
     a. 如果strict是true或者如果simpleParameterList是false，那么
         i. 让ao是CreateUnmappedArgumentsObject(argumentsList)
     b. 否则
-        i. 注意：
-       ii. 执行!env.CreateMutableBinding(paramName, false)
-    c. 如果alreadyDeclared是false，那么
-        i. 执行!env.CreateMutableBinding(paramName, false)
-    d. 如果alreadyDeclared是false，那么
-        i. 执行!env.CreateMutableBinding(paramName, false)
-    e. 如果alreadyDeclared是false，那么
-    f. 如果alreadyDeclared是false，那么
-23. 
-24. 
-25. 
-26. 
-27. 
-28. 
-29. 
-30. 
-31. 
-32. 
-33. 
-34. 
-35. 
-36. 
-           
+        i. 注意：映射过的参数对象只提供给非严格函数，非严格函数没有剩余参
+                  数、参数默认初始值和解构参数。
+       ii. 让ao是CreateMappedArgumentsObject(func, formals, argumentsList, env)
+    c. 如果strict是true，那么
+        i. 执行!env.CreateImmutableBinding("arguments", false)
+    d. 否则
+        i. 执行!env.CreateMutableBinding("arguments", false)
+    e. 调用env.InitializeBinding("arguments", ao);
+    f. 让parameterBindings是List，其元素是parameterNames的元素拼接"arguments"
+23. 否则
+    a. 让parameterBindings是parameterNames
+24. 让iteratorRecord是CreateListIteratorRecord(argumentsList)
+25. 如果hasDuplicates是true，那么
+    a. 为formals执行带iteratorRecord和undefined参数的?IteratorBindingInitialization
+26. 否则
+    a. 为formals执行带iteratorRecord和env参数的?IteratorBindingInitialization
+27. 如果hasParameterExpressions是false，那么
+    a. 注意：只需要一个环境记录就满足参数和顶层vars。
+    b. 让instantiatedVarNames是parameterBindings List的复制
+    c. 遍历varNames的元素记为n，做
+        i. 如果n不是一个instantiatedVarNames的元素，那么
+            1. 将n追加到instantiatedVarNames中
+            2. 执行!env.CreateMutableBinding(n, false)
+            3. 调用env.InitializeBinding(n, undefined)
+    d. 让varEnv是env
+28. 否则
+    a. 注意：需要一个独立的环境记录确保：再形式参数的表达式创建的封闭不能
+              访问到函数体内定义的声明。
+    b. 让varEnv是NewDeclarativeEnvironment(env)
+    c. 设置calleeContext的VariableEnvironment是varEnv
+    d. 让instantiatedVarNames是新的空List
+    e. 遍历varNames的元素记为n，做
+        i. 如果n不是instantiatedVarNames的元素，那么
+            1. 将n附加到instantiatedVarNames
+            2. 执行!varEnv.CreateMutableBinding(n, false)
+            3. 如果n不是parameterBindings的元素，或者n是functionNames的元素，让
+               initialValue是undefined
+            4. 否则
+                a. 让initialValue是!env.GetBindingValue(n, false)
+            5. 调用varEnv.InitializeBinding(n, initialValue)
+            6. 注意：与形式参数里同名的变量有相同的初始化值
+29. 注意：附件B.3.3.1在此处增加了额外的步骤。
+30. 如果strict是false，那么
+    a. 让lexEnv是NewDeclarativeEnvironment(varEnv)
+    b. 注意：非严格函数为顶层词法声明使用独立环境记录，因此一个直接的eval
+              能够明确由混淆有预先存在的顶层词法声明的eval代码中引入的任何
+              变量声明的适用圈。对于严格函数使用严格的直接eval，总是将所有
+              的声明放到新的环境记录里。
+31. 否则让lexEnv是varEnv
+32. 设置calleeXontext的LexicalEnvironment是lexEnv
+33. 让lexDeclarations是code的LexicallyScopedDeclarations
+34. 遍历lexDeclarations的元素记为d，做
+    a. 注意：词法声明的名称不能与函数/生成器声明、形式参数或者变量的名字
+              相同。词法声明的名称只能实例化，不能初始化。
+    b. 遍历d的BoundNames的元素，记为dn，做
+        i. 如果d的IsConstantDeclaration是true，那么
+            1. 执行!lexEnv.CreateImmutableBinding(dn, true)
+       ii. 否则
+            2. 执行!lexEnv.CreateMutableBinding(dn, false)
+35. 遍历functionsToInitialize的解析节点，记作f，做
+    a. 让fn是f的BoundNames的独自元素
+    b. 让fo是f的带lexEnv参数的InstantiateFunctionObject
+    c. 执行!varEnv.SetMutableBinding(fn, fo, false)
+36. 返回NormalCompletion(empty)
+**** 注意2 B.3.3提供了一个扩展，以便兼容ECMAScript2015之前的ECMAScript的网页
+            浏览器实现
+**** 注意3 参数初始化可能包含直接eval的表达式。这种eval方式的顶层声明只能
+            被本eval代码（11.2）察觉。这种声明产生的环境在8.5.3中描述。
+** 10.3 内建函数对象Built-in Function Objects
+  本规范定义的内建函数对象会被实现为ECMAScript函数对象（10.2），其行为使用
+ECMAScript代码实现；或者实现为函数奇异对象，其行为以其他方式提供。在各自的
+方式中，调用函数的效果必须遵循各自的规范内容。实现可能会提供额外的不是
+本规范定义的内建函数对象。
+  
 * 11 ECMAScript Language: Source Code
 ** 11.1 Source Text
 Syntax
