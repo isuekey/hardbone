@@ -5775,9 +5775,9 @@ Receiver（ECMAScript语言值）和ownDesc（PropertyDescriptor或者undefined�
 **** 10.1.9.1 OrdinaryOwnPropertyKeys(O)
   抽象操作OrdinaryOwnPropertyKeys接受参数O（对象值）。被调用时执行下列步骤：
 1. 让keys是新的空List
-2. 遍历O的每个自有性质的键P，如果P是数组索引，按照数字升序，做
+2. 遍历O的每个自有性质的键P，如果P是ArrayIndex，按照数字升序，做
     a. 追加P到keys中
-3. 遍历O的每个自有性质的键P，如果Type(P)是字符串，且不是数组索引，按照创建
+3. 遍历O的每个自有性质的键P，如果Type(P)是字符串，且不是ArrayIndex，按照创建
    顺序升序，做
     a. 追加P到keys中
 4. 遍历O的每个自有性质的键P，如果Type(P)是Symbol，按照创建顺序升序，做
@@ -6185,7 +6185,312 @@ func是正在为之建立执行背景的函数对象。被调用时执行下列�
 ECMAScript代码实现；或者实现为函数奇异对象，其行为以其他方式提供。在各自的
 方式中，调用函数的效果必须遵循各自的规范内容。实现可能会提供额外的不是
 本规范定义的内建函数对象。
-  
+  如果一个内建的函数对象被实现为一个奇异对象，必须有10.1中定义的基本对象的
+行为。所有的这种函数奇异对象也要有\[\[Prototype]]、\[\[Extensible]]和\[\[Realm]]
+内部占位。
+  除非其他规定，每个内建函数对象都有%Function.prototype%对象，作为其
+\[\[Prototype]]内部占位的初始化值。
+  通过算法步骤或者其他方式对每个内建函数规定的行为是为函数的\[\[Call]]和
+\[\[Construct]]调用的函数体时的行为的规范。然而\[\[Construct]]调用不被所有的
+内建函数支持。每个内建函数，在由\[\[Call]]调用时，\[\[Call]]的thisArgument提供
+this值，\[\[Call]]的argumentList提供命名了的参数，NewTarget值是undefined。当由
+\[\[Construct]]调用时，this是未初始化的，\[\[Construct]]的argumentList提供命名了
+的参数，newTarget参数提供了NewTarget值。如果内建函数是用ECMAScript函数对象的
+方式实现，那么规定的行为必须被函数体的ECMAScript代码实现。ECMAScript函数对象
+实现的内建函数必须是严格函数。如果内建的构造范的\[\[Call]]行为有投掷TypeError
+异常之外的行为，这个函数的ECMAScript实现必须以不能导致函数的内部占位
+\[\[IsClassConstructor]]为true的方式完成。
+  没有被确定为构造范的内建函数对象不要实现\[\[Construct]]内部函数，除非在
+特定的函数里另有规定。当内建的构造范被作为new表达式的一部分被调用时，被调
+用的\[\[Construct]]内部方法的argumentsList参数提供了内建构造范的命名了的参数。
+  不是构造范的内建函数没有prototype性质，除非在特定函数里另有规定。
+  内建函数有\[\[InitialName]]内部占位。
+  如果一个内建函数没有使用ECMAScript函数的方式方式来实现，必须提供遵循下列
+定义的\[\[Call]]和\[\[Construct]]内部方法。
+*** 10.3.1 \[\[Call]](thisArgument, argumentsList)
+  内建函数F的\[\[Call]]内部方法接受参数thisArgument（ECMAScript语言值）和
+argumentsList（元素是ECMAScript语言值的List）。被调用时执行下列步骤：
+1. 让callerContext是运行时执行背景
+2. 如果callerContext没有被挂起，挂起callerContext
+3. 让calleeContext是新的执行背景
+4. 设置calleeContext的Function是F
+5. 让calleeRealm是F.\[\[Realm]]
+6. 设置calleeContext的Realm是calleeRealm
+7. 设置calleeContext的ScriptOrModule是null
+8. 执行calleeContext初始化需要的实现定义
+9. 将calleeContext压到ExecutionContextStack；calleeContext目前是运行时执行背景
+10. 让result是与规范F一致方式评估F的完结记录。thisArgument是this值，argumentsList
+    提供命名了的参数，NewTarget值是undefined。
+11. 从ExecutionContextStack移除calleeContext，恢复callerContext作为运行时执行背景
+12. 返回result
+**** 注意： 当calleeContext被从ExecutionContextStack中移除后，它不能被销毁，如果
+             它被一个可访问的生成器对象为了唤醒而挂起和保留的话。
+*** 10.3.2 \[\[Construct]](arugmentsList, newTarget)
+  内建方法F的\[\[Construct]]内部方法接受参数argumentsList（元素是ECMAScript
+语言值的List）和newTarget（构造范）。执行步骤同\[\[Call]](10.3.1)，除了第10步：
+10. 让result是与规范F一致方式评估F的完结记录。this值是未初始化的，
+    argumentsList提供命名了的参数，newTarget作为NewTarget的值。
+*** 10.3.3 CreateBuiltinFunction(steps, length, name, internalSlotsList\[, realm\[,
+    prototype\[, prefix]]])
+  抽象操作CreateBuiltinFunction接受参数steps、length、name和internalSlotsList（内部
+占位的名称的List）与可选参数realm、prototype和prefix。internalSlotsList包含了作为
+对象必须定义的其他内部占位的名字。操作创建内建的函数对象。被调用时执行下
+列步骤：
+1. Assert：steps是一套算法的步骤或者本规范提供的关于函数行为的其他定义。
+2. 如果realm不存在或者realm是空，设置realm是当前的RealmRecord
+3. Assert：realm是ReamlRecord
+4. 如果prototype不存在，设置prototype是
+   realm.\[\[Intrinsics]].\[\[%Function.prototype%]]
+5. 让func是新的内建函数对象，被调用时执行steps描述的动作。新的函数对象有
+   列在internalSlotsList的名称的内部占位和\[\[InitialName]]内部占位。
+6. 设置func.\[\[Realm]]是realm
+7. 设置func.\[\[Prototype]]是prototype
+8. 设置func.\[\[Extensible]]是true
+9. 设置func.\[\[InitialName]]是null
+10. 执行!SetFunctionLength(func, length)
+11. 如果prefix不存在，那么
+    a. 执行!SetFunctionName(func, name)
+12. 否则
+    a. 执行!SetFunctionName(func, name, prefix)
+13. 返回func
+  每个本规范定义的内建函数是通过调用CreateBuiltinFunction抽象操作创建的。
+** 10.4 内建奇异对象内部方法和占位
+  本规范定义了几个内建的奇异对象。这些对象一般的行为类似基本对象，除了
+少量特定情况。下列的奇异对象使用基本对象的内部方法，除了下列显示规定的
+例外情况。
+*** 10.4.1 Bound Function Exotic Objects 绑定了this的函数对象
+  BoundFunctionExoticObject是包装了其他函数的函数对象。BoundFunctionExoticObject是
+可调用的（有\[\[Call]]内部方法，也可能有\[\[Construct]]内部方法）。调用一个
+BoundFunctionExoticObject一般导致它包装的函数被调用。
+  如果对象的\[\[Call]]和\[\[Construct]]（如果有）的内部方法按照随后的实现方式，
+其他的基本内部方法使用10.1中定义的方式，那它就是BoundFunctionExoticObject。这些
+方法在BoundFunctionCreate中被安进来。
+  BoundFunctionExoticObject没有列在表29的ECMAScript函数对象的内部占位。表30列出
+的内部占位作为他们的替换，除了\[\[Prototype]]和\[\[Extensible]]
+| 内部占位                  | 类型           | 描述                                 |
+| \[\[BoundTargetFunction]] | 可调用的Object | 被包装的函数对象                     |
+| \[\[BoundThis]]           | 任意           | 其值总是作为调用被包装函数时的this值 |
+| \[\[BoundArguments]]      | 任意值的List   | 元素作为被包装函数调用时的第一个参数 |
+**** 10.4.1.1 \[\[Call]](thisArgument, argumentsList)
+  BoundFunctionExoticObject F的内部方法\[\[Call]]接受参数thisArgument（ECMAScript语
+言值）和argumentsList（ECMAcript语言值的List）。被调用时执行下列步骤：
+1. 让target是F.\[\[BoundTargetFunction]]
+2. 让boundThis是F.\[\[BoundThis]]
+3. 让boundArgs是F.\[\[BoundArguments]]
+4. 让args是boundArgs的元素追加上argumentsList的元素的List
+5. 返回?Call(target, boundThis, args)
+**** 10.4.1.2 \[\[Construct]](argumentsList, newTarget)
+  BoundFunctionExoticObject F的内部方法\[\[Construct]]接受参数argumentsList（
+ECMAScript语言值的List）和newTarget（构造范）。被调用时执行下列步骤：
+1. 让target是F.\[\[BoundTargetFunction]]
+2. Assert：IsConstructor(target)是true
+3. 让boundArgs是F.\[\[BoundArguments]]
+4. 让args是boundArgs的元素追加上argumentsList的元素的List
+5. 如果SameValue(F, newTarget)是true，设置newTarget为target
+6. 返回?Construct(target, args, newTarget)
+**** 10.4.1.3 BoundFunctionCreate(targetFunction, boundThis, boundArgs)
+  抽象操作BoundFunctionCreate接受参数targetFunction、boundThis和boundArgs。用于规范
+新的BoundFunctionExoticObject对象的创建行为。被调用时执行下列步骤：
+1. Assert：Type(targetFunction)是Object
+2. 让proto是?targetFunction.\[\[GetPrototypeOf]]()
+3. 让internalSlotsList是表30列出的内部占位，加上\[\[Prototype]]和\[\[Extensible]]的
+   List
+4. 让obj是!MakeBasicObject(internalSlotsList)
+5. 设置obj.\[\[Prototype]]是proto
+6. 设置obj.\[\[Call]]是10.4.1.1中定义内容
+7. 如果IsConstructor(targetFunction)是true，那么
+    a. 设置obj.\[\[Construct]]是10.4.1.2中描述的内容
+8. 设置obj.\[\[BoundTargetFunction]]是targetFunction
+9. 设置obj.\[\[BoundThis]]是boundThis
+10. 设置obj.\[\[BoundArguments]]是boundArguments
+11. 返回obj
+*** 10.4.2 Array Exotic Objects 数组奇异对象
+  数组对象是一个奇异对象在处理ArrayIndex性质键（6.1.7）时给了特殊对待。性质的
+名称是一个ArrayIndex的话，性质也被称作元素。每个数组对象有个一个不可设置的
+length性质，它的值总是一个非负整数Number，其数学值小于2^32。length性质的值在
+数字上大于所拥有的任何性质名称是ArrayIndex的性质键。无论何时，如果数组对象
+创建或修改了自有性质，或者其他性质需要必要的调整以保证这个不变性。尤其是，
+当增加一个名称是ArrayIndex的性质，length性质的值发生修改，如果必要，length值
+比这个ArrayIndex的值大1；当length性变化的是，每个名称是ArrayIndex且没有小于
+length的性质会被删除。这个限制仅提供给数组对象的自有性质，而从其原型上继承
+的length和ArrayIndex性质则没有这种影响。
+**** 注意 String性质名称P是ArrayIndex，当且仅当ToString(ToUint32(P))等与P，且
+           ToUint32(P)b不是F(2^32-1)
+  对象是ArrayExoticObject（简单的说，数组对象），其\[\[DefineOwnProperty]]内部方
+法使用下列的实现，其他基本内部方法使用10.1的定义。这些方法在ArrayCreate中被
+安装进来。
+**** 10.4.2.1 \[\[DefineOwnProperty]](P, Desc)
+  ArrayExoticObject A的内部方法\[\[DefineOwnProperty]]接受参数P（性质键）和Desc（
+PropertyDescriptor）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 如果P是length，那么
+    a. 返回?ArraySetLength(A, Desc)
+3. 否则，如果P是ArrayIndex，那么
+    a. 让oldLenDesc是OrdinaryGetOwnProperty(A, "length")
+    b. Assert：!IsDataDescriptor(oldLenDesc)是true
+    c. Assert：oldLenDesc.\[\[Configurable]]是false
+    d. 让oldLen是oldLenDesc.\[\[Value]]
+    e. Assert：oldLen是一个非负整数Number
+    f. 让index是!ToUint32(P)
+    g. 如果index >= oldLen且oldLenDesc.\[\[Writable]是false，返回false
+    h. 让succeeded是!OrdinaryDefineOwnProperty(A, P, Desc)
+    i. 如果succeeded是false，返回false
+    j. 如果index>=oldLen，那么
+        i. 设置oldLenDesc.\[\[Value]]是index+1_F
+       ii. 让succeeded是OrdinaryDefineOwnProperty(A "length", oldLenDesc)
+      iii. Assert：succeeded是true
+    k. 返回true
+4. 返回OrdinaryDefineOwnProperty(A, P, Desc)
+**** 10.4.2.2 ArrayCreate(length\[, proto])
+  抽象操作ArrayCreate接受参数length（非负整数）和可选参数proto。用于规范新的
+数组奇异对象的创建。被调用时执行下列步骤：
+1. 如果length>2^32-1，投掷RangeError异常
+2. 如果proto不存在，设置proto是%Array.prototype%
+3. 设置A是!MakeBasicObject(<<\[\[Prototype]], \[\[Extensible]]>>)
+4. 设置A.\[\[Prototype]]是proto
+5. 设置A.\[\[DefineOwnProperty]]符合10.4.2.1中定义
+6. 执行!OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor {
+   \[\[Value]]:F(length), \[\[Writable]]:true, \[\[Enumerable]]:false,
+   \[\[Configurable]]:false })
+7. 返回A
+**** 10.4.2.3 ArraySpeciesCreate(originalArray, length)
+  抽象操作ArraySpeciesCreate接受参数originalArray和length（非负整数）。用于规范从
+originalArray派生的构造范创建一个新的Array对象的过程。被调用时执行下列步骤：
+1. 让isArray是?IsArray(originalArray)
+2. 如果isArray是false，返回?ArrayCreate(length)
+3. 让C是?Get(originalArray, "constructor")
+4. 如果IsConstructor(C)是true，那么
+    a. 让thisRealm是当前的RealmRecord
+    b. 让realmC是?GetFunctionRealm(C)
+    c. 如果thisRealm和reamlC不相同，那么
+        i. 如果SameValue(C, realmC.\[\[Intrinsics]].\[\[%Array%]])是true，
+           设置C是undefined
+5. 如果Type(C)是Object，那么
+    a. 设置C是?Get(C,@@species)
+    b. 如果C是null，设置C是undefined
+6. 如果C是undefined，返回?ArrayCreate(length)
+7. 如果IsConstructor(C)是false，投掷TypeError异常
+8. 返回?Constructor(C, <<F(length)>>0)
+***** 注意 如果originalArray是用标准内建Array构造范为不是运行时执行背景的领而
+            创建的，那么新的Array使用运行时执行背景的领进行创建。这维护了网页
+            浏览器的兼容性，以往有用Array.prototype方法的行为，而现在用
+            ArraySpeciesCreate
+**** 10.4.2.4 ArraySetLength(A, Desc)
+  抽象操作ArraySetLength接受参数A（数组对象）和Desc（PropertyDescriptor）。被调用
+时执行步骤：
+1. 如果缺少Desc.\[\[Value]]，那么
+    a. 返回OrdinaryDefineOwnProperty(A, "length", Desc)
+2. 让newLenDesc是Desc的备份
+3. 让newLen是?ToUint32(Desc.\[\[Value]])
+4. 让numberLen是?ToNumber(Desc.\[\[Value]])
+5. 如果newLen与numberLen不相同，投掷RangeError异常
+6. 设置newLenDesc.\[\[Value]]是newLen
+7. 让oldLenDesc是OrdinaryGetOwnProperty(A, "length")
+8. Assert：!IsDataDescriptor(oldLenDesc)是true
+9. Assert：oldLenDesc.\[\[Configurable]]是false
+10. 让oldLen是oldLenDesc.\[\[Value]]
+11. 如果 newLen>= oldLen，那么
+    a. 返回OrdinaryDefineOwnProperty(A, "length", newLenDesc)
+12. 如果oldLenDesc.\[\[Writable]]是false，返回false
+13. 如果缺少newLenDesc.\[\[Writable]]或者其值是true，让newWritable是true
+14. 否则
+    a. 注意：设置\[\[Writable]]属性是false，暗示了其性质不能被删除。
+    b. 让newWritable是false
+    c. 设置newLenDesc.\[\[Writable]]是true
+15. 让succeeded是!OrdinaryDefineOwnProperty(A, "length", newLenDesc)
+16. 如果succeeded是false，返回false
+17. 遍历A上是ArrayInde的自有性质，记作P，且其数学值大于或等与newLen（这里
+    不能使用不小于，因为有非数字键），按照数字降序，做：
+    a. 让deleteSucceeded是!A.\[\[Delete]](P)
+    b. 如果deleteSucceeded是false，那么
+        i. 设置newLenDesc.\[\[Value]]是!ToUint32(P)+1_F
+       ii. 如果newWritable是false，设置newLenDesc.\[\[Writable]]是false
+      iii. 执行!OrdinaryDefineOwnProperty(A, "length", newLenDesc)
+       iv. 返回false
+18. 如果newWritable是false，那么
+    a. 让succeeded是!OrdinaryDefineOwnProperty(A, "lenfth", PropertyDescriptor {
+       \[\[Writable]]:false } )
+    b. Assert：succeeded是true
+19. 返回true
+***** 注意 步骤3和4，如果Desc.\[\[Value]]是对象，其valueOf会执行两次。这是本
+            规范从第二版开始规定的遗留行为。
+*** 10.4.3 String Exotic Objects
+  String对象是一个封装了String值的奇异对象，而且暴露了虚拟的整数索引的数据性
+质，对应检索String值的编码单元。String奇异对象总是有数据性质length，其值表示
+封装的String值的编码单元数量。编码单元数据性质和length性质都是不可修改与
+不可设置的。
+  如果对象的\[\[GetOwnProperty]]、\[\[DefineOwnProerty]]和\[\[OwnPropertyKeys]]的内部
+方法使用随后的实现，且其他基本内部方法使用10.1中的定义，对象就是String奇异对
+象（简单说String对象）。在StringCreate中安装这些方法。
+  String奇异对象与基本对象有相同的内部占位。他们都有\[\[StringData]]内部占位。
+**** 10.4.3.1 \[\[GetOwnProperty]](P)
+  StringExoticObject S的\[\[GetOwnProperty]]内部方法接受参数P（性质键）。被调用时
+执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让desc是OrdinaryGetOwnProperty(S, P)
+3. 如果desc不是undefined，返回desc
+4. 返回!StringGetOwnProperty(P, Desc)
+**** 10.4.3.2 \[\[DefineOwnProperty]](P, Desc)
+  StringExoticObject S的\[\[DefineOwnProperty]]内部方法接受参数P（性质键）和Desc（
+PropertyDescriptor）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让stringDesc是!StringGetOwnProperty(S, P)
+3. 如果stringDesc不是undefined，那么
+    a. 让extensible是S.\[\[Extensible]]
+    b. 返回!IsCompatiblePropertyDescriptor(extensible, Desc, stringDesc)
+4. 返回!OrdinaryDefineOwnProperty(S, P, Desc)
+**** 10.4.3.3 \[\[OwnPropertyKeys]]()
+  StringExoticObject O的\[\[OwnPropertyKeys]]内部方法不接受参数P。被调用时执行
+下列步骤：
+1. 让keys是新的空List
+2. 让str是O.\[\[StringData]]
+3. Assert：Type(str)是String
+4. 让len是str的长度
+5. 从0开始便到len，记作i，i<len，按照升序做：
+    a. 追加!ToString(F(i))到keys
+6. 遍历O的自有性质，记作P，如果P是ArrayIndex，且!ToIntegerOrInfinity(P)>=len，
+   那么按照升序，做
+    a. 追加P到keys
+7. 遍历O的自有性质，记作P，若Type(P)是String且P不是ArrayIndex，按照创建时间
+   升序，做
+    a. 追加P到keys
+8. 遍历O的自有性质，记作P，若Type(P)是Symbol，按照创建时间升序，做
+    a. 追加P到keys
+9. 返回keys
+**** 10.4.3.4 StringCreate(value, prototype)
+  抽象操作StringCreate接受参数value（String）和prototype。用于规范
+StringExoticObject的创建过程。被调用时执行下列步骤：
+1. 让S是!MakeBasicObject(<<\[\[Prototype]], \[\[Extensible]], \[\[StringData]]>>)
+2. 设置S.\[\[Prototype]]是prototype
+3. 设置S.\[\[StringData]]是value
+4. 设置S.\[\[GetOwnProperty]]是10.4.3.1中定义
+5. 设置S.\[\[DefineOwnProperty]]是10.4.3.2中定义
+6. 设置S.\[\[OwnPropertyKeys]]是10.4.3.3中定义
+7. 让length是value的编码单元数量
+8. 执行!DefinePropertyOrThrow(S, "length", PropertyDescriptor { \[\[Value]]:F(length),
+   \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:false] })
+9. 返回S
+**** 10.4.3.5 StringGetOwnProperty(S, P)
+  抽象操作StringGetOwnProperty接受参数S和P。被调用时执行下列步骤：
+1. Assert：S是有\[\[StringData]]内部占位的对象
+2. Assert：IsPropertyKey(P)是true
+3. 如果Type(P)不是String，返回undefined
+4. 让index是!CanonicalNumericIndexString(P)
+5. 如果index是undefined，返回undefined
+6. 如果IsIntegralNumber(index)是false，返回undefined
+7. 如果index是-0_F，返回undefined
+8. 让str是S.\[\[StringData]]
+9. Assert：Type(str)是String
+10. 让len是str的长度
+11. 如果R(index)<0或者len<=R(index)返回undefined
+12. 让resultStr是一个长度1，包含str上处于R(index)的一个编码单元。
+13. 返回PropertyDescriptor { \[\[Value]]:resultStr, \[\[Writable]]:false,
+    \[\[Enumerable]]:true, \[\[Configurable]]:false }
+*** 10.4.4 Arguments Exotic Objects
+*** 10.4.5 Integer-Indexed Exotic Object
+*** 10.4.6 Module Namespace Exotic Object
+*** 10.4.7 Imuutable Prototype Exotic Object
+** 10.5 Proxy Object Internal Methods And Internal Slots
 * 11 ECMAScript Language: Source Code
 ** 11.1 Source Text
 Syntax
