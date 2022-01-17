@@ -6487,7 +6487,194 @@ StringExoticObject的创建过程。被调用时执行下列步骤：
 13. 返回PropertyDescriptor { \[\[Value]]:resultStr, \[\[Writable]]:false,
     \[\[Enumerable]]:true, \[\[Configurable]]:false }
 *** 10.4.4 Arguments Exotic Objects
+  大多数函数制作一个其函数体代码可见的参数对象。依赖于函数定义的特性，这个
+参数对象是基本对象或者参数奇异对象。参数奇异对象是奇异对象，其ArrayIndex性质
+映射到调用其联结的ECMAScript函数的形式参数。
+  如果对象使用下方实现了其内部方法，其他内部方法使用10.1的定义实现，就是
+参数奇异对象。CreateMappedArgumentsObject安装这些方法。
+**** 注意1 CreateUnmappedArgumentsObject也安装到了本条款，用于创建基本对象，而不
+            是参数奇异对象。
+  参数奇异对象与基本对象有相同的内部占位。还有\[\[ParameterMap]]内部占位。基
+本参数对象也有一个\[\[ParameterMap]]内部占位，其值总是undefined。对于基本参数
+对象，\[\[ParameterMap]]内部占位仅用于Object.prototype.toString（20.1.3.6）来辨别
+他们。
+**** 注意2 ArgumentsExoticObject的名称数学值比对应函数对象的形式参数的索引小的
+           整数索引的数据性质在初始化共享函数在执行上下文的实际参数的绑定。
+           这意味正修改性质会修改实参的值，反过来也一样。这种一致性会在被
+           破坏，如果这样的性质被删除后又增加进来，或者修改为访问性质。如果
+           参数对象是基本对象，性质的值应该是参数传递进来的简单复制，就不会
+           有性质值与形式参数值的动态链接。
+**** 注意3 ParameterMap对象和其性质被用于明确说明参数对象与参数绑定一致的设
+           备。ParameterMap对象和其性质的值的对象不能被ECMAScript代码直接访问
+           到。ECMASCript实现可以不实际创建这个对象来实现规定的语义。
+**** 注意4 基本参数对象定义了一个不可设置的访问性质，名称是callee，在访问时
+            会投掷异常。这个callee对于ArgumentExotic对象有更多特殊的汉所以，
+            仅会为某些非严格函数类来创建。在基本不变性中关于本性质的定义
+            用于确保它不会被任何ECMAScript一致实现以任何方式定义。
+**** 注意5 ArgumentsExoticObject的ECMAScript实现有一个历史遗留性质caller。2017
+            之前的版本，规范在OrdinaryArgumentsObject中包含了一个会投掷异常的
+            caller性质。既然实现不在包含本扩展，ECMAScript2017移除了这个投掷
+            异常的caller要求
+**** 10.4.4.1 \[\[GetOwnProperty]](P)
+  ArgumentsExoticObject args的内部方法\[\[GetOwnProperty]]接受参数P（性质键）。被
+调用时执行下列步骤：
+1. 让desc是OrdinaryGetOwnProperty(args, P)
+2. 如果desc是undefined，返回desc
+3. 让map是args.\[\[ParamterMap]]
+4. 让isMapped是!HasOwnProperty(map, P)
+5. 如果isMapped是true，那么
+    a. 设置desc.\[\[Value]]是Get(map,P)
+6. 返回desc
+**** 10.4.4.2 \[\[DefineOwnProperty]](P, Desc)
+  ArgumentsExoticObject args的内部方法\[\[DefineOwnProperty]]接受参数P（性质键）和
+Desc（PropertyDescriptor）。被调用时执行下列步骤：
+1. 让map是args.\[\[ParamterMap]]
+2. 让isMapped是HasOwnProperty(map,P)
+3. 让newArgDesc是Desc
+4. 如果isMapped是true，而且IsDataDescriptor(Desc)是true，那么
+    a. 如果Desc.\[\[Value]]不存在，而且Desc.\[\[Writable]]存在，且值是false，那么
+        i. 设置newArgDesc是Desc的备份
+       ii. 设置newArgDesc.\[\[Value]]是Get(map, P)
+5. 让allowed是?OrdinaryDefineOwnProperty(args, P, newArgDesc)
+6. 如果allowed是false，返回false
+7. 如果isMapped是true，那么
+    a. 如果IsAccessorDescriptor(Desc)是true，那么
+        i. 调用map.\[\[Delete]](P)
+    b. 否则
+        i. 如果Desc.\[\[Value]]存在，那么
+            1. 让setStatus是Set(map, P, Desc.\[\[Value]], false)
+            2. Assert：setStatus是true。因为参数对象映射的形式参数总是可写的。
+       ii. 如果Desc.\[\[Writable]]存在，且是false，那么
+            1. 调用map.\[\[Delete]](P)
+8. 返回true
+**** 10.4.4.3 \[\[Get]](P, Receiver)
+  ArgumentsExoticObject args的内部方法\[\[GetOwnProperty]]接受参数P（性质键）和
+Receiver(ECMAScript语言值）。被调用时执行下列步骤：
+1. 让map是args.\[\[ParamterMap]]
+2. 让isMapped是!HasOwnProperty(map,P)
+3. 如果isMapped是false，那么
+    a. 返回?OrdinaryGet(args, P, Receiver)
+4. 否则
+    a. Assert：map包含形式参数P
+    b. 返回Get(map, P)
+**** 10.4.4.4 \[\[Set]](P, V, Receiver)
+  ArgumentsExoticObject args的内部方法\[\[Set]]接受参数P（性质键）、V（ECMAScript
+语言值）和Receiver（ECMAScript语言值）。被调用时执行下列步骤：
+1. 如果SameValue(args, Receiver)是false，那么
+    a. 让isMapped是false
+2. 否则
+    a. 让map是args.\[\[ParameterMap]]
+    b. 让isMapped是!HasOwnProperty(map, P)
+3. 如果isMapped是true，那么
+    a. 让setStatus是Set(map, P, V, false)
+    b. Assert：setStatus是true。因为参数对象映射的形式参数总是可写的
+4. 返回?OrdinarySet(args, P, V, Receiver)
+**** 10.4.4.5 \[\[Delete]](P)
+  ArgumentsExoticObject args的内部方法\[\[Delete]]接受参数P（性质键）。被调用时
+执行下列步骤：
+1. 让map是args.\[\[ParameterMap]]
+2. 让isMapped是!HasOwnProperty(map,P)
+3. 让result是?OrdinaryDelete(args, P)
+4. 如果result是true，而且isMapped是true，那么
+    a. 调用map.\[\[Delete]](P)
+5. 返回result
+**** 10.4.4.6 CreateUnmappedArgumentsObject(argumentsList)
+  抽象操作CreateUnmappedArgumentsObject接受参数argumentsList。被调用时执行下列步
+骤：
+1. 让len是argumentsList的元素数量
+2. 让obj是!OrdinaryObjectCreate(%ObjectPrototype%, <<\[\[ParameterMap]]>>)
+3. 设置obj.\[\[ParameterMap]]是undefined
+4. 执行DefinePropertyOrThrow(obj, "length", PropertyDescriptor { \[\[Value]]:F(len),
+   \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]:true })
+5. 让index是0
+6. 当index < len时，重复
+    a. 让val是arugmentsList[index]
+    b. 执行!CreateDataPropertyOrThrow(obj, !ToString(F(index)), val)
+    c. 设置index是index+1
+7. 执行!DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor( {
+   \[\[Value]]:%Array.prototype.values%, \[\[Writable]]:true, \[\[Enumerable]]:false,
+   \[\[Configurable]]:true } )
+8. 执行!DefinePropertyOrThrow(obj, "callee", PropertyDescriptor( {
+   \[\[Get]]:%ThrowTypeError%, \[\[Set]]:%ThrowTypeError%, \[\[Enumerable]]:false,
+   \[\[Configurable]]:false } )
+9. 返回obj
+**** 10.4.4.7 CreateMappedArgumentsObject(func, formals, argumentsList, env)
+  抽象操作CreateMappedArgumentsObject接受参数func（Object）、formals（ParseNode）、
+argumentsList（List）和env（EnvironmentRecord）。被调用时执行下列步骤：
+1. Assert：formals不包含剩余参数，绑定模式，或者初始化值。有可能包含重复的
+   标记。
+2. 让len是arugmentsList的元素数量
+3. 让obj是!MakeBasicObject(<<\[\[Prototype]],\[\[Extensible]],\[\[ParamterMap]]>>)
+4. 设置obj.\[\[GetOwnProperty]]是10.4.4.1中定义
+5. 设置obj.\[\[DefineOwnProperty]]是10.4.4.2中定义
+6. 设置obj.\[\[Get]]是10.4.4.3中定义
+7. 设置obj.\[\[Set]]是10.4.4.4中定义
+8. 设置obj.\[\[Delte]]是10.4.4.5中定义
+9. 设置obj.\[\[Protptype]]是%Object.prototype%
+10. 让map是!OrdinaryObjectCreate(null)
+11. 设置obj.\[\[ParameterMap]]是map
+12. 让parameterNames是formals的BoundNames
+13. 让numberOfParamters是parameterNames的元素数量
+14. 让index是0
+15. 当index<len时，重复
+    a. 让val是argumentsList\[index]
+    b. 执行!CreateDataPropertyOrThrow(obj, !ToString(F(index)), val)
+    c. 设置index是index+1
+16. 执行!DefinePropertyOrThrow(obj, "length", PropertyDescriptor { \[\[Value]]:F(len),
+    \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]:true })
+17. 让mappedNames是新的空List
+18. 让index是numberOfParameters-1
+19. 当index>=0是，重复
+    a. 让name是parameterNames[index]
+    b. 如果name不是mappedNames的元素，那么
+        i. 增加name作为mappedNames的元素
+       ii. 如果index<len，那么
+            1. 让g是MakeArgGetter(name, env)
+            2. 让p是MakeArgSetter(name, env)
+            3. 执行map.\[\[DefineOwnProperty]](!ToString(F(index)), PropertyDescriptor {
+               \[\[Set]]:p, \[\[Get]]:g, \[\[Enumerable]]:false,
+               \[\[Configurable]]:true })
+    c. 设置index是index-1
+20. 执行!DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
+    \[\[Value]]:%Array.prototype.values%, \[\[Writable]]:true, \[\[Enumerable]]:false,
+    \[\[Configurable]]:true })
+21. 执行!DefinePropertyOrThrow(obj, "callee", PropertyDescriptor { \[\[Value]]:func,
+    \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]:true })
+22. 返回obj
+***** 10.4.4.7.1 MakeArgGetter(name, env)
+  抽象操作MakeArgGetter接受参数name（String）和env（EnvironmentRecord）。创建一个
+内建函数，执行时返回env上name绑定的值。被调用时执行下列步骤：
+1. 让steps是随后规定的ArgGetter函数的步骤
+2. 让length是随后规定的ArgGetter函数不可选参数的数量
+3. 让getter是!CreateBuiltinFunction(steps, length, "",<<\[\[Name]], \[\[Env]]>>)
+4. 设置getter.\[\[Name]]是name
+5. 设置getter.\[\[Env]]是env
+6. 返回getter
+  ArgGetter函数是一个匿名内建函数，有\[\[Name]]和\[\[Env]]内部占位。当不期望
+参数的ArgGetter被调用时，执行下列步骤：
+1. 让f是活跃函数对象
+2. 让name是f.\[\[Name]]
+3. 让env是f.\[\[Env]]
+4. 返回env.GetBindingValue(name, false)
+****** 注意 ArgGetter永远不会被ECMAScript代码直接访问到。
+***** 10.4.4.7.2 MakeArgSetter(name, env)
+  抽象操作MakeArgSetter接受参数name（String）和env（EnvironmentRecord）。创建一个
+内建函数，执行时设置env上name绑定的值。被调用时执行下列步骤：
+1. 让steps是随后规定的ArgSetter函数的步骤
+2. 让length是随后规定的ArgSetter函数不可选参数的数量
+3. 让setter是!CreateBuiltinFunction(steps, length, "",<<\[\[Name]], \[\[Env]]>>)
+4. 设置setter.\[\[Name]]是name
+5. 设置setter.\[\[Env]]是env
+6. 返回setter。
+  ArgSetter函数是一个有\[\[Name]]和\[\[Env]]内部占位的匿名内建函数。当ArgSetter被
+带value参数调用时，执行下列步骤：
+1. 让f是活跃函数对象
+2. 让name是f.\[\[Name]]
+3. 让env是f.\[\[Env]]
+4. 返回env.SetMutableBinding(name, value, false)
+****** 注意 ArgSetter永远不会被ECMAScript代码直接访问到。
 *** 10.4.5 Integer-Indexed Exotic Object
+  整数索引奇异对象是值会特殊处理整数索引性质键的奇异对象。
 *** 10.4.6 Module Namespace Exotic Object
 *** 10.4.7 Imuutable Prototype Exotic Object
 ** 10.5 Proxy Object Internal Methods And Internal Slots
