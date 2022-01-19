@@ -6673,11 +6673,362 @@ argumentsList（List）和env（EnvironmentRecord）。被调用时执行下列�
 3. 让env是f.\[\[Env]]
 4. 返回env.SetMutableBinding(name, value, false)
 ****** 注意 ArgSetter永远不会被ECMAScript代码直接访问到。
-*** 10.4.5 Integer-Indexed Exotic Object
+*** 10.4.5 Integer-Indexed Exotic Object 整数索引奇异对象
   整数索引奇异对象是值会特殊处理整数索引性质键的奇异对象。
-*** 10.4.6 Module Namespace Exotic Object
-*** 10.4.7 Imuutable Prototype Exotic Object
+  整数索引奇异对象有基本对象的内部占位，还有\[\[ViewedArrayBuffer]]、
+\[\[ArrayLength]]、\[\[ByteOffset]]、\[\[ContentType]]和\[\[TypedArrayName]]内部占
+位。
+  如果一个对象\[\[GetOwnProperty]]、\[\[HasProperty]]、\[\[DefineOwnProperty]]、
+\[\[Get]]、\[\[Set]]、\[\[Delete]]和\[\[OwnPropertyKey]]内部方法使用本节定义，其
+它的基础内部方法使用10.1中定义，这就是整数索引奇异对象。这些方法在
+IntegerIndexedObjectCreate中被安装。
+**** 10.4.5.1 \[\[GetOwnProperty]](P)
+  IntegerIndexedExoticObject O的\[\[GetOwnProperty]]内部方法接受参数P（性质键）。
+被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. Assert：O是IntegerIndexedExoticObject
+3. 如果Type(P)是String，那么
+    a. 让numericIndex是!CanonicalNumericIndexString(P)
+    b.  如果numericIndex不是undefined，那么
+        i. 让value是!IntegerIndexedElementGet(O, numericIndex)
+       ii. 如果value是undefined，返回undefined
+      iii. 返回PropertyDescriptor { \[\[Value]]:value, \[\[Writable]]:true,
+           \[\[Enumerable]]:true, \[\[Configurable]]:true }
+4. 返回OrdinaryGetOwnProperty(O, P)
+**** 10.4.5.2 \[\[HasProperty]](P)
+  IntegerIndexedExoticObject O的\[\[HasProperty]]内部方法接受参数P（性质键）。
+被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. Assert：O是IntegerIndexedExoticObject
+3. 如果Type(P)是String，那么
+    a. 让numericIndex是!CanonicalNumericIndexString(P)
+    b. 如果numericIndex不是undefined，返回!IsValidIntegerIndex(O, numericIndex)
+4. 返回?OrdinaryHasProperty(O, P)
+**** 10.4.5.3 \[\[DefineOwnProperty]](P, Desc)
+  IntegerIndexedExoticObject O的\[\[DefineOwnProperty]]内部方法接受参数P（性质键）
+和Desc（PropertyDescriptor）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. Assert：O是IntegerIndexedExoticObject
+3. 如果Type(P)是String，那么
+    a. 让numericIndex是!CanonicalNumericIndexString(P)
+    b. 如果numericIndex不是undefined，那么
+        i. 如果!IsValidIntegerIndex(O, numericIndex)是false，返回false
+       ii. 如果Desc有\[\[Configurable]]字段，且是false，返回false
+      iii. 如果Desc有\[\[Enumerable]]字段，且是false，返回false
+       iv. 如果!IsAccessorDescriptor(Desc)是true，返回false
+        v. 如果Desc有\[\[Writable]]字段，切实false，返回false
+       vi. 如果Desc有\[\[Value]]字段，执行?IntegerIndexedElementSet(O, numericIndex,
+           Desc.\[\[Value]])
+      vii. 返回true
+4. 返回?OrdinaryDefineOwnProperty(O, P)
+**** 10.4.5.4 \[\[Get]](P, Receiver)
+  IntegerIndexedExoticObject O的\[\[Get]]内部方法接受参数P（性质键）和Receiver（
+ECMAScript语言值）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 如果Type(P)是String，那么
+    a. 让numericIndex是!CanonicalNumericIndexString(P)
+    b. 如果numericIndex不是undefined，那么
+        i. 返回!IntegerIndexedElementGet(O, numericIndex)
+3. 返回?OrdinaryGet(O, P, Receiver)
+**** 10.4.5.5 \[\[Set]](P, V, Receiver)
+  IntegerIndexedExoticObject O的\[\[Set]]内部方法接受参数P（性质键）、V（ECMAScript
+语言值）和Receiver（ECMAScript语言值）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 如果Type(P)是String，那么
+    a. 让numericIndex是!CanonicalNumericIndexString(P)
+    b. 如果numericIndex不是undefined，那么
+        i. 执行!IntegerIndexedElementSet(O, numericIndex)
+       ii. 返回true
+3. 返回?OrdinarySet(O, P, V, Receiver)
+**** 10.4.5.6 \[\[Delete]](P)
+  IntegerIndexedExoticObject O的\[\[Delete]]内部方法接受参数P（性质键）。被调用时
+执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. Assert：O是IntegerIndexedExoticObject
+3. 如果Type(P)是String，那么
+    a. 让numericIndex是!CanonicalNumericIndexString(P)
+    b. 如果numericIndex不是undefined，那么
+        i. 如果!IsValidIntegerIndex(O, numericIndex)是false，返回true，否则返回false
+4. 返回?OrdinaryDelete(O, P)
+**** 10.4.5.7 \[\[OwnPropertyKeys]]
+  IntegerIndexedExoticObject O的\[\[OwnPropertyKeys]]内部方法不接受参数。被调用时
+执行下列步骤：
+1. 让keys是新的空List
+2. Assert：O是IntegerIndexedExoticObject
+3. 如果IsDetachedBuffer(O.\[\[ViewedArrayBuffer]])是false，那么
+    a. 按照升序遍历[0, O.\[\[ArrayLength]])上的整数，记作i，做
+        i. 在keys上追加!ToString(F(i))
+4. 遍历O上自有性质，性质键P，满足Type(P)是String，而且P不是IntegerIndex，按照
+   创建时间升序，做：
+    a. 在keys上追加P
+5. 遍历O上自有性质，性质键P，满足Type(P)是Symbol，按照创建时间升序，做：
+    a. 在keys上追加P
+6. 返回keys
+**** 10.4.5.8 IntegerIndexedObjectCreate(prototype)
+  抽象操作IntegerIndexedObjectCreate接受参数prototype。用于规定创建新的
+IntegerIndexedExoticObject的过程。被调用时执行下列步骤：
+1. internalSlotsList是<<\[\[Prototype]], \[\[Extensible]], \[\[ViewedArrayBuffer]], 
+   \[\[TypedArrayName]], \[\[ContentType]], \[\[ByteLength]], \[\[ByteOffset]], 
+   \[\[ArrayLength]], >>
+2. 让A是!MakeBasicObject(internalSlotsList)
+3. 设置A.\[\[GetOwnProperty]]是10.4.5.1中定义
+4. 设置A.\[\[HasProperty]]是10.4.5.2中定义
+5. 设置A.\[\[DefineOwnProperty]]是10.4.5.3中定义
+6. 设置A.\[\[Get]]是10.4.5.4中定义
+7. 设置A.\[\[Set]]是10.4.5.5中定义
+8. 设置A.\[\[Delete]]是10.4.5.6中定义
+9. 设置A.\[\[OwnPropertyKeys]]是10.4.5.7中定义
+10. 设置A.\[\[Prototype]]是prototype
+11. 返回A
+**** 10.4.5.9 IsValidIntegerIndex(O, index)
+  抽象操作IsVaidIntegerIndex接受参数O和index（Number）。被调用时执行下列步骤：
+1. Assert：O是IntegerIndexedExoticObject
+2. 如果IsDetachedBuffer(O.\[\[ViewedArrayBuffer]])是true，返回false
+3. 如果!IsIntegeralNumber(index)是false，返回false
+4. 如果index是-0_F，返回false
+5. 如果R(index)<0或者R(index)>=O.\[\[ArrayLength]]，返回false
+6. 返回true
+**** 10.4.5.10 IntegerIndexedElementGet(O, index)
+  抽象操作IntegerIndexedElementGet接受参数O和index（Number）。被调用时执行下列
+步骤：
+1. Assert：O是IntegerIndexedExoticObject
+2. 如果!IsValidIntegerIndex(O, index)是false，返回undefined
+3. 让offset是O.\[\[ByteOffset]]
+4. 让arrayTypeName是O.\[\[TypedArrayName]]的String
+5. 让elementSize是arrayTypeName按照表60规定的元素大小值
+6. 让indexedPosition是(R(index)*elementSize)+offset
+7. 让elementType是arrayTypeName在表60规定的元素类型值
+8. 返回GetValueFromBuffer(O.\[\[ViewedArrayBuffer]], indexedPosition, elementType, true,
+   Unordered)
+**** 10.4.5.11 IntegerIndexedElementSet(O, index, value)
+  抽象操作IntegerIndexedElementSet接受参数O、index（Number）和value。被调用时执
+行下列步骤：
+1. Assert：O是IntegerIndexedExoticObject
+2. 如果O.\[\[ContentType]]是BigInt，让numValue是?ToBigInt(value)
+3. 否则让numValue是?ToNumber(value)
+4. 如果!IsValidIntegerIndex(O, index)是true，那么
+    a. 让offset是O.\[\[ByteOffset]]
+    b. 让arrayTypeName是O.\[\[TypedArrayName]]的String值
+    c. 让elementSize是arrayTypeName按照表60规定的元素大小的值
+    d. 让indexedPosition是(R(index)*elementSize)+offset
+    e. 让elementType是arrayTypeName在表60的元素类型值
+    f. 执行SetValueBuffer(O.\[\[ViewedArrayBuffer]], indexedPosition, elementType,
+       numValue, true, unordered)
+5. 返回NormalCompletion(undefined)
+***** 注意 这个操作总是成功，但是试图在TypedArray末端写入的时候，或者在某个已
+            脱离的ArrayBuffer支持的TypedArray上写入的时候，没有任何效果。
+*** 10.4.6 Module Namespace Exotic Object 模块命名空间奇异对象
+  ModuleNamespaceExoticObject是一个暴露从ECMAScript模块（16.2.3）导出的绑定的奇异
+对象。Module导出的绑定名称与ModuleNamespaceExoticObject的String键的自有性质是1-1
+映射。每个String值的性质键就是对应导出的绑定名称的String值。在
+ModuleNamespaceExoticObject只有String键的性质。每个性质都有属性{ 
+\[\[Writable]]:true, \[\[Enumerable]]:true, \[\[Configurable]]:false }。
+ModuleNamespaceExoticObject都是不可扩展的。
+  如果对象的\[\[SetPrototypeOf]]、\[\[IsExtensible]]、\[\[PreventExtensions]]、
+\[\[GetOwnProperty]]、\[\[DefineOwnProperty]]、\[\[HasProperty]]、\[\[Get]]、
+\[\[Set]]、\[\[Delete]]和\[\[OwnPropertyKeys]]内部方法使用本节定义，其他基本内部
+方法使用10.1中的定义，这对象就是ModuleNamespaceExoticObject。这些方法在
+ModuleNamespaceCreate中安装。
+  ModuleNamespaceExoticObject有表31中的内部占位。
+| 内部占位        | 类型         | 描述                                                                                                                                             |
+| \[\[Module]]    | ModuleRecord | 导出这个命名空间的ModuleRecord                                                                                                                   |
+| \[\[Exports]]   | List<String> | 作为本对象的性质被导出的名称的String值组成的List。本List被排序时，像String值数组一样用undefined作为comparefn调用%Array.prototype.sort%进行排序。 |
+| \[\[Prototype]] | Null         | 本占位总是null（10.4.6.1）                                                                                                                       |
+  ModuleNamespaceExoticObject在上述内部方法中，除了\[\[GetPrototypeOf]]使用10.1.1中
+的定义，其他的特定的备选定义。
+**** 10.4.6.1 \[\[SetPrototypeOf]](V)
+  ModuleNamespaceExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者
+null）。被调用时执行下列步骤：
+1. 返回?SetImmutablePrototype(O, V)
+**** 10.4.6.2 \[\[IsExtensible]]()
+  ModuleNamespaceExoticObject O的\[\[IsExtensible]]内部方法不接受参数。被调用时执
+行下列步骤：
+1. 返回false
+**** 10.4.6.3 \[\[PreventExtensions]]()
+  ModuleNamespaceExoticObject O的\[\[PreventExtensions]]内部方法不接受参数。被调用
+时执行下列步骤：
+1. 返回true
+**** 10.4.6.4 \[\[GetOwnProperty]](P)
+  ModuleNamespaceExoticObject O的\[\[GetOwnProperty]]内部方法接受参数P（性质键）。
+被调用时执行下列步骤：
+1. 如果Type(P)是Symbol，返回OrdinaryGetOwnProperty(O, P)
+2. 让exports是O.\[\[Exports]]
+3. 如果P不是exports中元素，返回undefined
+4. 让value是?O.\[\[Get]](P, O)
+5. 返回PropertyDescriptor { \[\[Value]]:value, \[\[Writable]]:true,
+   \[\[Enumerable]]:true, \[\[Configurable]]:false }
+**** 10.4.6.5 \[\[DefineOwnProperty]](P, Desc)
+  ModuleNamespaceExoticObject O的\[\[DefineOwnProperty]]内部方法接受参数P（性质键）
+和Desc（PropertyDescriptor）。被调用时执行下列步骤：
+1. 如果Type(P)是Symbol，返回OrdinaryDefineOwnProperty(O, P, Desc)
+2. 让current是?O.\[\[GetOwnProperty]](P)
+3. 如果current是undefined，返回false
+4. 如果Desc.\[\[Configurable]]存在且是true，返回false
+5. 如果Desc.\[\[Enumerable]]存在且是false，返回false
+6. 如果!IsAccessorDescriptor(Desc)是true，返回false
+7. 如果Desc.\[\[Writable]]存在且是false，返回false
+8. 如果Desc.\[\[Value]]存在，返回SameValue(Desc.\[\[Value]], current.\[\[Value]])
+9. 返回true
+**** 10.4.6.6 \[\[HasProperty]](P)
+  ModuleNamespaceExoticObject O的\[\[HasProperty]]内部方法接受参数P（性质键）。被
+调用时执行下列步骤：
+1. 如果Type(P)是Symbol，返回OrdinaryHasProperty(O, P)
+2. 让exports是O.\[\[Exports]]
+3. 如果P是exports的元素，返回true
+4. 返回false
+**** 10.4.6.7 \[\[Get]](P,Receiver)
+  ModuleNamespaceExoticObject O的\[\[Get]]内部方法接受参数P（性质键）和Receiver
+（ECMAScript语言值）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 如果Type(P)是Symbol，那么
+    a. 返回?OrdinaryGet(O, P, Receiver)
+3. 让exports是O.\[\[Exports]]
+4. 如果P不是exports元素，返回undefined
+5. 让m是O.\[\[Module]]
+6. 让binding是!m.ResolveExport(P)
+7. Assert：binding是ResolveBindingRecord
+8. 让targetModule是binding.\[\[Module]]
+9. Assert：targetModule不是undefined
+10. 如果binding.\[\[BindingName]]是"*namespace*"，那么
+    a. 返回?GetModuleNamespace(targetModule)
+11. 让targetEnv四targetModule.\[\[Environment]]
+12. 如果targetEnv是undefined，投掷ReferenceError异常
+13. 返回?targetEnv.GetBindingValue(binding.\[\[BindingName]], true)
+***** 注意 ResolveExport是没有副作用的。每次带着特定exportName和resolveSet参数
+            调用本操作，必须返回相同的结果。实现会选择为每个
+            ModuleNamespaceExoticObject的\[\[Exports]]预先计算或者缓存ResolveExport
+            结果。
+**** 10.4.6.8 \[\[Set]](P,V, Receiver)
+  ModuleNamespaceExoticObject O的\[\[Set]]内部方法接受参数P（性质键）、V（
+ECMAScript语言值）和Receiver（ECMAScript语言值）。被调用时执行下列步骤：
+1. 返回false
+**** 10.4.6.9 \[\[Delete]](P)
+  ModuleNamespaceExoticObject O的\[\[Delete]]内部方法接受参数P（性质键）。被调用
+时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 如果Type(P)是Symbol，那么
+    a. 返回?OrdinaryDelete(O, P)
+3. 让exports是O.\[\[Exports]]
+4. 如果P是exports元素，返回false
+5. 返回true
+**** 10.4.6.10 \[\[OwnPropertyKeys]]()
+  ModuleNamespaceExoticObject O的\[\[OwnPropertyKeys]]内部方法不接受参数。被调用时
+执行下列步骤：
+1. 让exports是O.\[\[Exports]]的副本
+2. 让symbolKeys是!OrdinaryOwnPropertyKeys(O)
+3. 追加symbolKeys的全部元素到exports中
+4. 返回exports
+**** 10.4.6.11 ModuleNamespaceCreate(module, exports)
+  抽象操作ModuleNamespaceCreate接受参数module和exports。用于规范创建
+ModuleNamespaceExoticObject的过程。被调用时执行下列步骤：
+1. Assert：module是ModuleRecord
+2. Assert：module.\[\[Namespace]]是undefined
+3. Assert：exports是String的List
+4. 让internalSlotsList是表31中列出内部占位列表
+5. 让M是!MakeBasicObject(internalSlotsList)
+6. 设置M的基本内部方法遵循10.4.6的定义规范
+7. 设置M.\[\[Prototype]]是null
+8. 设置M.\[\[Module]]是module
+9. 让sortedExports是exports元素的list，按照数组使用undefined作为comparefn调用
+   %Array.prototype.sort%的方式排序。
+10. 设置M.\[\[Exports]]是sortedExports
+11. 遵循28.3中定义创建M的自有性质
+12. 设置module.\[\[Namespace]]是M
+13. 返回M
+*** 10.4.7 Immutable Prototype Exotic Object
+  ImmutablePrototypeExoticObject是奇异对象，其\[\[Prototype]]内部占位在初始化后
+不能变动。
+  如果一个对象的\[\[SetPrototypeOf]]内部方法使用随后的实现，这个对象就是
+ImmutablePrototypeExoticObject。（其他的基本内部方法可以使用任意实现，依赖于
+请求ImmutablePrototypeExoticObject的规定）
+**** 注意 不想其他奇异对象，没有指明为创建ImmutablePrototypeExoticObject定义的
+           抽象操作。因为他们仅被%Object.prototype%、host环境，在host环境内使
+           用，联结的对象潜在的也是奇异对象，所以需要各自指明的创建过程。
+**** 10.4.7.1 \[\[SetPrototypeOf]](V)
+  ImmutablePrototypeExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或
+null）。被调用时执行下列步骤：
+1. 返回?SetImmutablePrototype(O, V)
+**** 10.4.7.2 SetImmutablePrototype(O, V)
+  抽象操作SetImmutablePrototype接受参数O和V。被调用时执行下列步骤：
+1. Assert：Type(V)是Object或者Null
+2. 让current是?O.\[\[GetPrototypeOf]]()
+3. 如果SameValue(V, current)是true，返回true
+4. 返回false
 ** 10.5 Proxy Object Internal Methods And Internal Slots
+  ProxyObject是奇异对象，部分基本内部方法使用ECMAScript代码实现。每个
+ProxyObject都有\[\[ProxyHandler]]内部占位。\[\[ProxyHandler]]是一个对象，被称为
+代理的HandlerObject，也可能是null。HandlerObject的Methods（表32）会被用于扩大
+一个或者多个ProxyObject内部方法的实现。每个ProxyObject还有一个内部占位
+\[\[ProxyTarget]]，是对象或者null。这个对象称为代理的TargetObject。
+  如果一个对象的基本内部方法（包括\[\[Call]]和\[\[Construct]]，如果提供了）
+使用本节的定义，这个对象就是ProxyExoticObject。使用ProxyCreate安装这些方法。
+| 内部方法                | 顾问方法                 |
+| \[\[GetPrototypeOf]]    | getPrototypeOf           |
+| \[\[SetPrototypeOf]]    | setPrototypeOf           |
+| \[\[IsExtensible]]      | isExtensible             |
+| \[\[PreventExtensions]] | preventExtensions        |
+| \[\[GetOwnProperty]]    | getOwnPropertyDescriptor |
+| \[\[DefineOwnProperty]] | defineProperty           |
+| \[\[HasProperty]]       | has                      |
+| \[\[Get]]               | get                      |
+| \[\[Set]]               | set                      |
+| \[\[Delete]]            | delete                   |
+| \[\[OwnProperty]]       | ownKeys                  |
+| \[\[Call]]              | apply                    |
+| \[\[Construct]]         | construct                |
+  顾问方法被调用于以提供代理对象的内部方法时，代理目标对象会作为一个参数
+传递给顾问方法。代理顾问对象不需要对应每个基本内部方法。调用代理的内部方
+法会导致调用代理目标对象上对应的内部方法，如果顾问对象没有方法对应这种
+捕获的话。
+  代理对象的\[\[ProxyHandler]]和\[\[ProxyTarget]]内部占位总是在对象创建的时候进
+行初始化，一般也是不能修改的。有些代理对象以一种允许被随即调用的方式进行
+创建。当调用代理的时候，而它的\[\[ProxyHandler]]和\[\[ProxyTarget]]内部占位还被
+设置为null，会导致随即调用代理对象的内部方法投掷TypeError一场。
+  因为代理对象允许使用任意ECMAScript代码实现这些内部方法，可能定义了一个代理
+对象的顾问方法违反了6.1.7.3中定义的不变性。6.1.7.3中定义的一些内部方法不变性
+是基本的完好不变形。这些不变性被在本节规定的代理对象的内部方法显式的强制
+使用。ECMAScript实现必须在任何可能的破坏不变性下保持强壮。
+  在随后的算法声明中，假设O是ECMAScript对象，P是性质键，V是ECMAScript语言值和
+Desc是PropertyDescriptor记录。
+*** 10.5.1 \[\[GetPrototypeOf]]()
+  ProxyExoticObject O的\[\[GetPrototypeOf]]内部方法不接受参数。被调用时执行下列
+步骤：
+1. 让handler是O.\[\[ProxyHandler]]
+2. 如果handler是null，投掷TypeError异常
+3. Assert：Type(handler)是对象
+4. 让target是O.\[\[ProxyTarget]]
+5. 让trap是?GetMethod(handler, "getPrototypeOf")
+6. 如果trap是undefined，那么
+    a. 返回?target.\[\[GetPrototypeOf]]()
+7. 让handlerProto是?Call(trap, handler, <<target>>)
+8. 如果Type(handlerProto)不是Object或者Null，投掷TypeError异常
+9. 让extensibleTarget是?IsExtensible(target)
+10. 如果extensibleTarget是true，返回handlerProto
+11. 让targetProto是?target.\[\[GetPrototypeOf]]()
+12. 如果SameValue(handlerProto,targetProto)是false，投掷TypeError异常
+13. 返回handlerProto
+**** 注意 代理对象的\[\[GetPrototypeOf]]强制执行下列不变性：
+           . \[\[GetPrototypeOf]]的结果必须是Object或者null
+           . 如果目标对象不是可扩展的，在代理对象上调用\[\[GetPrototypeOf]]必须
+           与在代理目标上调用\[\[GetPrototyOf]]返回相同结果。
+*** 10.5.2 \[\[SetPrototypeOf]](V)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+被调用时执行下列步骤：
+1. Assert：Type(V)是Object或者Null
+*** 10.5.3 \[\[IsExtensible]]()
+  ProxyExoticObject O的\[\[GetPrototypeOf]]内部方法不接受参数。被调用时执行下列
+步骤：
+*** 10.5.4 \[\[PreventExtensions]]()
+*** 10.5.5 \[\[GetOwnProperty]]()
+*** 10.5.5 \[\[DefineOwnProperty]]()
+*** 10.5.7 \[\[HasProperty]]()
+*** 10.5.8 \[\[Get]]()
+*** 10.5.9 \[\[Set]]()
+*** 10.5.10 \[\[Delete]]()
+*** 10.5.11 \[\[OwnPropertyKeys]]()
+*** 10.5.12 \[\[Call]]()
+*** 10.5.13 \[\[Construct]]()
+*** 10.5.14 ProxyCreate(target, handler)
 * 11 ECMAScript Language: Source Code
 ** 11.1 Source Text
 Syntax
