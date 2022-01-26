@@ -7015,19 +7015,144 @@ Desc是PropertyDescriptor记录。
   ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
 被调用时执行下列步骤：
 1. Assert：Type(V)是Object或者Null
+2. 让handler是O.\[\[ProxyHandler]]
+3. 如果handler是null，投掷TypeError异常
+4. Assert：Type(handler)是Object
+5. 让target是O.\[\[ProxyTarget]]
+6. 让trap是?GetMethod(handler, "setPrototypeOf")
+7. 如果trap是undefined，那么
+    a. 返回?target.\[\[SetPrototypeOf]](V)
+8. 让booleanTrapResult是!ToBoolean(?Call(trap, handler, <<target, V>>))
+9. 如果booleanTrapResult是false，返回false
+10. 让extensibleTarget是?IsExtensible(target)
+11. 如果extensibleTarget是true，返回true
+12. 如果targetProto是?target.\[\[GetPrototypeOf]]()
+13. 如果SameValue(V,targetProto)是false，投掷TypeError异常
+14. 返回true
+**** 注意 代理对象的\[\[SetPrototypeOf]]必须强制执行下列不变性：
+           . \[\[SetPrototypeOf]]的结果是Boolean值
+           . 如果目标对象不是可扩展的，参数值必须与目标对象的\[\[GetPrototype]]
+             结果一致。
 *** 10.5.3 \[\[IsExtensible]]()
-  ProxyExoticObject O的\[\[GetPrototypeOf]]内部方法不接受参数。被调用时执行下列
+  ProxyExoticObject O的\[\[IsExtensible]]内部方法不接受参数。被调用时执行下列
 步骤：
+1. 让handler是O.\[\[ProxyHandler]]
+2. 如果handler是null，投掷TypeError异常
+3. Assert：Type(handler)是Object
+4. 让target是O.\[\[ProxyTarget]]
+5. 让trap是?GetMethod(handler, "isExtensible")
+6. 如果trap是undefined，那么
+    a. 返回?IsExtensible(target)
+7. 让booleanTrapResult是!ToBoolean(?Call(trap, handler, <<target>>))
+8. 让targetResult是?IsExtensible(target)
+9. 如果SameValue(booleanTrapResult, targetResult)是false，投掷TypeError异常
+10. 返回booleanTrapResult
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
 *** 10.5.4 \[\[PreventExtensions]]()
-*** 10.5.5 \[\[GetOwnProperty]]()
-*** 10.5.5 \[\[DefineOwnProperty]]()
-*** 10.5.7 \[\[HasProperty]]()
-*** 10.5.8 \[\[Get]]()
-*** 10.5.9 \[\[Set]]()
-*** 10.5.10 \[\[Delete]]()
+  ProxyExoticObject O的\[\[PreventExtensions]]内部方法不接受参数。被调用时执行
+下列步骤：
+1. 让handler是O.\[\[ProxyHandler]]
+2. 如果handler是null，投掷TypeError异常
+3. Assert：Type(handler)是Object
+4. 让target是O.\[\[ProxyTarget]]
+5. 让trap是?GetMethod(handler, "preventExtensions")
+6. 如果trap是undefined，那么
+    a. 返回?target.\[\[PreventExtensions]]()
+7. 让booleanTrapResult是!ToBoolean(?Call(trap, handler, <<target>>))
+8. 如果booleanTrapResult是true，那么
+    a. 让extensibleTarget是?IsExtensible(target)
+    b. 如果extensibleTarget是true，投掷TypeError异常
+9. 返回booleanTrapResult
+**** 注意 代理对象的\[\[PreventExtensions]]必须强制执行下列不变性：
+           . \[\[PreventExtensions]]的结果是Boolean值
+           . 提供给代理对象\[\[PreventExtensions]]只有在代理目标的
+             \[\[IsExtensible]]是false时，返回true。
+*** 10.5.5 \[\[GetOwnProperty]](P)
+  ProxyExoticObject O的\[\[GetOwnProperty]]内部方法接受参数P（性质键）。
+被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让handler是O.\[\[ProxyHandler]]
+3. 如果handler是null，投掷TypeError异常
+4. Assert：Type(handler)是Object
+5. 让target是O.\[\[ProxyTarget]]
+6. 让trap是?GetMethod(handler, "getOwnPropertyDescriptor")
+7. 如果trap是undefined，那么
+    a. 返回?target.\[\[GetOwnProperty]]()
+8. 让trapResultObj是?Call(trap, handler, <<target, P>>)
+9. 如果Type(trapResultObj)不是Object和Undefined，投掷TypeError异常
+10. 让targetDesc是?target.\[\[GetOwnProperty]](P)
+11. 如果trapResultObj是undefined，那么
+    a. 如果targetDesc是undefined，返回undefined
+    b. 如果targetDesc.\[\[Configurable]]是false，投掷TypeError异常
+    c. extensibleTarget是?IsExtensible(target)
+    d. 如果extensibleTarget是false，投掷TypeError异常
+    e. 返回undefined
+12. 让extensibleTarget是?IsExtensible(target)
+13. 让resultDesc是?ToPropertyDescriptor(resultDesc)
+14. 调用CompletePropertyDescriptor(resultDesc)
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
+*** 10.5.5 \[\[DefineOwnProperty]](P, Desc)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+被调用时执行下列步骤：
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
+*** 10.5.7 \[\[HasProperty]](P)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+被调用时执行下列步骤：
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
+*** 10.5.8 \[\[Get]](P, Receiver)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+被调用时执行下列步骤：
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
+*** 10.5.9 \[\[Set]](P, V, Receiver)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+被调用时执行下列步骤：
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
+*** 10.5.10 \[\[Delete]](P)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+被调用时执行下列步骤：
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
 *** 10.5.11 \[\[OwnPropertyKeys]]()
-*** 10.5.12 \[\[Call]]()
-*** 10.5.13 \[\[Construct]]()
+  ProxyExoticObject O的\[\[IsExtensible]]内部方法不接受参数。被调用时执行下列
+步骤：
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
+*** 10.5.12 \[\[Call]](thisArgument, argumentsList)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+被调用时执行下列步骤：
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
+*** 10.5.13 \[\[Construct]](argumentsList, newTarget)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+被调用时执行下列步骤：
+**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Boolean值
+           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
+             一致。参数相同，结果相同。
 *** 10.5.14 ProxyCreate(target, handler)
 * 11 ECMAScript Language: Source Code
 ** 11.1 Source Text
