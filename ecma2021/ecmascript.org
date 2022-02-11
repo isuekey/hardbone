@@ -22,6 +22,7 @@
 ** 活 artefact，人工造物
 ** 圈（juan`） 表示scope
 ** \*\*#N 表示名称为N的值的\*\*，例如绑定#N，表示名称为N的值的绑定。
+** Target.property是some，表示Target上有性质property，且其值是some
 *** 根据编译原理，大小端由其他编译层处理。
 * 前言 [44,46]
 * 第一章 范围
@@ -7091,74 +7092,262 @@ Desc是PropertyDescriptor记录。
     d. 如果extensibleTarget是false，投掷TypeError异常
     e. 返回undefined
 12. 让extensibleTarget是?IsExtensible(target)
-13. 让resultDesc是?ToPropertyDescriptor(resultDesc)
+13. 让resultDesc是?ToPropertyDescriptor(trapResultObj)
 14. 调用CompletePropertyDescriptor(resultDesc)
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
-*** 10.5.5 \[\[DefineOwnProperty]](P, Desc)
-  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
-被调用时执行下列步骤：
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
+15. 让valid是IsCompatiblePropertyDescriptor(extensibleTarget, resultDesc, targetDesc)
+16. 如果valid是false，投掷TypeError异常
+17. 如果resultDesc.\[\[Configurable]]是false，那么
+    a. 如果targetDesc是undefined或者targetDesc.\[\[Configurable]]是true，那么
+        i. 投掷TypeError异常
+    b. 如果resultDesc.\[\[Writable]]是false，那么
+        i. 如果target.\[\[Writable]]是true，投掷TypeError异常
+18. 返回resultDesc
+**** 注意 代理对象的\[\[GetOwnProperty]]必须强制执行下列不变性：
+           . \[\[IsExtensible]]的结果是Object或者undefined
+           . 如果是目标的不可设置的自有性质，不能被报告为不存在。
+           . 如果目标是不可扩展对象，除非目标没有此性质，否则不能报告不存在
+           . 如果目标是不可扩展对象，除非目标有此性质，否则不能报告存在
+           . 除非目标上的性质是不可设置的，否则不能报告为不可设置的
+           . 除非目标上的性质是不可设置且不可写的，否则不能报告为不可设置且
+             不可写的
+*** 10.5.6 \[\[DefineOwnProperty]](P, Desc)
+  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数P（性质键）和Desc（
+PropertyDescriptor）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让handler是O.\[\[ProxyHandler]]
+3. 如果handler是null，投掷TypeError异常
+4. Assert：Type(handler)是Object
+5. 让target是O.\[\[ProxyTarget]]
+6. 让trap是?GetMethod(handler, "defineProperty")
+7. 如果trap是undefined，那么
+    a. 返回?target.\[\[DefineOwnProperty]](P, Desc)
+8. 让descObj是FromPropertyDescriptor(Desc)
+9. 让booleanTrapResult是!ToBoolean(?Call(trap, handler, <<target, P, descObj>>))
+10. 如果booleanTrapResult是false，返回false
+11. 让targetDesc是?target.\[\[GetOwnProperty]](P)
+12. 让extensibleTarget是?IsExtensible(target)
+13. 如果Desc.\[\[Configurable]]是false，那么
+    a. 让settingConfigFalse是true
+14. 否则 让settingConfigFalse是false
+15. 如果 targetDesc是undefined，那么
+    a. 如果extensibleTargt是false，投掷TypeError异常
+    b. 如果settingConfigFalse是true，投掷TypeError异常
+16. 否则
+    a. 如果IsCompatiblePropertyDescriptor(extensibleTarget, Desc, targetDesc)是false，
+       投掷TypeError异常
+    b. 如果settingConfigFalse是true，而且targetDesc.\[\[Configurable]]是true，投掷
+       TypeError异常
+    c. 如果IsDataDescriptor(targetDesc)是true，targetDesc.\[\[Configurable]]是false，
+       而且targetDesc.\[\[Writable]]是true，那么
+        i. 如果Desc.\[\[Writable]]是false，投掷TypeError异常
+17. 返回true
+**** 注意 代理对象的\[\[DefineOwnProperty]]必须强制执行下列不变性：
+           . \[\[DefineOwnProperty]]的结果是Boolean值
+           . 如果目标是不可扩展的，不能增加性质
+           . 除非目标对象上的性质是不可设置的，性质不能是不可设置的
+           . 除非目标对象上的性质是不可设置的不可写性质，不可设置性质不能
+             同时是不可写的。
+           . 如果目标上有对应性质，并在目标上通过\[\[DefineOwnProperty]]应用性质
+             本身的描述，不会投掷异常
 *** 10.5.7 \[\[HasProperty]](P)
-  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
-被调用时执行下列步骤：
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
+  ProxyExoticObject O的\[\[HasProperty]]内部方法接受参数P（性质键）。被调用时执
+行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让handler是O.\[\[ProxyHandler]]
+3. 如果handler是null，投掷TypeError异常
+4. Assert：Type(handler)是Object
+5. 让target是O.\[\[ProxyTarget]]
+6. 让trap是?GetMethod(handler, "has")
+7. 如果trap是undefined，那么
+    a. 返回?target.\[\[HasProperty]](P)
+8. 让booleanTrapResult是!ToBoolean(?Call(trap, handler, <<trget, P>>))
+9. 如果booleanTrapResult是false，那么
+    a. 让targetDesc是?target.\[\[GetOwnProperty]](P)
+    b. 如果targetDesc不是undefined，那么
+        i. 如果targetDesc.\[\[Configurable]]是false，投掷TypeError异常
+       ii. 让extensibleTarget是?IsExtensible(target)
+      iii. 如果extensibleTarget是false，投掷TypeError异常
+10. 返回booleanTrapResult
+**** 注意 代理对象的\[\[HasProperty]]必须强制执行下列不变性：
+           . \[\[HasProperty]]的结果是Boolean值
+           . 如果目标对象上性质是不可设置的，不能报告性质不存在
+           . 如果目标对象是不可不扩展的，且有这个性质，不能报告性质不存在
 *** 10.5.8 \[\[Get]](P, Receiver)
-  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
+  ProxyExoticObject O的\[\[Get]]内部方法接受参数P（性质键）和Receiver（
+ECMAScript语言值）。
 被调用时执行下列步骤：
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
+1. Assert：IsPropertyKey(P)是true
+2. 让handler是O.\[\[ProxyHandler]]
+3. 如果handler是null，投掷TypeError异常
+4. Assert：Type(handler)是Object
+5. 让target是O.\[\[ProxyTarget]]
+6. 让trap是?GetMethod(handler, "get")
+7. 如果trap是undefined，那么
+    a. 返回?target.\[\[Get]](P, Receivere)
+8. 让trapResult是?Call(trap, handler, <<target, P, Receiver>>)
+9. 让targetDesc是?target.\[\[GetOwnProperty]](P)
+10. 如果targetDesc不是undefined，而且targetDesc.\[\[Configurable]]是false，那么
+    a. 如果IsDataDescriptor(targetDesc)是true，且targetDesc.\[\[Writable]]是false，
+       那么
+        i. 如果SameValue(trapResult, targetDesc.\[\[Value]])是false，投掷TypeError
+           异常
+    b. 如果IsAccessorDescriptor(targetDesc)是true，且targetDesc.\[\[Get]]是
+       undefined，那么
+        i. 如果trapResult不是undefined，投掷TypeError异常
+11. 返回trapResult
+**** 注意 代理对象的\[\[Get]]必须强制执行下列不变性：
+           . 如果目标对象上对应的性质是不可写的不可设置自有性质，必须报告
+             相同的值
+           . 如果目标对象上对象的性质是不可设置的访问性质，且没有\[\[Get]]属
+             性，必须报告undefined
 *** 10.5.9 \[\[Set]](P, V, Receiver)
-  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
-被调用时执行下列步骤：
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
+  ProxyExoticObject O的\[\[Set]]内部方法接受参数P（性质键）、V（ECMAScript语言
+值）和Receiver（ECMAScript语言值）。被调用时执行下列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让handler是O.\[\[ProxyHandler]]
+3. 如果handler是null，投掷TypeError异常
+4. Assert：Type(handler)是Object
+5. 让target是O.\[\[ProxyTarget]]
+6. 让trap是?GetMethod(handler, "set")
+7. 如果trap是undefined，那么
+    a. 返回?target.\[\[Set]](P, V, Receiver)
+8. 让booleanTrapResult是!ToBoolean(?Call(trap, handler, <<target, P, V, Receiver>>))
+9. 如果booleanTrapResult是false，返回false
+10. 让targetDesc是?target.\[\[GetOwnProperty]](P)
+11. 如果targetDesc不是undefined，且targetDesc.\[\[Configurable]]是false，那么
+    a. 如果IsDataDescriptor(targetDesc)是true，且targetDesc.\[\[Writable]]是false，
+       那么
+        i. 如果SameValue(V, targetDesc.\[\[Value]])是false，投掷TypeError异常
+    b. 如果IsAccessorDescriptor(targetDesc)是true，那么
+        i. 如果targetDesc.\[\[Set]]是undefined，投掷TypeError异常
+12. 返回true
+**** 注意 代理对象的\[\[Set]]必须强制执行下列不变性：
+           . \[\[Set]]的结果是Boolean值
+           . 如果目标对象上对应的性质是不可写的不可设置数据性质，不能设置
+             不同的值
+           . 如果目标对象上对应的性质是不可设置的访问性质，且没有\[\[Set]]属
+             性，不能设置性质值
 *** 10.5.10 \[\[Delete]](P)
-  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
-被调用时执行下列步骤：
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
+  ProxyExoticObject O的\[\[Delete]]内部方法接受参数P（性质键）。被调用时执行下
+列步骤：
+1. Assert：IsPropertyKey(P)是true
+2. 让handler是O.\[\[ProxyHandler]]
+3. 如果handler是null，投掷TypeError异常
+4. Assert：Type(handler)是Object
+5. 让target是O.\[\[ProxyTarget]]
+6. 让trap是?GetMethod(handler, "deleteProperty")
+7. 如果trap是undefined，那么
+    a. 返回?target.\[\[Delete]](P)
+8. 让booleanTrapResult是!ToBoolean(?Call(trap, handler, <<target, P>>))
+9. 如果booleanTrapResult是false，返回false
+10. 让targetDesc是?target.\[\[GetOwnProperty]](P)
+11. 如果targetDesc是undefined，返回true
+12. 如果targetDesc.\[\[Configurable]]是false，投掷TypeError异常
+13. 让extensibleTarget是?isExtensible(target)
+14. 如果extensibleTarget是false，投掷TypeError异常
+15. 返回true
+**** 注意 代理对象的\[\[Delete]]必须强制执行下列不变性：
+           . \[\[Delete]]的结果是Boolean值
+           . 如果目标对象对应的性质是不可设置的自有性质，不能报告已删除性质
+           . 如果目标对象是不可扩展的，且有对应的自有性质，不能报告已删除性
+             质
 *** 10.5.11 \[\[OwnPropertyKeys]]()
-  ProxyExoticObject O的\[\[IsExtensible]]内部方法不接受参数。被调用时执行下列
+  ProxyExoticObject O的\[\[OwnPropertyKeys]]内部方法不接受参数。被调用时执行下列
 步骤：
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
+1. 让handler是O.\[\[ProxyHandler]]
+2. 如果handler是null，投掷TypeError异常
+3. Assert：Type(handler)是Object
+4. 让target是O.\[\[ProxyTarget]]
+5. 让trap是?GetMethod(handler, "ownKeys")
+6. 如果trap是undefined，那么
+    a. 返回?target.\[\[OwnPropertyKeys]]()
+7. 让trapResultArray是?Call(trap, handler, <<target>>)
+8. 让trapResult是?CreateListFromArrayLike(trapResultArray, <<String, Symbol>>)
+9. 如果trapResult包含任何重复的实体，投掷TypeError异常
+10. 让extensibleTarget是?IsExtensible(target)
+11. 让targetKeys是?target.\[\[OwnPropertyKeys]]()
+12. Assert：targetKeys是List，其元素是String或Symbol
+13. Assert：targetKeys中不包含重复实体
+14. 让targetConfigurableKeys是新的空List
+15. 让targetNoneconfigurableKeys是新的空List
+16. 遍历targetKeys中元素，记作key，做
+    a. 让desc是?target.\[\[GetOwnProperty]](key)
+    b. 如果desc不是undefined而且desc.\[\[Configurable]]是false，那么
+        i. 追加key到targetNonconfigurableKeys中
+    c. 否则
+        i. 追加key到targetConfigurableKeys
+17. 如果extensibleTarget是true，而且targetNonconfigurableKeys是空，那么
+    a. 返回trapResult
+18. 让uncheckedResultKeys是List，其元素是trapResult的元素
+19. 遍历targetNonconfigurableKeys中元素，记作key，做
+    a. 如果key不是uncheckedResultKeys的元素，投掷TypeError异常
+    b. 从uncheckedResultKeys中移除key
+20. 如果extensibleTarget是true，返回trapResult
+21. 遍历targetConfigurableKeys中元素，记作key，做
+    a. 如果key不是uncheckedResultKeys，投掷TypeError异常
+    b. 从uncheckedResultKeys中移除key
+22. 如果uncheckedResubltKeys不是空的，投掷TypeError异常
+23. 返回trapResult
+**** 注意 代理对象的\[\[OwnPropertyKeys]]必须强制执行下列不变性：
+           . \[\[OwnPropertyKeys]]的结果是List
+           . 返回List不能包含重复实体
+           . List元素的类型是String或者Symbol
+           . 结果List必须包含目标对象上全部的不可设置的自有性质
+           . 如果目标对象是不可扩展的，结果List必须包含且只能包含目标对象的
+             全部自有性质
 *** 10.5.12 \[\[Call]](thisArgument, argumentsList)
-  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
-被调用时执行下列步骤：
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
+  ProxyExoticObject O的\[\[Call]]内部方法接受参数thiArgument（ECMAScript语言值）
+和argumentsList（ECMAScript语言值的List）。被调用时执行下列步骤：
+1. 让handler是O.\[\[ProxyHandler]]
+2. 如果handler是null，投掷TypeError异常
+3. Assert：Type(handler)是Object
+4. 让target是O.\[\[ProxyTarget]]
+5. 让trap是?GetMethod(handler, "apply")
+6. 如果trap是undefined，那么
+    a. 返回?Call(target, thisArgument, argumentsList)
+7. 让argArray是!CreateArrayFromList(argumentsList)
+8. 返回?Call(trap, handler, <<trget, thisArgument, argArray>>)
+**** 注意 只有在代理对象的内部占位\[\[ProxyTarget]]的初始化值是一个有\[\[Call]]
+           内部方法的对象时，代理对象才有\[\[Call]]内部方法
 *** 10.5.13 \[\[Construct]](argumentsList, newTarget)
-  ProxyExoticObject O的\[\[SetPrototypeOf]]内部方法接受参数V（Object或者null）。
-被调用时执行下列步骤：
-**** 注意 代理对象的\[\[IsExtensible]]必须强制执行下列不变性：
-           . \[\[IsExtensible]]的结果是Boolean值
-           . 提供给代理对象\[\[IsExtensible]]必须与代理目标的\[\[IsExtensible]]
-             一致。参数相同，结果相同。
+  ProxyExoticObject O的\[\[Constructor]]内部方法接受参数argumentsLis（ECMAScript
+语言值）和newTarget（构造范）。被调用时执行下列步骤：
+1. 让handler是O.\[\[ProxyHandler]]
+2. 如果handler是null，投掷TypeError异常
+3. Assert：Type(handler)是Object
+4. 让target是O.\[\[ProxyTarget]]
+5. Assert：IsConstructor(target)是true
+6. 让trap是?GetMethod(handler, "construct")
+7. 如果trap是undefined，那么
+    a. 返回?Construct(target, argumentsList, newTarget)
+8. 让argArray是!CreateArrayFromList(argumentsList)
+9. 让newObj是?Call(trap, handler, <<target, argArray, newTarget>>)
+10. 如果Type(newObj)不是Object，投掷TypeError异常
+11. 返回newObj
+**** 注意1 只有在代理对象的内部占位\[\[ProxyTarget]]的初始化值是一个有
+            \[\[Construct]]内部方法的对象时，代理对象才有\[\[Construct]]内部方法
+**** 注意2 代理对象的\[\[Construct]]必须强制执行下列不变性：
+            . \[\[Construct]]的结果是Object
 *** 10.5.14 ProxyCreate(target, handler)
+  抽象操作ProxyCreate接受参数target和handler。用于规定ProxyExoticObject的创建。
+被调用时执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 如果Type(handler)不是Object，投掷TypeError异常
+3. 让P是!MakeBasicObject(<<\[\[ProxyHandler]], \[\[ProxyTarget]]>>)
+4. 除了\[\[Call]]和\[\[Construct]]，按照10.5中规定的定义设置P的基本内部方法
+5. 如果IsCallable(target)是true，那么
+    a. 设置P.\[\[Call]]是10.5.12规定的定义
+    b. 如果IsConstructor(target)是true，那么
+        i. 设置P.\[\[Construc]]是10.5.13规定的定义
+6. 设置P.\[\[ProxyTarget]]是target
+7. 设置P.\[\[ProxyHandler]]是handler
+8. 返回P
 * 11 ECMAScript Language: Source Code
 ** 11.1 Source Text
-Syntax
+*** Syntax
 SourceCharacter::
-  any Unicode code pint
+    any Unicode code pint
+    ECMAScript代码用Unicode表示。
 * 25
 ** 25.1
 
