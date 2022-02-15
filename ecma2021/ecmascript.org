@@ -88,7 +88,7 @@ InputElementRegExpOrTemplateTail，这些产出描述了如何将输入的字符
 流中。多行注释（就是/*...*/形式的注释，与占用几行无关）中如果没有换行符，
 会被舍弃掉；如果含有一个或多个换行符，将被替换为一个换行符的，然后作为
 语句语法输入元素流的一部分
-  ECMAScript的RegExp语法在22.2.1中给出。该文法还将源字符定义的代码点作为
+  ECMAScript的RegExp语法在22.2.1中给出。该文法还将源字符定义的编码点作为
 "terminal symbols"其终结符。从"goal symbol Pattern"开始定义了若干产出描述了
 如何将字符码转换为正则表达式。
   词汇与正则语法的产出用两个冒号"::"作为分隔符号。词汇与正则语法共享部分
@@ -142,7 +142,7 @@ eval(str)
 *** 5.1.5 语法符号
   terminal symbols用等宽加黑（这里我也不知道如何表示）字体表示，无论是在语法
 产出还是在文档规范里，只要文字直接表示一个terminal symbol。这会像所写的一样
-出现在脚本。以这种方式指明的全部终端符代码符都被认为是恰当的Unicode代码，
+出现在脚本。以这种方式指明的全部终端符代码符都被认为是恰当的Unicode编码，
 包含基本的拉丁字符，而不是那些在Unicode范围内相似外形的编码。终端符不能用
 \UnicodeEscapeSequence表示
   nonterminal用斜体表示。一个nonterminal（其实就是产出）的定义以跟随若干冒号
@@ -643,7 +643,7 @@ ECMAScript语言的语义规范。其他抽象操作通过本规范定义。
 754-2019的双精度64位格式值，在IEEE标准中为二进制浮点数代数而规定的，除了
 9,007,199,254,740,990（就是2^53 - 2）个被识别为IEEE标准中的"Not-a-Number"值。
 这些"Not-a-Number"值在ECMAScript中被用一个特殊NaN值表示。（注意NaN值是被程序
-表达式NaN产生的）。在某些实现中，扩展代码可能侦测到不同Not-a-Number值的差
+表达式NaN产生的）。在某些实现中，扩展编码可能侦测到不同Not-a-Number值的差
 异，但是这种行为是实现定义的。ECMAScript代码所有的NaN是不区分。
 ***** 注意在ArrayBuffer（见于[[25.1]]）或者SharedArrayBuffer（监狱[[25.2]]）中，一个
 Number值被存储到其中后，可能侦测到这种位模式值（能够区分的NaN），这种
@@ -7347,7 +7347,179 @@ ECMAScript语言值）。
 *** Syntax
 SourceCharacter::
     any Unicode code pint
-    ECMAScript代码用Unicode表示。
+    
+  ECMAScript代码用Unicode表示。ECMAScript源文本是编码点的序列。全部编码点从
+U+0000到U+10FFFF，包含替代用的编码点，只要被语法许可，都可以在源文本中出现。
+用于存储与传输ECMAScript源文本的实际的编码与本规范无关。不管扩展的源文本编
+码，合用的ECMAScript实现将源文本当作SourceCharacter值等价序列来处理，每个
+SourceCharacter是一个Unicode编码点。合用的ECMAScript实现没有被要求常规化源文
+本，或者表现的像常规化了源文本。
+
+  组合字符序列的组成部件被当作分隔的编码点，尽管用户认为完整的序列是一个
+字符。
+**** 注意 在字符串字面量，正则表达式字面量，模板字面量和标识，任何Unicode
+           编码点可能被用Unicode转义序列表达，也就是显式的用编码点的数字值
+           标识。在注释内，作为注释的一部分，这些转义序列被有效的忽略了。
+           
+           ECMAScript在从Unicode转移序列上的行为与Java编程语言不同。在Java中，
+           Unicode转义序列，例如\u000A，出现在单行注释中，被当作是一个行终结
+           符（Unicode code pint U+000A就是LINE FEED(LF)），这个之后的编码点就不
+           是注释的内容了。类似的如果Unicode转义序列\u000A出现在Java程序的字符
+           串字面量里，它会被翻译为行终结符，这是不允许在字符串字面量里的，
+           必须使用\n代替\u000A，让LINE FEED(LF)称为字符串字面量的Strng值的一
+           部分。在ECMAScript中，一个出现在注释中的Unicode转义序列永远不会被
+           翻译，因此也就不会中断注释。类似的，一个出现在ECMAScript程序的字
+           符串字面量的Unicode转义序列总是添加到字面量中，且不会被翻译为行
+           终结符或者其他会导致字符串字面量终结的编码点。
+*** 11.1.1 Static Semantic: UTF16EncodeCodePoint(cp)
+  抽象操作UTF16EncodeCodePoint接受参数cp（Unicode编码点）。被调用时执行下列步
+骤：
+1. Assert：0 <= cp <= 0x10FFFF
+2. 如果 cp <= 0xFFFF, 返回值是cp的编码单元构成的String值
+3. 让cu1是值为floor((cp - 0x100000) / 0x400) + 0xD800的编码单元
+4. 让cu2是值为((cp - 0x100000) module 0x400) + 0xDC00的编码单元
+5. 返回cu1与cu2拼接的String值
+*** 11.1.2 Static Semantic: CodePointsToString(text)
+  抽象操作CodePointsToString接受参数text（unicode编码点的序列）。按照6.1.4值中
+的描述，转换text为String值。被调用时执行下列步骤：
+1. 让result是空String
+2. 遍历text中的编码点记作cp，做
+    a. 设置result是result与!UTF16EncodeCodePoint(cp)拼接的String值
+3. 返回result
+*** 11.1.3 Static Semantic: UTF16SurrogatePairToCodePoint(lead, trail)
+  抽象操作UTF16SurrogatePairToCodePoint接受参数lead（编码单元）和trail（编码单
+元）。构成了一个UTF-16替代对的两个编码单元被转换为编码点。被调用时执行下列
+步骤：
+1. Assert：lead是首位，trail是尾位
+2. 让cp是(lead - 0xD800) * 0x400 + (trail - 0xDc00) * 0x100000
+3. 返回编码点cp
+*** 11.1.4 Static Semantic: CodePointAt(string, position)
+  抽象操作CodePointAt接受参数string（String值）和position（非负整数）。按照
+6.1.4的描述，将string翻译为UTF-16编码点的序列，然后读取以索引position的编码
+单元为开始的编码点。被调用时执行下列步骤：
+1. 让size是string的长度
+2. Assert：position>=0而且position<size
+3. 让first是在string上position位置的编码单元
+4. 让cp是数字值与first一致的编码点。
+5. 如果first不是首位也不是尾位，那么
+    a. 返回记录{ \[\[CodePoint]]:cp, \[\[CodeUnitCount]]:1,
+       \[\[IsUnpairedSurrogate]]:false }
+6. 如果first是尾位，或者postion+1 = size，那么
+    a. 返回记录{ \[\[CodePoint]]:cp, \[\[CodeUnitCount]]:1,
+       \[\[IsUnpairedSurrogate]]:true }
+7. 让second是string中position+1处的编码单元
+8. 如果second不是尾位，那么
+    a. 返回记录{ \[\[CodePoint]]:cp, \[\[CodeUnitCount]]:1,
+       \[\[IsUnpairedSurrogate]]:true }
+9. 设置cp是!UTF16SurrogatePairToCodePoint(first, second)
+10. 返回记录{ \[\[CodePoint]]:cp, \[\[CodeUnitCount]]:2,
+    \[\[IsUnpairedSurrogate]]:false }
+*** 11.1.5 Static Semantic: StringToCodePoints(string)
+  抽象操作StringToCodePoints接受参数string（String值）。按照6.1.4中描述的将string
+当作UTF-16编码的文本翻译成Unicode编码点的序列。被调用时执行下列步骤：
+1. 让codePoints是新的空List
+2. 让size是length的长度
+3. 让position是0
+4. 当position<size时重复
+    a. 让cp时!CodePointAt(string, position)
+    b. 追加cp.\[\[CodePoint]]到codePoints
+    c. 设置position是position + cp.\[\[CodeUnitCount]]
+5. 返回codePoints
+*** 11.1.6 Static Semantic: ParseText(sourceText, goalSymbol)
+  抽象操作ParseText接受参数sourceText（Unicode编码点的序列）和goalSymbol（
+ECMAScript语法中的非终结符）。被调用时执行下列步骤：
+1. 尝试用goalSymbol解析sourceText为GoalSymbol，并分析解析结果是否符合EarlyError
+   条件。解析与侦测EarlyError可能以实现定义的方式插入。
+2. 如果解释成功，也没有发现EarlyError，返回ParseNode（goalSymbol的实例），其根
+   节点是解析的结果
+3. 否则含有一个或者多个表示解释错误或者EarlyError的SyntaxError对象的List。如果
+   有多个错误出现，List中错误的数量和顺序由实现自行定义，但是至少要有一个。
+**** 注意1 考虑到有文本在某个位置有EarlyError，在后面的位置有句法错误。有的
+            实现先执行parse段，再执行earlyError端，可能就只报告句法错误，而不
+            报告earlyErrors。有的实现是交替两种活动，可能就会报告EarlyError，而
+            部报告句法错误。还有的实现可能会两者都报告。所有这些行为都是相合
+            的
+**** 注意2 条款17
+** 11.2 Type of Source Code
+有四种类型ECMAScript代码
+. 全局代码是作为ECMAScript脚本的源文本。某个脚本的全局代码不包含任何能够解析
+  成FunctionDeclaration、FunctionExpression、GeneratorDeclaration、
+  GeneratorExpression、AsyncFunctionDeclaration、AsyncFunctionExpression、
+  AsyncGeneratorDeclaration、AsyncGeneratorExpression、MethodDefinition、
+  ArrowFunction、AsyncArrowFunction、ClassDeclaration和ClassExpression的源文本
+. 即评代码是提供给内建函数eval的源文本。更精确的说，如果提供给eval函数的参
+  数是String值，它会被当作ECMAScript脚本。某次eval调用的即评代码是脚本的全局
+  代码部分。
+. 函数代码是解析成ECMAScript函数对象的\[\[ECMAScriptCode]]和\[\[FormalParameters]]
+  （10.2）内部占位的值的源文本。某个ECMAScript函数的函数代码不包含能解析成
+  内部的FunctionDeclaration、FunctionExpression、GeneratorDeclaration、
+  GeneratorExpression、AsyncFunctionDeclaration、AsyncFunctionExpression、
+  AsyncGeneratorDeclaration、AsyncGeneratorExpression、MethodDefinition、
+  ArrowFunction、AsyncArrowFunction、ClassDeclaration和ClassExpression的源文本
+
+  另外，上述所指的源文本会被解析成：
+  。FunctionDeclaration或者FunctionExpression的FormalParameters和FunctionBody
+  。GeneratorDeclaration或者GeneratorExpression的FormalParameters和GeneratorBody
+  。AsyncFunctionDeclaration或者AsyncFunctionExpression的FormalParameters和
+    AsyncFunctionBody 
+  。AsyncGeneratorDeclaration或者AsyncGeneratorExpression的FormalParameters和
+    AsyncGeneratorBody
+  ，然后匹配到这些声明或者表达式的绑定标识（如果有）的源文本也被包含在函数
+  对应的函数代码中。
+. 模块代码是提供为ModuleBody代码的源文本。当模块初始化时代码直接被评估。某个
+  模块的模块代码不包含能够解析成内部的FunctionDeclaration、FunctionExpression、
+  GeneratorDeclaration、GeneratorExpression、AsyncFunctionDeclaration、
+  AsyncFunctionExpression、AsyncGeneratorDeclaration、AsyncGeneratorExpression、
+  MethodDefinition、ArrowFunction、AsyncArrowFunction、ClassDeclaration
+  和ClassExpression的部分的源文本
+*** 注意1 函数代码总是被提供做函数定义（15.2）、箭头函数定义（15.3）、方法
+           定义（15.4）、生成器定义（15.5）、异步函数定义（15.8）、异步生成器
+           定义（15.6）和异步箭头函数（15.9）的函数体。函数代码也被派生自传递
+           给函数构造范（20.2.1.1）、生成器构造范（27.3.1.1）和异步函数构造范
+           （27.7.1.1）的参数。
+*** 注意2 在函数代码中包含绑定标识的实际效果是函数体包含'use strict'指令时
+           能够将严格模式的EarlyError应用到作为函数名称的绑定标识，即使周边
+           代码不是严格模式
+*** 11.2.1 Directive Prologues and the Use Strict Directive
+指令序章是作为FucntionBody、ScriptBody或者ModuleBody的初始StatementListItems或者
+ModuleItems的最长的ExpressionStatements，而且序列的每个ExpressionStatement构成完整
+的跟随分号的StringLiteralToken。这个分号可能是显示出现的，也可能是被自动
+（12.9）添加的。指令序列也可能是空的序列。
+
+UseStrictDirective是在指令序章中其StringLiteral确切是"use strict"或者'use strict'的
+表达式语句。UseStrictDirective不能包含转义序列或者续行符。
+
+指令序章可以包含不止一个UseStrictDirective。然而如果发生了，实现可能会发出
+警告。
+**** 注意 DirectivePrologue的ExpressionStatements通常在评估其包含的产出时进行评
+           估。实现可能会为在DirectivePrologue的不是UseStrictDirective的
+           ExpressionStatement定义特殊的实现方式。如果存在恰当的通知机制，如果
+           实现遇到在DirectivePrologue里不是UseStrictDirective而且实现也没有定义
+           含义的ExpressionStatement，实现应该发出一个警告。
+*** 11.2.2 Strict Mode Code
+ECMAScript句法单元会被适用不限制的或者严格模式的句法和语义（4.3.2）来处理。
+在下列情况，代码会被翻译成严格模式代码：
+. 以包含UseStrictDirective的指令序章的开始全局代码是严格模式代码
+. 模块代码总是严格模式代码
+. ClassDeclaration或者ClassExpression的全部部分都是严格模式代码
+. 以包含UseStrictDirective的指令序章开始的或者是在严格模式代码内直接调用
+  eval产生的，即评代码是严格模式代码
+. 联结在严格模式内的FunctionDeclaration、FunctionExpression、GeneratorDeclaration、
+  GeneratorExpression、AsyncFunctionDeclaration、AsyncFunctionExpression、
+  AsyncGeneratorDeclaration、AsyncGeneratorExpression、MethodDefinition、
+  ArrowFunction或AsyncArrowFunction的函数代码，或者以包含UseStrictDirective的指令
+  序章开始的产出函数的\[\[ECMAScriptCode]]内部占位值的代码是严格模式代码。
+. 传递给内建Function、Generator、AsyncFunction和AsyncGenerator构造范的函数代码是
+  严格模式代码，如果最后的参数，在函数处理时作为函数体，是以包含
+  UseStrictDirective的指令序章开始的String。
+
+不是严格模式代码的ECMAScript代码称作非严格代码。
+*** 11.2.3 Non-ECMAScript Functions
+ECMAScript实现可能会提供函数奇异对象的评估，其评估行为表现为主机定义形式的
+可执行代码而不是通过ECMAScript代码。无论函数对象是ECMAScript函数还是非
+ECMAScript函数，从一个ECMAScript函数的角度，不能从语义上出来，无论是调用这个
+非ECMAScript函数，还是被这个非ECMAScript函数调用。
+* 12 ECMAScript Language: Lexical Grammer 词法
 * 25
 ** 25.1
 
