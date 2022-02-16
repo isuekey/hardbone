@@ -7520,6 +7520,83 @@ ECMAScript实现可能会提供函数奇异对象的评估，其评估行为表�
 ECMAScript函数，从一个ECMAScript函数的角度，不能从语义上出来，无论是调用这个
 非ECMAScript函数，还是被这个非ECMAScript函数调用。
 * 12 ECMAScript Language: Lexical Grammer 词法
+ECMAScript中Script或者Module的源文本先转换成输入元素的序列，分别是token、行终
+结符、注释和空白。源文本被从左到右，重复的扫描，获取尽可能最长的编码点的
+序列，作为下一个输入元素。
+
+有几种情况下词法输入元素的标识敏感于正在消耗此输入元素的句法背景。这个词法
+需要多种目标符号。InputElementRegExpOrTemplateTail目标用在许可TemplateTail、
+TemplateMiddle或者RegularExpressionLiteral的句法背景中。InputElementRegExp目标符号
+用于许可RegularExpressionLiteral但是不允许TemplateMiddle和TemplateTail的句法背景
+中。InputElementTemplateTail目标用于许可TempalteMiddle和或TemplateTail但是不允许
+RegularExpressionLiteral的句法背景。在其他背景中，InputElmentDiv被用作词法目标符
+号。
+** 注意 多重词法目标需要确保不能有会导致自动插入分号的词法模糊。比如没有句
+         法允许首位除号或者除号赋值连同首位RegularExpressionLiteral。这不会被引
+         发分号插入（12.9）；如下所示：
+         a = b
+         /hi/g.exec(c).map(d);
+         在LineTerminate后第一个非空非注释代码点是U+002F（SOLIDUS），而且句法背
+         景允许除号或者除号赋值，且不会在有分号插入在LineTerminator处。然后上
+         述例子与下方例子相同的方式被翻译：
+         a = b / hi / g.exec(c).map(d);
+** Syntax
+InputElementDiv ::
+    WhiteSpace
+    LineTerminator
+    Comment
+    CommonToken
+    DivPunctuator
+    RightBracePunctuator
+
+InputElementRegExp ::
+    WhiteSpace
+    LineTerminator
+    Comment
+    CommonToken
+    RightBracePunctuator
+    RegularExpressionLiteral
+
+InputElementRegExpOrTemplateTail ::
+    WhiteSpace
+    LineTerminator
+    Comment
+    CommonToken
+    RegularExpressionLiteral
+    TempalteSubsitutionTail
+
+InputElementTempalteTail ::
+    WhiteSpace
+    LineTerminator
+    Comment
+    CommonToken
+    DivPunctuator
+    TempalteSubsitutionTail
+** 12.1 Unicode Format-Control Characters
+** 12.2 White Space
+** 12.3 Line Terminators
+** 12.4 Comments
+** 12.5 Tokens 
+** 12.6 Names and Keywords
+*** 12.6.1 Identifier Names
+**** 12.6.1.1 Static Semantics: Early Errors
+*** 12.6.2 Keywords and Reserved Words
+** 12.7 Punctuators
+** 12.8 Literals
+*** 12.8.1 Null Literals
+*** 12.8.2 Boolean Literals
+*** 12.8.3 Numeric Literals
+**** 12.8.3.1 Static Semantics: MV
+**** 12.8.3.2 Static Semantics: NumericValue
+*** 12.8.4 String Literals
+**** 12.8.4.1 Static Semantics: SV
+**** 12.8.4.2 Static Semantics: MV
+*** 12.8.5 Regular Expression Literals
+*** 12.8.6 Template Literal Lexical Components
+** 12.9 Automatic Semicolon Insertion
+*** 12.9.1 Rules of Automatic Semicolon Insertion
+*** 12.9.2 Examples of Automatic Semicolon Insertion
+*** 12.9.3 Interesting Cases of Automatic Semicolon Insertion
 * 25
 ** 25.1
 
