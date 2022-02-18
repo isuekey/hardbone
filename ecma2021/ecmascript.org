@@ -7524,8 +7524,8 @@ ECMAScript中Script或者Module的源文本先转换成输入元素的序列，�
 结符、注释和空白。源文本被从左到右，重复的扫描，获取尽可能最长的编码点的
 序列，作为下一个输入元素。
 
-有几种情况下词法输入元素的标识敏感于正在消耗此输入元素的句法背景。这个词法
-需要多种目标符号。InputElementRegExpOrTemplateTail目标用在许可TemplateTail、
+某几种情况下词法输入元素的标识敏感于正在消耗此输入元素的句法背景。这需要
+此词法有多个目标符号。InputElementRegExpOrTemplateTail目标用在许可TemplateTail、
 TemplateMiddle或者RegularExpressionLiteral的句法背景中。InputElementRegExp目标符号
 用于许可RegularExpressionLiteral但是不允许TemplateMiddle和TemplateTail的句法背景
 中。InputElementTemplateTail目标用于许可TempalteMiddle和或TemplateTail但是不允许
@@ -7572,15 +7572,206 @@ InputElementTempalteTail ::
     CommonToken
     DivPunctuator
     TempalteSubsitutionTail
-** 12.1 Unicode Format-Control Characters
-** 12.2 White Space
-** 12.3 Line Terminators
-** 12.4 Comments
-** 12.5 Tokens 
-** 12.6 Names and Keywords
-*** 12.6.1 Identifier Names
+** 12.1 Unicode Format-Control Characters Unicode格式符
+Unicode格式符（比如在Unicode字符集中“Cf”分类中的字符，像LEFT-TO-RIGHT MARK或
+者RIGHT-TO-LEFT MARK）是在高级协议（例如标记语言）未涉及此字符时控制一系列文
+本的格式的控制编码。
+
+允许格式控制对方便编辑和展示很有帮助。所有的格式控制字符可以用于注释，用于
+字符串文法，模板文法和正则表达式文法。
+
+U+200C（ZERO WIDTH NON-JOINER）和U+200D（ZERO WIDTH JOINER）是控制字符，在某些语言
+中在格式化词汇或者短语时保持必要的区分性。在ECMAScript源文本中，在第一个字
+符后的这些编码可能被用在IdentifierName中。
+
+U+FEFF（ZERO WIDTH NO-BREAK SPACE）是主要用在文本开始位置以标记为Unicode和允许
+侦测文本的编码和字节序的控制字符。用于此目的<ZWNBSP>字符有时也出现在文本的
+其他位置，比如作为拼接文件的结果。在ECMAScript源文本中<ZWNBSP>编码点被当作空
+白字符（12.2）
+
+展示在表33的控制字符在注释、字符串文法和正则表达式文法之外要按照规定对待。
+
+| 编码点 | 名称                      | 缩写     | 用途           |
+| U+200C | ZERO WIDTH NON-JOINER     | <ZWNJ>   | IdentifierPart |
+| U+200D | ZERO WIDTH JOINER         | <ZWJ>    | IdntifierPart  |
+| U+FEFF | ZERO WIDTH NO-BREAK SPACE | <ZWNBSP> | WhiteSpace     |
+** 12.2 White Space 空白符
+空白符编码点用改善源文本的可读性和分隔信标（不可分的词法单元），同时是某
+种程度上的无足轻重。空白符会出现在两个信标中间，输入的开始或者结尾。空白符
+编码点可以出现在StringLiteral、RegularExpressionLiteral、Temlate或者
+TemplateSubstitutionTail中，这里他们作为构成文法值的有效编码点。他们也可能出现
+在Comment中，但不会在任何信标中出现。
+
+ECMAScript空白符编码点列在表34
+| 编码点         | 名称                                   | 缩写     |
+| U+0009         | CHARACTER TABULATION                   | <TAB>    |
+| U+000B         | LINE TABULATION                        | <VT>     |
+| U+000C         | FORM FEED (FF)                         | <FF>     |
+| U+0020         | SPACE                                  | <SP>     |
+| U+00A0         | NO-BREAK SPACE                         | <NBSP>   |
+| U+FEFF         | ZERO WIDTH NO-BREAK SPACE              | <ZWNBSP> |
+| 其他类目“Zs” | 其他任何Unicode"Space_Separator"编码点 | <USP>    |
+
+ECMAScript实现必须将列在"Space_Separator"（"Zs"）类目中编码点识别为WhiteSpace编
+码点。
+*** 注意 表34之外的编码点，ECMAScript WhiteSpace试图排除所有有"White_Space"性质
+          但是不在"Space_Separator"类目中的Unicode编码点。
+*** Syntax
+WhiteSpace ::
+    <TAB>
+    <VT>
+    <FF>
+    <SP>
+    <NBSP>
+    <ZWNBSP>
+    <USP>
+** 12.3 Line Terminators 行终结符
+像空白符编码点一样，行终结符编码点用于改进源文本的可读性和分隔信标（不可
+分的词法单元）。然而不同于空白符编码点，行终结符在句法行为上有一定作用。
+通常行终结符出现在两个信标间，但是少量地方是被句法禁止出现行终结符的。行
+终结符也会影响自动插入分号（12.9）的过程。行终结符不能在除了StringLiter、
+Template或者TemplateSubstitutionTail之外的信标里。<LF>和<CR>行终结符除了作为
+LineContinuation的部分外，不能出现在其他StringLiteral信标里。
+
+行终结符不能出现在MultiLineComment中，但是可以出现在SingleLineComment中。
+
+行终结符被包含在\s正则表达式匹配的空白符编码点集中。
+
+ECMAScript行终结符编码点列在表35中:
+| 编码点 | Unicode名称          | 缩写 |
+| U+000A | LINE FEED (LF)       | <LF> |
+| U+000D | CARRIAGE RETURN (CR) | <CR> |
+| U+2028 | LINE SEPARATOR       | <LS> |
+| U+2029 | PARAGRAPH SEPARATOR  | <PS> |
+
+只有列在表35的Unicode编码点作为行终结符。其他新行或者行中断等Unicode编码点不
+被当作行终结符，但是如果符合表34的要求，会被当作空白符。<CR><LF>序列通常被
+用于作为行终结符。用于计算行数时，它应当被当作一个单独的源字符。
+*** Syntax
+LineTerminator ::
+    <LF>
+    <CR>
+    <LS>
+    <PS>
+
+LineTerminatorSequence ::
+    <LF>
+    <CR> [lookahead != <LF>]
+    <LS>
+    <PS>
+    <CR> <LF>
+** 12.4 Comments 注释
+注释可以是单行的或着多行的。多行的注释不能是嵌套的。
+
+因为单行注释能含有除了LineTerminator编码点的其他Unicode字符，也因为信标尽可能
+长的通用规则，单行注释总是含有从//标记到行末的所有编码点。然而，行末的
+LineTerminator不被当作单行注释的一部分；它被词法单独地识别，当作句法输入元素
+流的一部分。这点很重要，因为暗示了出现和缺少单行注释不会影响自动分号插入（
+12.9）的过程。
+
+注释的行为像空白符，一般被忽略，除了如果一个多行注释包含了行终结符编码点，
+此时整个注释被当作一个行终结符。
+*** Syntax
+Comment ::
+    MultiLineComment
+    SingleLineComment
+MultiLineComment ::
+    /* MultiLineCommentChars_opt */
+MultiLineCommentChars ::
+    MultiLineNotAsteriskChar MultiLineCommentChars_opt
+    * PostAsteriskCommentChars_opt
+PostAsteriskCommentChars ::
+    MultiLineNotForwardSlashOrAsteriskChar MultiLineCommentChars_opt
+    * PostAsteriskCommentChars_opt
+MultiLineNotAsteriskChar ::
+    SourceCharacter but not *
+MultiLineNotForwardSlashOrAsteriskChar ::
+    SourceCharacter but not one of / or *
+SinleLineComment ::
+    // SinleLineCommentChars_opt
+SinelLineCommentChars ::
+    SingleLineCommentChar SingleLineCommentChars_opt
+SingleLineCommentChar ::
+    SourceCharacter but not LineTerminate
+    
+本节的许多产出在B.1.3中给出了备选定义。
+** 12.5 Tokens 信标
+*** Syntax
+CommonToken ::
+    IdentifierName
+    Punctuator
+    NumericLiteral
+    StringLiteral
+    Template
+*** 注意 DivPunctuator、RegularExpressionLiteral、RightBracePunctuator和
+          TemplateSubstitutionTail产出派生出额外的信标不被包含在CommonToken产出
+          中。
+** 12.6 Names and Keywords 名称与关键词
+IdentifierName和ReservedWord是根据Identifier、PatternSyntax和在UnicodeStandardAnnex
+#31提供的DefaultIdentifierSyntax，稍加调整，被翻译出的信标。ReservedWord是
+IdentifierName的可列子集。句法将Identifier定义为除了ReservedWord的IdentifierName。
+Unicode标识语法是基于Unicode标准规定的字符性质。在最新版Unicode标准中规定的
+类目中的Unicode编码点，必须被一致的ECMAScript实现对待为对应类目中的编码点。
+ECMAScript实现可能识别被后续Unicode标准版本定义的标识编码点。
+*** 注意1 本标准规定了特定编码点：U+0024（DOLLAR SIGN）和U+005F（LOW LINE）可以
+           出现在IdentifierName的任何位置，编码点：U+200C（ZERO WIDTH NON-JOINER）
+           和U+200D（ZERO WIDTH JOINER）可以出现在IdentifierName的第一个编码点后的
+           位置。
+Unicode转义序列可以出现在IdentifierName中，他们给IdentifierName贡献一个单独的
+Unicode编码点。这个编码点是由UnicodeEscapeSequence（12.8.4）的CodePoint翻译的。
+UnicodeEscapeSequence中开始的\、u和{}编码单元，如果出现，不给IdentifierName贡献
+编码点。如果UnicodeEscapeSequence不合法，不会被用于提供给IdentifierName编码点。
+换句话说，如果一个\UnicodeEscapeSequence序列被其提供的SourceCharacter替换，其结
+果必须仍然是一个有效的IdentifierName，这个结果与直接使用对应SourceCharacter的
+IdentifierName有完全相同的SourceCharacter序列。本规范的IdentifierName的翻译是基于
+他们实际编码点的值来贡献具体编码点，无论是否是一个转义序列。
+
+两个IdentifierNames依据Unicode标准来判断相等，在替换了每个UnicodeEscapeSequence
+后，除非他们是确切相同的编码点序列，他们是不等的。
+*** Syntax
+IdentifierName ::
+    IdentifierStart
+    IdentifierName IdentifierPart
+IdentifierStart ::
+    UnicodeIDStart
+    $
+    _
+    \UnicodeEscapeSequence
+IdentifierPart ::
+    UnicodeIDContinue
+    $
+    \UnicodeEscapeSequence
+    <ZWNJ>
+    <ZWJ>
+UnicodeIDStart ::
+    任何带有Unicode性质ID_Start的Unicode编码点
+UnicodeIDContinue ::
+    任何带有Unicode性质ID_Continue的Unicode编码点
+*** 注意2 非终结符IdentifierPart通过UnicodeIDContinue派生_
+*** 注意3 带有ID_Start和ID_Continue性质的编码点集依次包含带有Other_ID_Start和
+           Other_ID_Continue性质的编码点集。
+*** 12.6.1 Identifier Names 标识名
 **** 12.6.1.1 Static Semantics: Early Errors
-*** 12.6.2 Keywords and Reserved Words
+IdentifierStart :: \ UnicodeEscapeSequence
+    . 如果UnicodeEscapeSequence的SV不是$、_或者被UnicodeIDStart词法产出匹配的
+      Unicode编码点cp的!UTF16EncodeCodePoint(cp)，那这是一个句法错误。
+IdentifierPart :: \ UnicodeEscapeSequence
+    . 如果UnicodeEscapeSequence的SV不是$、_、!UTF16EncodeCodePoint(<ZWNJ>、
+      !UTF16EncodeCodePoint(<ZWJ>)或者被UnicodeIDContinue词法产出匹配的
+      Unicode编码点cp的!UTF16EncodeCodePoint(cp)，那这是一个句法错误。
+*** 12.6.2 Keywords and Reserved Words 关键词和保留词
+关键词是符合IdentifierName的信标，但是还有句法用途；它会在本文中，使用定宽
+字体，出现在某些句法产出中。ECMAScript关键词包括if、while、async、await等等。
+
+保留词不能用作为标识的IdentifierName。很多关键词是保留词，但是有些不是，有些
+仅在某些背景下是保留词。if和while是保留词。await键在异步函数和异步模块中是
+保留词。async不是保留词，可以不被限制的用在变量名或者label语句里。
+
+本归范使用语法产出和EarlyError来规定哪些名称是有效的，哪些是保留词。除了
+await和yeild，列在下方的其他保留词的信标是无条件保留的。在13.1中规定了
+await和yield的例外行为，使用参数句法产出。最后，有几个EarlyError限制了有效
+标识的集合。详见13.1.1、14.3.1.1、14.7.5.1和15.7.1。综述有五类标识名称：
+    . Math、window、toString和_，不是关键词，总是可以当作标识
 ** 12.7 Punctuators
 ** 12.8 Literals
 *** 12.8.1 Null Literals
