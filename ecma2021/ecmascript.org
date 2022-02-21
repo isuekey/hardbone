@@ -7772,12 +7772,249 @@ await和yeild，列在下方的其他保留词的信标是无条件保留的。�
 await和yield的例外行为，使用参数句法产出。最后，有几个EarlyError限制了有效
 标识的集合。详见13.1.1、14.3.1.1、14.7.5.1和15.7.1。综述有五类标识名称：
     . Math、window、toString和_，不是关键词，总是可以当作标识
+    . 下发列出的ReservedWords除了await和yield，不能作为标识。
+    . 某些背景下可以使用await和yield作为标识符。
+    . 某些背景下在严格模式中：let、static、implements、interface、package、
+      priviate、protected和public不能作为标识
+    . as、async、from、get、of、set和target这些可以作为标识符，但是在某些特定
+      句法产出中作为关键词，这些地方不允许作为标识。
+术语条件关键词或者特定背景关键词（ConditionalKeyword或者ContextualKeyword）是指
+在后面三种类目中的有时用作关键词的词汇，因此有些背景可以作为标识，其他背景
+下被当作关键词。
+**** Syntax
+ReservedWord :: one of
+    await break case catch class const continue debuffer default do else enum export
+    extends false finally for function if import in instanceof new null return super
+    switch this throw true try typeof var void while with yield
+**** 注意1 参考5.1.5，语法中的关键词匹配规定的SourceCharacter元素字面序列。
+            关键词中的编码点不能被表示为\UnicodeEscapeSequence
+
+            标识名可以包含\UnicodeEscapeSequences，但是不可以通过拼写els\u{65}来
+            声明一个名为else的变量。在13.1中的EarlyError规则排除与保留词一样
+            字符串值的标识。
+**** 注意2 enum在本规范中还没有用作一个关键词。这是一个未来的保留词，放在
+            这里是用于在将来的语法扩展中作为关键词。
+
+            类似的implements、interface、package、private、protected和public都是在
+            严格模式下的未来保留词
+**** 注意3 arguments和eval不是关键词，但是在严格模式他们受到一些限制。见于
+            13.1.1、8.5.4、15.2.1、15.5.1、15.6.1和15.8.1。
 ** 12.7 Punctuators
+*** Syntax
+Puctuator::
+    OptionalChainingPunctuator
+    OtherPunctuator
+
+OptionalChainingPunctuator ::
+    ?.[lookahead ∉ DecimalDigit]
+OtherPunctuator :: one of
+    { ( ) [ ] . ... ; , < > <= >= \== != \=== !== + - * % ** ++ -- << >> >>> & | ^ ! ~
+    && || ?? ? : = += -= *= %= **= <<= >>= >>>= &= |= ^= &&= ||= ??= =>
+
+DivPunctuator ::
+    /
+    /=
+RightBracePunctuator ::
+    }
 ** 12.8 Literals
 *** 12.8.1 Null Literals
+**** Syntax
+NullLiteral ::
+    null
 *** 12.8.2 Boolean Literals
+**** Syntax
+BooleanLiteral ::
+    true
+    false
 *** 12.8.3 Numeric Literals
+**** Syntax
+NumericLiteralSepatator ::
+    -
+NumericLiteral ::
+    DecimalLiteral
+    DecimalBigIntegerLiteral
+    NonDecimalIntegerLiteral_[+Sep]
+    NonDecimalIntegerLiteral_[+Sep] BigIntLiteralSuffix
+
+DecimalBigIntegerLiteral ::
+    0 BigIntLiteralFuffix
+    NonZeroDigit DecimalDigits_[+Sep]_opt BigIntLiteralSuffix
+    NonZeroDigit NumericLiteralSeparator DecimalDigits_[+Sep] BigIntLiteralSuffix
+NonDecimalIntegerLiteral_[+Sep]
+    BinaryIntegerLiteral_[?Sep]
+    OctalIntegerLiteral_[?Sep]
+    hexIntegerLiteral_[?Sep]
+BigIntLitralSuffix ::
+    n
+DecimalLiteral ::
+    DecimalIntegerLiteral . DeicmalDigits_[+Sep]_opt ExponentPart_[+Sep]_opt
+    . DeicmalDigits_[+Sep] ExponentPart_[+Sep]_opt
+    DecimalIntegerLiteral ExponentPart_[+Sep]_opt
+DecimalIntegerLiteral ::
+    0
+    NonZeroDigit
+    NonZeroDigit NumericLiteralSeparator_opt DecimalDigit_[+Sep]
+DecimalDigits_[Sep] ::
+    DecimalDigit
+    DecimalDigits_[?Sep] DecimalDigit
+    [+Sep]DecimalDigits_[+Sep] NumericLiteralSeparator DecimalDigit
+DeicamlDigit :: one of
+    0 1 2 3 4 5 6 7 8 9
+NonZeroDigit :: one of
+    1 2 3 4 5 6 7 8 9
+ExponentPart_[Sep] ::
+    ExponentIndicator SignedInteger_[?Sep]
+ExponentIndicator :: one of
+    e E
+SingedInteger_[Sep] ::
+    DecimalDigits_[?Sep]
+    + DecimalDigits_[?Sep]
+    - DecimalDigits_[?Sep]
+BinaryIntegerLitral_[Sep] ::
+    0b BinaryDigits_[?Sep]
+    0B BinaryDigits_[?Sep]
+BinaryDigits_[?Sep] ::
+    BinaryDigit
+    BinaryDigits_[?Sep] BinaryDigit
+    [+Sep]BinaryDigits_[+Sep] NumericLiteralSeparator BinaryDigit
+BinaryDigit :: one of
+    0 1
+OctalIntegerLiteral_[Sep] ::
+    0o OctalDigits_[?Sep]
+    0O OctalDigits_[?Sep]
+OctalDigits_[?Sep] ::
+    OctalDigit
+    OctalDigits_[?Sep] OctalDigit
+    [+Sep]OctalDigits_[+Sep] NumericLiteralSeparator OctalDigit
+OctalDigit :: one of
+    0 1 2 3 4 5 6 7
+HexIntegerLiteral_[Sep] ::
+    0x HexDigits_[?Sep]
+    0X HexDigits_[?Sep]
+HexDigits_[?Sep] ::
+    HexDigit
+    HexDigits_[?Sep] HexDigit
+    [+Sep]HexDigits_[+Sep] NumericLiteralSeparator HexDigit
+HexDigit :: one of
+    0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F
+
+紧随NumericLiteral的源码字符不能是IdentifierStart或者DecimalDigit
+**** 注意 例子：3in是错误的，不是两个输入元素3和in
+一致实现，在进行严格模式代码时，不能扩展在B.1.1中描述的NumericLiteral句法，来
+包含LegacyOctalIntegerLiteral，也不能扩展DecimalIntegerLiteral的句法来包含
+NonOctalDecimalIntegerLiteral
 **** 12.8.3.1 Static Semantics: MV
+代表Number类型或者BigInt类型的值的数字字面量。
+    . NumericalLiteral :: DecimalLiteral的MV是DecimalLiteral的MV
+    . NonDecimalIntegerLiteral :: BinaryIntegerLiteral的MV是BinaryIntegerLiteral的MV
+    . NonDecimalIntegerLiteral :: OctalIntegerLiteral的MV是OctalIntegerLiteral的MV
+    . NonDecimalIntegerLiteral :: HexIntegerLiteral的MV是HexIntgerLiteral的MV
+    . DecimalLiteral :: DecimalIntegerLiteral . 的MV是DecimalIntegerLiteral的MV
+    . DeicmalLiteral :: DecimalIntegerLiteral . DecimalDigits的MV是DecimalIntegerLiteral
+      加上（DecimalDigits*10^-n的MV），其中n是DecimalDigits的中排除所有
+      NumericLiteralSeparator的数字编码点数量后，后的MV
+    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
+      DecimalIntegerLiter * 10^e的MV，其中e是ExponentPart的MV
+    . DecimalLiteral :: DecimalIntegerLiteral . DeicmalDigits ExponentPart的MV是
+      (DeicmalIntegerLiteral的MV加上(DecimalDigits的MV*10^-n))*10^e，其中n是
+      DecimalDigits中排除所有NumericLiteralSeparator后的数字编码点数量，e是
+      ExponentPart的MV
+    . DecimalLiteral :: . DecmalDigits的MV是DecimalDigits的MV*10^-n
+    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
+    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
+    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
+    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
+    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
+    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
+    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    .
+    
 **** 12.8.3.2 Static Semantics: NumericValue
 *** 12.8.4 String Literals
 **** 12.8.4.1 Static Semantics: SV
