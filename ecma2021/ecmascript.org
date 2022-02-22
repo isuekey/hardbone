@@ -7919,111 +7919,459 @@ NonOctalDecimalIntegerLiteral
       (DeicmalIntegerLiteral的MV加上(DecimalDigits的MV*10^-n))*10^e，其中n是
       DecimalDigits中排除所有NumericLiteralSeparator后的数字编码点数量，e是
       ExponentPart的MV
-    . DecimalLiteral :: . DecmalDigits的MV是DecimalDigits的MV*10^-n
+    . DecimalLiteral :: . DecmalDigits的MV是DecimalDigits的MV*10^-n，其中n是
+      DecimalDigits中排除所有NumericLiteralSeparator后的数字编码点数量。
+    . DecimalLiteral :: . DeicmalDigits ExponentPart的MV是DecimalDigits的MV*10^(e-n)，
+      其中n是DecimalDigits中排除所有NumericLiteralSeparator后的数字编码点数量，
+      e是ExponentPart的MV
+    . DecimalLiteral :: DecimalIntegerLiteral的MV是DecimalIntegerLiteral的MV
+    . DecimalLiteral :: DecimalIntegerLiteral ExponentPart的MV是DecimalIntegerLiteral的
+      MV*10^e，其中e是ExponentPart的MV
+    . DecimalIntegerLiteral :: 0的MV是0
+    . DecimalIntegerLiteral :: NonZeroDigit的MV是NonZeroDigit的MV
     . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
-    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
-    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
-    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
-    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
-    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
-    . DecimalLiteral :: DecimalIntegerLiteral . ExponentPart的MV是
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    .
-    
+    . DecimalIntegerLiteral :: NonZeroDigit NumericLiteralSeparator_opt DecimalDigits的
+      MV是(NonZeroDigit的MV*10^n)加上DecimalDigits的MV，其中n是DecimalDigits中排除
+      所有NumericLiteralSeparator后的数字编码点数量
+    . DecimalDigits :: DecimalDigit的MV是DecimalDigit的MV
+    . DecimalDigits :: DecimalDigits DecimalDigit的MV是(DecimalDigits的MV*10)加上
+      DecimalDigit的MV
+    . DecimalDigits :: DecimalDigits NumericLiteralSeparator DecimalDigit的MV是(
+      DecimalDigits的MV*10)加上DecimalDigit的MV
+    . ExponentPart :: ExponentIndicator SignedInteger的MV是SignedInteger的MV
+    . SignedInteger :: DecimalDigits的MV是DecimalDigits的MV
+    . SignedInteger :: + DecimalDigits的MV是DecimalDigits的MV
+    . SignedInteger :: - DecimalDigits的MV是DecimalDigits的MV的负数
+    . DecimalDigit :: 0或HexDigit :: 0或OctalDigit :: 0或BinaryDigit :: 0的MV是0
+    . DecimalDigit :: 1或HexDigit :: 1或OctalDigit :: 1或BinaryDigit :: 1的MV是1
+    . DecimalDigit :: 2或HexDigit :: 2或OctalDigit :: 2的MV是2
+    . DecimalDigit :: 3或HexDigit :: 3或OctalDigit :: 3的MV是3
+    . DecimalDigit :: 4或HexDigit :: 4或OctalDigit :: 4的MV是4
+    . DecimalDigit :: 5或HexDigit :: 5或OctalDigit :: 5的MV是5
+    . DecimalDigit :: 6或HexDigit :: 6或OctalDigit :: 6的MV是6
+    . DecimalDigit :: 7或HexDigit :: 7或OctalDigit :: 7的MV是7
+    . DecimalDigit :: 8或HexDigit :: 8的MV是8
+    . DecimalDigit :: 9或HexDigit :: 9的MV是9
+    . HexDigit :: a或HexDigit :: A的MV是10
+    . HexDigit :: b或HexDigit :: B的MV是11
+    . HexDigit :: c或HexDigit :: C的MV是12
+    . HexDigit :: d或HexDigit :: D的MV是13
+    . HexDigit :: e或HexDigit :: E的MV是14
+    . HexDigit :: f或HexDigit :: F的MV是15
+    . BinaryIntegerLiteral :: Ob BinaryDigits的MV是BinaryDigits的MV
+    . BinaryIntegerLiteral :: Ob BinaryDigits的MV是BinaryDigits的MV
+    . BinaryDigits :: BinaryDigit的MV是BinaryDigit的MV
+    . BinaryDigits :: BinaryDigits BinaryDigit的MV是(BinaryDigits的MV*2)加上
+      BinaryDigit的MV
+    . BinaryDigits :: BinaryDigits NumericLiteralSeparator BinaryDigit的MV是(
+      BinaryDigits的MV*2)加上BinaryDigit的MV
+    . OctalIntegerLiteral :: 0o OctalDigits的MV是OctalDigits的MV
+    . OctalIntegerLiteral :: 0O OctalDigits的MV是OctalDigits的MV
+    . OctalDigits :: OctalDigit的MV是OctalDigit的MV
+    . OctalDigits :: OctalDigits OctalDigit的MV是(OctalDigits的MV*8)加上
+      OctalDigit的MV
+    . OctalDigits :: OctalDigits NumericLiteralSeparator OctalDigit的MV是(
+      OctalDigits的MV*8)加上OctalDigit的MV
+    . HexIntegerLiteral :: 0x HexDigits的MV是HexDigits的MV
+    . HexIntegerLiteral :: 0X HexDigits的MV是HexDigits的MV
+    . HexDigits :: HexDigit的MV是HexDigit的MV
+    . HexDigits :: HexDigits HexDigit的MV是(HexDigits的MV*16)加上
+      HexDigit的MV
+    . HexDigits :: HexDigits NumericLiteralSeparator HexDigit的MV是(
+      HexDigits的MV*16)加上HexDigit的MV
 **** 12.8.3.2 Static Semantics: NumericValue
+NumericLiteral :: DecimalLiteral
+    1. 返回DecimalLiteral的MV按照下面描述的方式修圆后的Number值。
+NumericLiteral :: NonDecimalIntegerLiteral
+    1. 返回NonDecimalLiteral的MV按照下面描述的方式修圆后的Number值。
+一旦字面数字的MV确定出来，它就被修圆到一个Number值。如果MV是0，修圆到+0_F，
+否则必须（按照6.1.6.1的规范）修圆到一个Number值，除非这是个DecimalLiteral而且
+超过20个有效数字，此时会将超过20位的有效位替换为0后的MV的Number值，或者将超
+过20位的有效位替换为0并在第20位加1后的MV的Number值。一个数字是有效位，当它
+不是ExponentPart一部分，而且
+    . 不是0，或者
+    . 左侧有非零数字而且右侧有不在ExponentPart的非零数字。
+NumericLiteral :: NonDecimalIntegerLiteral BigIntLiteralSuffix
+    1. 返回代表NonDecimalIntegerLiteral的MV的BigInt值。
+DecimalBigIntegerLiteral :: 0 BigIntLiteralSuffix
+    1. 返回0_Z
+DecimalBigIntegerLiteral :: NonZeroDigit BigIntLiteralSuffix
+    1. 返回代表NonZeroDigit的MV的BigInt值。
+DecimalBigIntegerLiteral :: 
+        NonZeroDigit DecimalDigits BigIntLiteralSuffix
+        NonZeroDigit NumericLiteralSeparator DecimalDigits BigIntLiteralSuffix
+    1. 让n是DecimalDigits的编码点，排除掉所有的NumericLiteralSeparator
+    2. 让mv是(NonZeroDigit的MV*10)加上DecimalDigits的MV
+    3. 返回Z(mv)
 *** 12.8.4 String Literals
+**** 注意1 字符串字面量是用单引号或者双引号围住的0或者多个Unicode编码点。
+            Unicode编码点也可能是转义序列。所有的编码点都可能出现在一个
+            字符串字面量里，除了关闭引用的编码点：U+005C（REVERSE SOLIDUS）、
+            U+000D（CARRIAGE RETURN）和U+000A（LINE FEED）。任何编码点都可以出现
+            在转义序列里。字符串字面量评估为ECMAScript String值。在生成这个
+            String值时，Unicode编码点是按照11.1.1定义的UTF-16编码。在Basic
+            Multilingual Plane（UTF-16规范的术语）编码点被编码成字符串的一个单一
+            编码单元元素。其他的编码编码成字符串的两个编码单元元素。
+**** Syntax
+StringLiteral ::
+        " DoubleStringCharacters_opt "
+        ' SingleStringCharacters_opt '
+DoubleStringCharacters ::
+        DoubleStringCharacter DoubleStringCharacters_opt
+SingleStringCharacters ::
+        SingleStringCharacter SingleStringCharacters_opt
+DoubleStringCharacter ::
+        SourceCharacter but not one of " or \ or LineTerminator
+        <LS>
+        <PS>
+        \ EscapeSequence
+        LineContinuation
+SingleStringCharacter ::
+        SourceCharacter but not one of ' or \ or LineTerminator
+        <LS>
+        <PS>
+        \ EscapeSequence
+        LineContinuation
+LineContinuation ::
+        \ LineTerminatorSequence
+EscapeSequence ::
+        CharacterEscapeSequence
+        0 [ lookahead ∉ DecimalDigit]
+        HexEscapeSequence
+        UnicodeEscapeSequence
+一致的实现，在进行严格模式代码是，不能扩展EscapeSequence来包含在B.1.2中描述
+的LegacyOctalEscapeSequence或者NonOctalDecimalEscapeSequence。
+CharacterEscapeSequence ::
+        SingleEscapeCharacter
+        NonEscapeCharacter
+SingleEscapeCharacter :: one of
+        ' " \ b f n r t v
+NonEscapeCharacter ::
+        不是EscapeCharacter或者Lineterminator的SourceCharacter
+EscapeCharacter ::
+        SingleEscapeCharacter
+        DecimalDigit
+        x
+        u
+HexEscapeSequence ::
+        x HexDigit HexDigit
+UnicodeEscapeSequence ::
+        u Hex4Digits
+        u{ CodePoint }
+Hex4Digits ::
+        HexDigit HexDigit HexDigit HexDigit
+非终结符HexDigit的定义在12.8.3中给出。SourceCharacter定义在11.1.
+**** 注意2 <LF>和<CR>不能出现在字符串字面量里，除非作为LineContinuation的一部分
+            来产出空编码点序列。使其包含在String值或者字符串字面量里的恰当方
+            式是使用转义序列\n或者\u000A
 **** 12.8.4.1 Static Semantics: SV
+字符串字面量代表一个String值。字面量的String值（SV）以字符串字面量的不同部分
+贡献出的String值的术语进行描述。作为这个过程的一部分，字符串字面量里的某些
+Unicdoe编码点按照12.8.3中的描述被翻译成一个数学值（MV）。
+    . String :: " "的SV是空字符串
+    . String :: ' '的SV是空字符串
+    . DoubleStringCharacters :: DoubleStringCharacter DoubleStringCharacters的SV是
+      DoubleStringCharacter的SV和DoubleStringCharacters的SV的字符串拼接。
+    . SingleStringCharacters :: SingleStringCharacter SingleStringCharacters的SV是
+      SingleStringCharacter的SV和SingleStringCharacters的SV的字符串拼接。
+    . DoubleStringCharacter :: 不是"或\或者LineTerminator的SourceCharacter 的SV是
+      在SourceCharacter的编码点值上使用UTF16EncodeCodePoint的结果。
+    . DoubleStringCharacter :: <LS>的S是由编码单元0x2028（LINE SEPARATOR）构成的
+      String值
+    . DoubleStringCharacter :: <PS>的S是由编码单元0x2029（PARAGRAPH SEPARATOR）构成
+      的String值
+    . DoubleStringCharacter :: LineContinuation是空String。
+    . SingleStringCharacter :: 不是'或\或者LineTerminator的SourceCharacter 的SV是
+      在SourceCharacter的编码点值上使用UTF16EncodeCodePoint的结果。
+    . SingleStringCharacter :: <LS>的S是由编码单元0x2028（LINE SEPARATOR）构成的
+      String值
+    . SingleStringCharacter :: <PS>的S是由编码单元0x2029（PARAGRAPH SEPARATOR）构成
+      的String值
+    . SingleStringCharacter :: LineContinuation是空String。
+    . EscapeSequence :: 0是由编码单元0x0000（NULL）构成的String值。
+    . CharacterEscapeSequence :: SingleEscapeCharacter的SV是由表36所列的
+      SingleEscapeCharactor决定的编码单元构成的String值
+| EscapeSequence | 编码单元值 | Unicode字符名称      | 符号 |
+| \b             |     0x0008 | BACKSPACE            | <BS> |
+| \t             |     0x0009 | CHARACTER TABULATION | <HT> |
+| \n             |     0x000A | LINE FEED (LF)       | <LF> |
+| \v             |     0x000B | LINE TABULATION      | <VT> |
+| \f             |     0x000C | FORM FEED (FF)       | <FF> |
+| \r             |     0x000D | CARRIAGE RETURN (CR) | <CR> |
+| \"             |     0x0022 | QUOTATION MARK       | "    |
+| \'             |     0x0027 | APOSTROPHE           | '    |
+| \\             |     0x005c | REVERSE SOLIDUS      | \    |
+    . NonEscapeCharacter :: 不是EscapeCharacter或LineTerminator的SourceCharacter 的MV
+      是在SourceCharacter的编码点值上使用UTF16EncodeCodePoint的结果。
+    . HexEscapeSequence :: x HexDigit HexDigit的SV是由与HexEscapeSequence的MV相同值的
+      编码单元构成的String值
+    . Hex4Digits :: HexDigit HexDigit HexDigit HexDigit 的SV是由与Hex4Digits的MV相同
+      值的编码单元构成的String值
+    . UnicodeEscapeSequence :: u{ CodePoint } 的SV是在CodePoint的MV上使用
+      UTF16EncodeCodePoint的结果
 **** 12.8.4.2 Static Semantics: MV
+    . HexEscapeSequence :: x HexDigit HexDigit的MV是(第一个HexDigit的MV*16）加上
+      第二个HexDigit的MV。
+    . Hex4Digits :: HexDigit HexDigit HexDigit HexDigit的MV是(第一个HexDigit的
+      MV*0x1000)加上(第二个HexDigit的MV*0x100)加上(第三个HexDigit的MV*0x10)加上
+      第四个HexDigit的MV。
 *** 12.8.5 Regular Expression Literals
+**** 注意1 正则表达式字面量是一个输入元素，每当这个字面量被评估是，转换成
+            一个RegExp对象（22.2）。两个正则表达式字面量在程序里评估出的正则
+            表达式对象永远不满足===比较，即使两个字面量的内容相同。RegExp对象
+            也可以在运行时由new RegExp或者像函数一样调用RegExp的构造（22.2.3）
+            来创建。
+下方的产出描述了正则表达式字面量的句法，被输入元素扫描器用于找到正则表达式
+字面量的结尾。源文本组成的RegularExpressionBody和RegularExpressionFlags被随后的
+更加严格的ECMAScript正则表达式语法（22.2.1）解析出来。
+
+实现可以扩展定义在22.2.1的ECMAScript正则表达式语法，但是不能扩展下方定义的
+RegularExpressionBody和RegularExpressionFlags产出，或者使用这两个产出的产出。
+**** Syntax
+RegularExpressionLiteral ::
+    / RegularExpressionBody / RegularExpressionFlags
+RegularExpressionBody ::
+    RegularExpressionFirstChar RegularExpressionChars
+RegularExpressionChars ::
+    [ empty ]
+    RegularExpressionChars RegularExpressionChar
+RegularExpressionFirstChar ::
+    不是*或\或/或[的 RegularExpressionNonTerminator 
+    RegularExpressionBackslashSequence 
+    RegularExpressionClass 
+RegularExpressionChar ::
+    不是\或/或[的 RegularExpressionNonTerminator 
+    RegularExpressionBackslashSequence 
+    RegularExpressionClass
+RegularExpressionBackslashSequence ::
+    \ RegularExpressionNonTerminator
+RegularExpressionNonTerminator ::
+    不是LineTerminator的SourceCharacter
+RegularExpressionClass ::
+    [ RegularExpressionClassChars ]
+RegularExpressionClassChars ::
+    [empty]
+    RegularExpressionClassChars RegularExpressionClassChar
+RegularExpressionClassChar ::
+    不是]或\的RegularExpressionNonTerminator
+    RegularExpressionBackslashSequence
+RegularExpressionFlags ::
+    [empty]
+    RegularExpressionFlags IdentifierPart
+**** 注意2 正则表达式不允许是空的，因为空的正则表达式//是单行注释的编码单元
+            序列。一个空正则表达式，使用/(?:)/表示。
+**** 12.8.5.1 Static Semantics: Early Error
+RegularExpressionFlags :: RegularExpressionFlags IdentifierPart
+    . 如果IdentifierPart包含Unicode转义序列，就是一个句法错误。
+**** 12.8.5.2 Static Semantics: BodyText
+RegularExpressionLiteral :: / RegularExpressionBody / RegularExpressionFlags
+    . 返回识别为RegularExpressionBody的源文本。
+**** 12.8.5.3 Static Semantics: FlagText
+RegularExpressionLiteral :: / RegularExpressionBody / RegularExpressionFlags
+    . 返回识别为RegularExpressionFlags的源文本。
 *** 12.8.6 Template Literal Lexical Components
+**** Syntax
+Template ::
+    NoSubstitutionTemplate
+    TemplateHead
+NoSubstitutionTemplate ::
+    ` TemplateCharacters_opt `
+TemplateHead ::
+    ` TempalteCharacters_opt ${
+TemplateSubstitutionTail ::
+    TemplateMiddle
+    TemplateTail
+TemplateMiddle ::
+    } TemplateCharacters_opt ${
+TemplateTail ::
+    } TemplateCharacters_opt `
+TemplateCharacters ::
+    TemplateCharacter TemplateCharacters_opt
+TemplateCharacter
+    $ [lookahead != { ]
+    \ EscapeSequence
+    \ NotEscapeSequence
+    LineContinuation
+    LineTerminatorSequence
+    不是`或\或$或LineTerminator的SourceCharacter
+NotSecapeSequence ::
+    0 DecimalDigit
+    不是0的DecimalDigit
+    x [lookahead ∉ HexDigit]
+    x HexDigit [lookahead ∉ HexDigit]
+    u [lookahead ∉ HexDigit] [lookahead ≠ { ]
+    u HexDigit [lookahead ∉ HexDigit]
+    u HexDigit HexDigit [lookahead ∉ HexDigit]
+    u HexDigit HexDigit HexDigit [lookahead ∉ HexDigit]
+    u { [lookahead ∉ HexDigit]
+    u { NotCodePoint [lookahead ∉ HexDigit]
+    u { CodePoint [lookahead ∉ HexDigit] [lookahead ≠ } ]
+NotCodePoint ::
+    HexDigits_[~Sep] 但是仅当HexDigits的MV > 0x10FFFF
+CopePoint ::
+    HexDigits_[~Sep] 但是仅当HexDigits的MV <= 0x10FFFF
+一致实现在解析TemplateCharacter时，不能扩展B.1.2中描述的EscapeSequence的定义。
+**** 注意 TemplateSubstitutionTail被InputElementTemplateTail的备选词法目标。
+**** 12.8.6.1 Static Semantics: TV和TRV
+一个模板字面量组件被翻译成Unicode编码点序列。字面量组件的模板值（TV）被描述
+为一组由模板字面量组件的不同部分贡献的String值（SV 12.8.4）。作为这个过程的
+一部分，有些模板组件里的Unicode编码点按照含有的数学值（MV 12.8.3）来翻译。在
+确定TV时，转义序列按照其表示的编码点被替换为相应的UTF-16编码单元组。模板原
+始值（TRV）跟模板值很像，区别在于TRV的转义序列按照字面翻译。
+    . NoSubstitutionTemplate :: ` `的TV和TRV是空字符串。
+    . TemplateHead :: ` ${的TV和TRV是空字符串
+    . TemplateMiddle :: } ${的TV和TRV是空字符串
+    . TemplateTail :: } `的TV和TRV是空字符串
+    . TemplateCharacters :: TemplateCharacter TemplateCharacters的TV是undefined，如果
+      TemplateCharacter的TV是undefined或者TemplateCharacters的TV是undefined。否则是
+      TemplateCharacter的TV和TempalteCharacters的TV的字符串拼接。
+    . TemplateCharacter :: 不是`或\或$或LineTerminater的SourceCharacter 的TV是在
+      SourceCharacter的编码点值上使用UTF16EncodeCodePoint的结果。
+    . TemplateCharacter :: $的TV是由编码单元0x0024（DOLLAR SIGN）构成的字符串值。
+    . TemplateCharacter :: \ EscapeSequence的TV是EscapeSequence的SV
+    . TemplateCharacter :: \ NotEscapeSequence的TV是undefined
+    . TemplateCharacter :: LineTerminatorSequence的TV是LineTerminatorSequence的TRV
+    . LineContinuation :: \ LineTerminatorSequence的TV是空String。
+    . TemplateCharacters :: TemplateCharacter TemplateCharacters的TRV是TemplateCharacter
+      的TRV和TemplateCharacters的TRV的字符串拼接
+    . TemplateCharacters :: 不是`或\或$或LineTerminater的SourceCharacter 的TRV是在
+      SourceCharacter的编码点值上使用UTF16EncodeCodePoint的结果。
+    . TemplateCharacter :: $的TRV是由编码单元0x0024（DOLLAR SIGN）构成的字符串值。
+    . TemplateCharacter :: \ EscapeSequence的TRV是编码单云0x005C（REVERSE SOLIDUS）
+      和EscapeSequence的TRV的字符串拼接。
+    . TemplateCharacter :: \ NotEscapeSequence的TRV是编码单云0x005C（REVERSE 
+      SOLIDUS）和NotEscapeSequence的TRV的字符串拼接。
+    . EscapeSequence :: 0的TRV是由编码单元0x0030（DIGIT ZERO）构成的字符串值。
+    . NotEscapeSequence :: 0 DecimalDigit的TRV是编码单元0x0030（DIGIT ZERO）和
+      DecimalDigit的TRV的字符串拼接
+    . NotEscapeSequence :: x [lookahead ∉ HexDigit]的TRV是编码单元0x0078（LATIN 
+      SMALL LETTER X）构成的字符串值
+    . NotEscapeSequence :: x HexDigit [lookahead ∉ HexDigit]的TRV是编码单元0x0078
+      （LATIN SMALL LETTER X）和HexDigit的TRV的字符串拼接。
+    . NotEscapeSequence :: u [lookahead ∉ HexDigit] [lookahead ≠ {]的TRV是编码单元
+      0x0075（LATIN SMALL LETTER U）构成的字符串值。
+    . NotEscapeSequence :: u HexDigit [lookahead ∉ HexDigit]的TRV是编码单元0x0075
+      （LATIN SMALL LETTER U）和HexDigit的TRV的字符串拼接。
+    . NotEscapeSequence :: u HexDigit HexDigit [lookahead ∉ HexDigit]的TRV是编码单元
+      0x0075（LATIN SMALL LETTER U）、第一个HexDigit的TRV和第二个HexDigit的TRV的
+      字符串拼接。
+    . NotEscapeSequence :: u HexDigit HexDigit HexDigit [lookahead ∉ HexDigit]的TRV是
+      编码单元0x0075（LATIN SMALL LETTER U）、第一个HexDigit的TRV、第二个HexDigit
+      的TRV和第三HexDigit的TRV的字符串拼接。
+    . NotEscapeSequence :: u { [lookahead ∉ HexDigit]的TRV是编码单元0x0075（LATIN
+      SMALL LETTER U）和编码单元0x007B（LEFT CURLY BRACKET）的字符串拼接
+    . NotEscapeSequence :: u { NotCodePoint [lookahead ∉ HexDigit]的TRV是编码单元
+      0x0075（LATIN SMALL LETTER U）、编码单元0x007B（LEFT CURLY BRACKET）和
+      NotCodePoint的TRV的字符串拼接。
+    . NotEscapeSequence :: u { CodePoint [lookahead ∉ HexDigit] [lookahead ≠ {]的TRV是
+      编码单元0x0075（LATIN SMALL LETTER U）、编码单元0x007B（LEFT CURLY BRACKET）
+      和CodePoint的TRV的字符串拼接
+    . DecimalDigit :: 0 1 2 3 4 5 6 7 8 9之一 的TRV是在产出匹配到的编码点上运行
+      UTF16EncodeCodePoint的结果。
+    . CharacterEscapeSequence :: NonEscapeCharacter的TRV是NonEscapeCharacter的SV。
+    . SingleEscapeCharacter :: ' " \ b f n r t v之一 的TRV是在产出匹配到的编码点
+      上运行UTF16EncodeCodePoint的结果。
+    . HexEscapeSequence :: x HexDigit HexDigit的TRV是编码单元0x0078（LATIN SMALL
+      LETTER U）、第一个HexDigit的TRV和第二个HexDigit的TRV的字符串拼接。
+    . UnicodeEscapeSequence :: u Hex4Digits的TRV是编码单元0x0075（LATIN SMALL
+      LETTER U）和Hex4Digits的TRV的字符串拼接。
+    . UnicodeEscapeSequence :: u{ CodePoint }的TRV是编码单元0x0075（LATIN SMALL
+      LETTER U）、编码单元0x007B（LEFT CURLY BRACKET）、CodePoint的TRV和编码单元
+      0x007D（RIGHT CURLY BRACKET）的字符串拼接。
+    . Hex4Digits :: HexDigit HexDigit HexDigit HexDigit的TRV是第一个HexDigit的TRV、
+      第而个HexDigit的TRV、第三个HexDigit的TRV和第四个HexDigit的TRV的字符串拼
+      接。
+    . HexDigits :: HexDigits HexDigit的TRV是HexDigits的TRV和HexDigit的TRV的字符串
+      拼接。
+    . HexDigit :: 0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F之一 的TRV是在产出匹配
+      到的编码点上运行UTF16EncodeCodePoint的结果。
+    . LineContinuation :: \ LineTerminatorSequence 是编码单元0x005C（REVERSE SOLIDUS）
+      和LineTerminatorSequence的TRV字符串拼接
+    . LineTerminatorSequence :: <LF>的TRV是编码单元0x000A（LINE FEED）构成的字符
+      串值。
+    . LineTerminatorSequence :: <CR>的TRV是编码单元0x000A（LINE FEED）构成的字符
+      串值。
+    . LineTerminatorSequence :: <LS>的TRV是编码单元0x2028（LINE SEPARATOR）构成的
+      字符串值。
+    . LineTerminatorSequence :: <PS>的TRV是编码单元0x2029（PARGRAPH SEPARATOR）构成
+      的字符串值。
+    . LineTerminatorSequence :: <CR> <LF>的TRV是编码单元0x000A（LINE FEED）构成的
+      字符串值。
+***** 注意 注意TV不包含LineContinuation的编码单元即使TRV包含他们。在TV和TRV中
+            <CR><LF>和<CR> LineTerminatorSequences都被正常化为<LF>。显式的
+            EscapeSequence不需要包含<CR>或者<CR><LF>序列。
 ** 12.9 Automatic Semicolon Insertion
+绝大多数ECMAScript语句和声明必须用分号终结。这种分号通常显式的出现在源文本
+里。然而为了方便，这些分号会在某种情况下被从源文本中缺省掉。用在那些会
+自动像源文本中插入分号的情况来描述这些情况。
 *** 12.9.1 Rules of Automatic Semicolon Insertion
+在随后的规则里，信标意味着用在条款12中描述的正确的词法目标符确定实际识别的
+词法信标。
+
+插入分号由三个基本规则：
+    1. 在从左到右解析的源文本里，当遇到的信标（称为违法信标）不被任何语法
+       产出允许时，如果下方条件至少满足一条，分号会自动插入到违法的信标前。
+        。违法信标跟前一个信标被至少隔了一个LineTerminator
+        。违法信标是 }
+        。前一个信标是)，而且插入的分号会被解析为do-while语句（14.7.2）的
+          终结分号。
+    2. 在从左到右解析的源文本里，当遇到输入的信标流的末端，而且解析器不能
+       将这个输入的信标流解析为一个单独的目标非完结符实例，那么分号就会自动
+       插入到这个输入流的末端。
+    3. 在从左到右解析的源文本里，当遇到的信标是被语法某些产出允许，但是这种
+       产出是受限产出，而且信标是在这个受限产出里紧随着[no LineTerminator here]
+       的终结符或者非终结符的第一个信标（这种信标称为受限信标），且这个受限
+       信标跟前一个信标至少隔了一个LineTerminator，那么分号会被插入在这个受限
+       信标的前面。
+
+然后，在前面说的规则上覆盖了一个额外的条件：如果自动插入的分号会被解析成
+空语句或者成为for语句（14.7.4）头的两个分号之一，这个插入不会执行。
+**** 注意 随后的内容是语法中仅有的受限产出
+           UpdateExpression_[Yield, Await] :
+               LeftHandSideExpression_[?Yield, ?Await] [no LineTerminator here] ++
+               LeftHandSideExpression_[?Yield, ?Await] [no LineTerminator here] --
+           ContinueStatement_[Yield, Await] :
+               continue ;
+               continue [no lineTerminator here] LabelIdentifier_[?Yield, ?Await] ;
+           BreakStatement_[Yield, Await] :
+               break ;
+               break [no lineTerminator here] LabelIdentifier_[?Yield, ?Await] ;
+           ReturnStatement_[Yield, Await] :
+               return ;
+               return [no lineTerminator here] Expression_[+In, ?Yield, ?Await] ;
+           ThrowStatement_[Yield, Await] :
+               throw [no lineTerminator here] Expression_[+In, ?Yield, ?Await] ;
+           ArrowFunction_[In, Yield, Await] :
+               ArrowParameters_[?Yield, ?Await] [no LineTerminator here] => ConCiseBody_[?In]
+           YieldExpression_[In, Await] :
+               yield
+               yield [no LineTerminator here] AssignmentExpression_[?In, +Yield, ?Await]
+               yield [no LineTerminator here] * AssignmentExpression_[?In, +Yield, ?Await]
+           这些受限产出的实际效果如下所列：
+               . 当遇到++或--信标的时候，解析器会将其作为后缀操作，而且在前一
+                 个信标与++或--信标间至少一个LineTerminator，那么分号会自动插入
+                 在++或--信标前。
+               . 当遇到continue、break、return、throw或者yield信标的时候，下一个
+                 信标前遇到LineTerminator，分号会自动插入到continue、break、
+                 return、throw或yield信标的后边。
+           给ECMAScript程序员的实践建议时：
+               . 后缀++或--应当在其作为运算符的同一行
+               . 在return或者throw语句中的表达式，或者在yield表达式中的
+                 AssignmentExpression应当与return、throw或者yield信标同一行开始。
+               . 在break或continue语句中的LabelIdentifier应当与break或者continue信
+                 标在同一行
 *** 12.9.2 Examples of Automatic Semicolon Insertion
+本节不是标准内容。
+
+源码
+{ 1 2 } 3
+不是ECMAScript语法中的有效语句，即使有自动插入分号的机制。相反，源码
+{ 1
+2 } 3
+仍然不是有效的ECMAScript语句，但是会自动插入分号，转换为
+{ 1
+; 2 ;} 3;
+这却是一个有效的ECMAScirpt语句。
 *** 12.9.3 Interesting Cases of Automatic Semicolon Insertion
 * 25
 ** 25.1
