@@ -462,7 +462,7 @@ Block: { StatementList }
 4. Perform !SyntaxDirectedOperation of NonTerminal
 *** 5.2.4 静态语义
   上下文无关语法没有足够的能力表达定义在被评估的Script或Module的输入元素流的
-所有规则。在这些情况下，需要额外的规则来表达ECMAScript算法约定或者散文要
+所有规则。在这些情况下，需要额外的规则来表达ECMAScript算法约定或者文法要
 求。这种规则总是联结到一个语法产出，被称作产出的静态语义。
   静态语义规则有名字，通常使用算法定义。命名的静态语义规则联结到语法产出，
 产出有多个备选定义，每个备选针对提供的命名的静态语法规则有明确的算法。
@@ -8372,7 +8372,107 @@ CopePoint ::
 { 1
 ; 2 ;} 3;
 这却是一个有效的ECMAScirpt语句。
+
+源码
+for (a; b
+)
+不是有效的ECMAScript语句，也不会被自动插入分号机制修改，因为这个分号是被for
+语句头所需要的。自动插入分号机制不会向for语句头插入分号。
+
+源码
+return
+a + b
+被自动插入分号机制转换成：
+return;
+a + b;
+**** 注意1 表达式a + b不会作为一个值被return语句返回，因为跟信标return之间隔了
+            LineTerminator
+源码
+a = b
+++c
+被自动插入分号机制转换成：
+a = b;
+++c;
+**** 注意2 信标++不会作为b的后缀操作符，因为b和++之间隔了LineTerminator。
+源码
+if (a > b)
+eles c = d
+不是有效的ECMAScript语句，也不会被修改为在else信标前自动插入分号，尽管没有
+语法产出用于这里，因为自动插入分号机制会将这里解析为空语句。
+
+源码
+a = b + c
+(d + e).print()
+不会被自动插入分号机制转换，因为第二行开始括号表达式能被翻译为函数调用的
+参数：
+a = b + c(d + e).print()
+
+在这种赋值语句必须以左括号开始的情况，程序员显式的在前一个语句尾部提供一
+个分号，而不是依赖自动插入分号，会是好一些。
 *** 12.9.3 Interesting Cases of Automatic Semicolon Insertion
+本节不是标准内容。
+
+依赖自动插入分号，ECMAScript程序可以极少使用分号的方式书写。如上描述，分号
+不必每行插入，自动插入分号可以依靠经过行终结符的多个信标。
+
+当新的句法特征增加到ECMAScript中，会导致其前的行依赖自动插入分号的额外语法
+产出会被增加进来以便在解析时变更语法产出。
+
+本节的目的是，如果一个地方没有分号可不可以插入，依赖于其前的源码，这就被
+认为是一个有取的自动插入分号案例。本节剩下的部分描述了一些在当前版本
+ECMAScript中的自动插入分号案例。
+**** 12.9.3.1 Interesting Cases of Automatic Semicolon Insertion in Statement List
+在一个StatementList中，许多StatementListItem结尾的分号，使用自动插入分号机制
+可以忽略掉。作为上面规则的后果，在以表达式结尾的行末，是需要分好的，如果
+随后的行以下方所列的方式开始：
+    . ( 。没有分号，这两行合起来被当作CallExpression
+    . [ 。没有分号，这两行合起来被当作性质访问，而不是ArrayLiteral或者
+      ArrayAssignmentPattern
+    . ` 。没有分号，这两行合起来被翻译成标记的模板（13.3.1），前面的表达式
+      作为MemberExpression
+    . 单位操作符+ 或 -。没有分号，这两行合起来被当作两位操作符。
+    . 表达式字面量。没有分号，这两行合起来后，/被当作MultiplicativeOperator，
+      例如有旗帜的RegExp
+**** 12.9.3.2 Cases of Automatic Semicolon Insertion and "[no LineTerminator here]"
+本节不是标准内容。
+
+ECMAScript含有很多包含[no LineTerminator here]的语法产出。这些产出某时意味着
+在语法里有可选的操作项。在这些位置引入LineTerminator会改变源文本的语法产出
+不使用可选的操作项。
+
+本节剩余内容描述了本版本ECMAScript使用[no LineTerminator here]的产出。
+***** 12.9.3.2.1 List of Grammar Productions with Optional Operands and
+                 "[no LineTerminator here]"
+    . UpdateExpression
+    . ContinueStatement
+    . BreakStatement
+    . ReturnStatement
+    . YieldExpression
+    . 与Function Definitions（15.2）相关的Async Function Definitions（15.8）
+* 13 ECMAScript Language: Expressions 表达式
+** 13.1 Identifiers
+*** Syntax
+IdentifierReference_[Yield, Await] :
+    Identifier
+    [~Yield]yield
+    [~Await]await
+BindingIdentifier_[Yield, Await] :
+    Identifier
+    yield
+    await
+LabelIdentifier_[Yield, Await] :
+    Identifier
+    [~Yield]yield
+    [~Await]await
+Identifier :
+    不是ReservedWord的IdentifierName
+**** 注意 yield和await在于法中允许做BindingIdentifier，但是被下方的静态语义禁
+           止，以避免自动插入分号机制触发在随后的例子里
+
+           let
+           await 0
+*** 13.1.1 Static Semantics: Early Errors
+
 * 25
 ** 25.1
 
