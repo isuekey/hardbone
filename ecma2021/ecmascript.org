@@ -8472,7 +8472,185 @@ Identifier :
            let
            await 0
 *** 13.1.1 Static Semantics: Early Errors
+BindingIdentifier : Identifier
+    . 如果本产出的代码包含在严格模式代码里，Identifier的String值是arguments或
+      eval，那么会是一个SyntaxError
 
+IdentifierReference : yield
+BindingIdentifier : yield
+LabelIdentifier : yield
+    . 如果本产出的代码包含在严格模式代码里，那么会是一个SyntaxError
+
+IdentifierReference : await
+BindingIdentifier : await
+LabelIdentifier : await
+    . 如果句法的目标符是Module，那么会是一个SyntaxError
+    
+BindingIdentifier_[Yield, Await] : yield
+    . 如果产出有一个[Yield]参数，那么会是一个SyntaxError
+
+BindingIdentifier_[Yield, Await] : await
+    . 如果产出有一个[Await]参数，那么会是一个SyntaxError
+    
+IdentifierReference_[Yield, Await] : Identifier
+BindingIdentifier_[Yield, Await] : Identifier
+LabelIdentifier_[Yield, Await] : Identifier
+    . 如果产出有一个[Yield]参数而且Identifier的String值是yield，那么会是一个
+      SyntaxError
+    . 如果产出有一个[Await]参数而且Identifier的String值是await，那么会是一个
+      SyntaxError
+      
+Identifier : 不是ReservedWord的IdentifierName
+    . 如果产出在严格模式代码里，而且IdentifierName的String值是implements、
+      interface、let、package、private、protected、public、static、yield，那么会是
+      一个SyntaxError
+    . 如果句法的目标符是Module，而且IdentifierName的String值是await，那么会是
+      一个SyntaxError
+    . 如果IdentifierName的String值是除了yield和await的ReservedWord，那么会是一个
+      SyntaxError
+**** 注意 IdentifierName的String值正常化了在IdentifierName的Unicode转义序列，因此
+           能够正常化为ReservedWord的转义序列不能作为Identifier
+*** 13.1.2 Static Semantics: String Value
+IdentifierName ::
+    IdentifierStart
+    IdentifierName IdentifierPart
+1. 让idText是IdentifierName匹配到的源文本
+2. 让idTextUnescaped是将出现在idText中的所有\UnicodeEscapeSequence替换为
+   UnicodeEscapeSequence表示的编码点
+3. 返回!CodePointsToString(idTextUnescaped)
+   
+IdentifierReference : yield
+BindingIdentifier : yield
+LabelIdentifier : yield
+1. 返回"yield"
+   
+IdentifierReference : await
+BindingIdentifier : await
+LabelIdentifier : await
+1. 返回"await"
+
+Identifier : 不是ReservedWord的IdentifierName
+1. 返回IdentifierName的String值
+*** 13.1.3 Static Semantics: Evaluation
+IdentifierReference : Identifier
+1. 返回?ResolveBinding(Identifier的String值)
+
+IdentifierReference : yield
+1. 返回?ResolveBinding("yield")
+
+IdentifierReference : await
+1. 返回?ResolveBinding("await")
+*** 注意1 IdentifierRefrerence的评估结果总是Reference类型的
+*** 注意2 在非严格模式代码里，关键词yield可以作为标识。评估这种
+           IdentifierReference会将yeild作为标识产生绑定。EarlyError会限制这种评估
+           仅发生在非严格模式代码里。
+** 13.2 Primary Expression 基础表达式
+*** Syntax
+PrimaryExpression_[Yield, Await] :
+    this
+    IdentifierReference_[?Yield, ?Await]
+    Literal
+    ArrayLiteral_[?Yield, ?Await]
+    ObjectLiteral_[?Yield, ?Await]
+    FunctionExpresion
+    ClassExpression_[?Yield, ?Await]
+    GeneratorExpression
+    AsyncFunctionExpression
+    AsyncGeneratorExpression
+    RegularExpressionLiteral
+    TemplateLiteral_[?Yield, ?Await, ~Tagged]
+    CoverParenthesizedExpressionAndArrowParameterList_[?Yield, ?Await]
+CoverParenthesizedExpressionAndArrowParameterList_[Yield, Await] :
+    ( Expression_[+In, ?Yield, ?Await] )
+    ( Expression_[+In, ?Yield, ?Await] , )
+    ( )
+    ( ... BindingIdentifier_[?Yield, ?Await] )
+    ( ... BindingPattern_[?Yield, ?Await] )
+    ( Expression_[+In, ?Yield, ?Await], ... BindingIdentifier_[?Yield, ?Await] )
+    ( Expression_[+In, ?Yield, ?Await], ... BindingPattern_[?Yield, ?Await] )
+*** Supplemental Syntax 辅助句法
+当处理产出
+PrimaryExpression_[Yield, Await] : CoverParenthesizedExpressionAndArrowParameterList_[?Yield, ?Await]
+的实例时，CoverParenthesizedExpressionAndArrowParameterList的翻译过程使用随后的
+优化语法：
+ParenthesizedExpreesion_[Yield, Await] :
+    ( Expression_[+In, ?Yield, ?Await] )
+*** 13.2.1 Semantics 语义
+**** 13.2.1.1 Static Semantics: CoveredParenthesizedExpression
+CoverParenthesizedExpressionAndArrowParameterList : ( Expression )
+    1. 返回被CoverParenthesizedExpressionAndArrowParameterList覆盖的
+       ParenthesizedExpression
+*** 13.2.2 The this Keyword 关键词this
+**** 13.2.2.1 Runtime Semantics: Evaluation 运行时语义：评估
+PrimaryExpression : this
+    1. 返回?ResolveThisBinding()
+*** 13.2.3 Identifier Reference
+见于13.1的IdentifierReference
+*** 13.2.4 Literals 字面量
+**** Syntax
+Literal :
+    NullLiteral
+    Booleaniteral
+    NumericLiteral
+    StringLiteral 
+**** 13.2.4.1 Runtime Semantics: Evaluation 运行时语义：评估
+Literal : NullLiteral
+    1. 返回 null
+
+Literal : BolleanLiteral
+    1. 如果BooleanLiteral是false信标，返回false
+    2. 如果BooleanLiteral是true信标，返回true
+
+Literal : NumericLiteral
+    1. 返回12.8.3中定义的NumericLiteral的Number值
+
+Literal : StringLiteral
+    1. 返回12.8.4.1中定义的StringLiteral的SV
+*** 13.2.5 Array Initializer 数组初始化
+**** 注意 数组字面量是一个用方括号包裹的，含有若干作为数组元素的表达式形式
+           的list来描述初始化数组对象的表达式。元素不必是字面量，他们在这个
+           数组初始化被评估的时候被评估。
+
+数组元素可以在元素list开始、中间或结尾处被省略。当元素list里的逗号没有前置
+的AssignmentExpression（比如开始位置或者跟随另一个逗号），缺失的数组元素会贡
+先数组的长度，并增加随后元素的索引位置。缺失的数组元素没有定义。如果元素
+是在数组尾部被忽略的，这个元素不贡献数组的长度。
+**** Syntax
+ArrayLiteral_[Yield, Await] :
+    [ Elision_opt ]
+    [ ElementList_[?Yield, ?Await] ]
+    [ ElementList_[?Yield, ?Await], Elision_opt ]
+
+ElementList_[Yield, Await] :
+    Elision_opt AssignmentExpression_[+In, ?Yield, ?Await]
+    Elision_opt SpreadElement_[?Yield, ?Await]
+    ElementList_[?Yield, ?Await] , Elision_opt AssignmentExpression_[+In, ?Yield, ?Await]
+    ElementList_[?Yield, ?Await] , Elision_opt SpreadElement_[?Yield, ?Await]
+    
+Elision :
+    ,
+    Elision ,
+    
+SpreadElement_[Yield, Await] :
+    ... AssignmentExpression_[+In, ?Yield, ?Await]
+**** 13.2.5.1 Runtime Semantics: ArrayAccumulation
+带array和nextIndex参数
+
+*** 13.2.6
+** 13.3 Left-Hand-Side Expressions
+** 13.4 Update Expressions
+** 13.5 Unary Operators
+** 13.6 Exponentiation Operator
+** 13.7 Multiplicative Operators
+** 13.8 Additive Operators
+** 13.9 Bitwise Shift Operators
+** 13.10 Relational Operators
+** 13.11 Equality Operators
+** 13.12 Binary Bitwise Operators
+** 13.13 Binary Logical Operators
+** 13.14 Confitional Operator
+** 13.15 Assignment Operators
+** 13.16 Comma Operator(,)
 * 25
 ** 25.1
 
