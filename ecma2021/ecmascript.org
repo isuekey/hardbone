@@ -8633,9 +8633,72 @@ Elision :
     
 SpreadElement_[Yield, Await] :
     ... AssignmentExpression_[+In, ?Yield, ?Await]
-**** 13.2.5.1 Runtime Semantics: ArrayAccumulation
+**** 13.2.5.1 Runtime Semantics: ArrayAccumulation 
 带array和nextIndex参数
 
+Elision : ,
+1. 让len是nextIndex+1
+2. 执行?Set(array, "length", F(len), true)
+3. 注意：如果len超过2^32-1，会投掷异常
+4. 返回len
+
+Elision : Elision ,
+1. 返回在Elision上执行带array和nextIndex+1参数的ArrayAccumulation的结果
+
+Elision : Elision_opt AssignmentExpression
+1. 如果Elision存在，那么
+    a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation
+       的结果
+    b. ReturnInAbrupt(nextIndex)
+2. 让initResult是AssignmentExpression的评估结果
+3. 让initValue是?GetValue(initResult)
+4. 让creted是!CreateDataPropertyOrThrow(array, !ToString(F(nextIndex)), initValue)
+5. 返回nextIndex+1
+
+ElementList : Elision_opt SpreadElement
+1. 如果Elision存在，那么
+    a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation
+       的结果
+    b. ReturnInAbrupt(nextIndex)
+2. 返回在SpreadElement上执行带array和nextIndex参数的ArrayAccumulation的结果
+
+ElementList : ElementList , Elision_opt AssignmentExpression
+1. 设置nextIndex是在ElementList上执行带array和nextIndex参数的ArrayAccumulation的
+   结果
+2. ReturnIfAbrupt(nextIndex)
+3. 如果Elision存在，那么
+    a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation
+       的结果
+    b. ReturnInAbrupt(nextIndex)
+4. 让initResult是AssignmentExpression的评估结果
+5. 让initValue是?GetValue(initResult)
+6. 让creted是!CreateDataPropertyOrThrow(array, !ToString(F(nextIndex)), initValue)
+7. 返回nextIndex+1
+
+ElementList : ElementList , Elision_opt SpreadElement
+1. 设置nextIndex是在ElementList上执行带array和nextIndex参数的ArrayAccumulation的
+   结果
+2. ReturnIfAbrupt(nextIndex)
+3. 如果Elision存在，那么
+    a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation
+       的结果
+    b. ReturnInAbrupt(nextIndex)
+4. 返回在SpreadElement上执行带array和nextIndex参数的ArrayAccumulation的结果
+
+SpreadElement : ...AsignmentExpression
+1. 让spreadRef是评估AssignmentExpression的结果
+2. 让spreadObj是?GetValue(spreadRef)
+3. 让iteratorRecord是?GetIterator(spreadObj)
+4. 重复
+    a. 让next是?IteratorStep(iteratorRecord)
+    b. 如果next是false，返回nextIdnex
+    c. 让nextValue是?IteratorValue(next)
+    d. 执行!CreateDataPropertyOrThrow(array, !ToString(F(nextIndex)), nextValue)
+    e. 设置nextIndex是nextIndex+1
+**** 注意 CreateDataPropertyOrThrow被用于确保自有性质被定义到对象上，即使内建
+标准对对象ArrayProperty对象已经修改对应性质的\[\[Set]]属性。
+**** 13.2.5.2 Runtime Semantics: Evaluation
+ArrayLiteral : [ Elision_opt ]
 *** 13.2.6
 ** 13.3 Left-Hand-Side Expressions
 ** 13.4 Update Expressions
