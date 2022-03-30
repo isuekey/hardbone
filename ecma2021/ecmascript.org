@@ -8634,9 +8634,116 @@ Elision :
 SpreadElement_[Yield, Await] :
     ... AssignmentExpression_[+In, ?Yield, ?Await]
 **** 13.2.5.1 Runtime Semantics: ArrayAccumulation
-带array和nextIndex参数
+带array和nextIndex参数.
 
-*** 13.2.6
+Elision : ,
+    1. 让len是nextIndex + 1
+    2. 执行?Set(array, "length", F(len), true)
+    3. 注意：上述步骤如果len超过了2^32-1，回投掷异常
+    4. 返回 len.
+
+Elision : Elision ,
+    1. 返回在Elision上执行带array和nextIndex +1参数的ArrayAccumulation的结果
+
+ElementList : Elision_opt AssignmentExpression
+    1. 如果Elision存在，那么
+        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        b. ReturnIfAbrupt(nextIndex)
+    2. 让initResult是评估AssignmentExpression的结果
+    3. 让initValue是?GetValue(initResult)
+    4. 让created是!CreateDataPropertyOrThrow(array, !ToString(F(nextIndex)), initValue)
+    5. 返回 nextIndex + 1
+
+ElementList : Elision_opt SpreadElement
+    1. 如果Elision存在，那么
+        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        b. ReturnIfAbrupt(nextIndex)
+    2. 返回在SpreadElement上执行带array和nextIndex的结果
+
+ElementList : ElementList , Elision_opt AssignmentExpression
+    1. 设置nextIndex是在ElementList上执行带array和nextIndex参数的ArrayAccumulation的结果
+    2. ReturnIfAbrupt(nextIndex)
+    3. 如果Elision存在，那么
+        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        b. ReturnIfAbrupt(nextIndex)
+    4. 让initResult是评估AssignmentExpression的结果
+    5. 让initValue是?GetValue(initResult)
+    6. 让created是!CreateDataPropertyOrThrow(array, !ToString(F(nextIndex)), initValue)
+    7. 返回 nextIndex + 1
+
+ElementList : ElementList, Elision_opt SpreadElement
+    1. 设置nextIndex是在ElementList上执行带array和nextIndex参数的ArrayAccumulation的结果
+    2. ReturnIfAbrupt(nextIndex)
+    3. 如果Elision存在，那么
+        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        b. ReturnIfAbrupt(nextIndex)
+    4. 返回在SpreadElement上执行带array和nextIndex的结果
+
+SpreadElement : ... AssignmentExpression
+    1. 让spreadRef是AssignmentExpression的评估结果
+    2. 让spreadObj是?GetValue(spreadRef)
+    3. 让iteratorRecord是?GetIterator(spreadObj)
+    4. 重复
+        a. 让next是?IteratorStep(iteratorRecord)
+        b. 如果next是false，返回nextIndex
+        c. 让nextValue是?IteratorValue(next)
+        d. 执行!CreateDataPropertyOrThrow(array, !ToString(F(nextIndex)), nextValue)
+        e. 设置nextIndex是nextIndex+1
+***** 注意 CreateDataPropertyOrThrow用于确保在array上创建了自有性质，即使内建的ArrayPrototypeObject
+          已经修改为阻止使用\[\[Set]]创建新性质的方式。
+**** 13.2.5.2 Runtime Semantics: Evaluation 运行时语义：评估
+ArrayLiteral : [ Elision_opt ]
+    1. 让array是!ArrayCreate(0)
+    2. 如果Elision存在，那么
+        a. 设置len是在Elision上执行带array和0参数的ArrayAccumulation的结果
+        b. ReturnIfAbrupt(len)
+    3. 返回array
+
+ArrayLiteral : [ ElementList ]
+    1. 让array是!ArrayCreate(0)
+    2. 让len是在ElementList上执行带array和0参数的ArrayAccumulation的结果
+    3. ReturnIfAbrupt(len)
+    4. 返回array
+
+ArrayLiteral : [ ElementList, Elision_opt]
+    1. 让array是!ArrayCreate(0)
+    2. 设置nextIndex是在ElementList上执行带array和0参数的ArrayAccumulation的结果
+    3. ReturnIfAbrupt(nextIndex)
+    4. 如果Elision存在，那么
+        a. 设置len是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        b. ReturnIfAbrupt(len)
+    5. 返回array
+*** 13.2.6 Object Initializer
+**** 注意1 ObjectInitializer是描述初始化Object的表达式，以像字面量的方式书写。是在被大括号包裹起来的，
+          由若干个性质键和联结值的对构成的列表。其中的值不必是字面量，他们在每次评估ObjectInitializer的
+          时候也被评估。
+**** Syntax 
+ObjectLiteral_[Yield, Await] :
+    { }
+    { PropertyDefinitionList_[?Yield, ?Await] }
+    { PropertyDefinitionList_[?Yield, ?Await] , }
+
+PropertyDefinitionList_[Yield, Await] :
+    PropertyDefinition_[?Yield, ?Await]
+    PropertyDefinitionList_[Yield, Await] , PropertyDefinition_[?Yield, ?Await]
+
+PropertyDefinition_[Yield, Await] :
+    IdentifierReference_[?Yield, ?Await]
+    CoverInitializedName_[?Yield, ?Await]
+    PropertyName_[?Yield, ?Await] : AssignmentExpression_[+In, ?Yield, ?Await]
+    methodDefiniation_[?Yield, ?Await]
+    ... AssignmentExpression_[+In, ?Yield, ?Await]
+    
+PropertyName_[Yield, Await] :
+    LiteralPropertyName
+    ComputedPropteryName_[?Yield, ?Await]
+    
+LiteralPropertyName :
+    IdentifierName
+    StringLiteral
+    NumericLiteral
+
+ComputedPropterName_[Yield
 ** 13.3 Left-Hand-Side Expressions
 ** 13.4 Update Expressions
 ** 13.5 Unary Operators
