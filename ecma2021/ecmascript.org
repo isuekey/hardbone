@@ -8633,6 +8633,7 @@ Elision :
     
 SpreadElement_[Yield, Await] :
     ... AssignmentExpression_[+In, ?Yield, ?Await]
+
 **** 13.2.5.1 Runtime Semantics: ArrayAccumulation
 带array和nextIndex参数.
 
