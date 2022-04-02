@@ -8633,7 +8633,6 @@ Elision :
     
 SpreadElement_[Yield, Await] :
     ... AssignmentExpression_[+In, ?Yield, ?Await]
-
 **** 13.2.5.1 Runtime Semantics: ArrayAccumulation
 带array和nextIndex参数.
 
@@ -8648,7 +8647,8 @@ Elision : Elision ,
 
 ElementList : Elision_opt AssignmentExpression
     1. 如果Elision存在，那么
-        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation
+           的结果
         b. ReturnIfAbrupt(nextIndex)
     2. 让initResult是评估AssignmentExpression的结果
     3. 让initValue是?GetValue(initResult)
@@ -8657,15 +8657,18 @@ ElementList : Elision_opt AssignmentExpression
 
 ElementList : Elision_opt SpreadElement
     1. 如果Elision存在，那么
-        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation
+           的结果
         b. ReturnIfAbrupt(nextIndex)
     2. 返回在SpreadElement上执行带array和nextIndex的结果
 
 ElementList : ElementList , Elision_opt AssignmentExpression
-    1. 设置nextIndex是在ElementList上执行带array和nextIndex参数的ArrayAccumulation的结果
+    1. 设置nextIndex是在ElementList上执行带array和nextIndex参数的ArrayAccumulation
+       的结果
     2. ReturnIfAbrupt(nextIndex)
     3. 如果Elision存在，那么
-        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation
+           的结果
         b. ReturnIfAbrupt(nextIndex)
     4. 让initResult是评估AssignmentExpression的结果
     5. 让initValue是?GetValue(initResult)
@@ -8673,10 +8676,12 @@ ElementList : ElementList , Elision_opt AssignmentExpression
     7. 返回 nextIndex + 1
 
 ElementList : ElementList, Elision_opt SpreadElement
-    1. 设置nextIndex是在ElementList上执行带array和nextIndex参数的ArrayAccumulation的结果
+    1. 设置nextIndex是在ElementList上执行带array和nextIndex参数的ArrayAccumulation
+       的结果
     2. ReturnIfAbrupt(nextIndex)
     3. 如果Elision存在，那么
-        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation的结果
+        a. 设置nextIndex是在Elision上执行带array和nextIndex参数的ArrayAccumulation
+        的结果
         b. ReturnIfAbrupt(nextIndex)
     4. 返回在SpreadElement上执行带array和nextIndex的结果
 
@@ -8690,8 +8695,8 @@ SpreadElement : ... AssignmentExpression
         c. 让nextValue是?IteratorValue(next)
         d. 执行!CreateDataPropertyOrThrow(array, !ToString(F(nextIndex)), nextValue)
         e. 设置nextIndex是nextIndex+1
-***** 注意 CreateDataPropertyOrThrow用于确保在array上创建了自有性质，即使内建的ArrayPrototypeObject
-          已经修改为阻止使用\[\[Set]]创建新性质的方式。
+***** 注意 CreateDataPropertyOrThrow用于确保在array上创建了自有性质，即使内建的
+            ArrayPrototypeObject已经修改为阻止使用\[\[Set]]创建新性质的方式。
 **** 13.2.5.2 Runtime Semantics: Evaluation 运行时语义：评估
 ArrayLiteral : [ Elision_opt ]
     1. 让array是!ArrayCreate(0)
@@ -8715,9 +8720,10 @@ ArrayLiteral : [ ElementList, Elision_opt]
         b. ReturnIfAbrupt(len)
     5. 返回array
 *** 13.2.6 Object Initializer
-**** 注意1 ObjectInitializer是描述初始化Object的表达式，以像字面量的方式书写。是在被大括号包裹起来的，
-          由若干个性质键和联结值的对构成的列表。其中的值不必是字面量，他们在每次评估ObjectInitializer的
-          时候也被评估。
+**** 注意1 ObjectInitializer是描述初始化Object的表达式，以像字面量的方式书写。
+            是在被大括号包裹起来的，由若干个性质键和联结值的对构成的列表。
+            其中的值不必是字面量，他们在每次评估ObjectInitializer的时候也被
+            评估。
 **** Syntax 
 ObjectLiteral_[Yield, Await] :
     { }
@@ -8744,7 +8750,270 @@ LiteralPropertyName :
     StringLiteral
     NumericLiteral
 
-ComputedPropterName_[Yield
+ComputedPropterName_[Yield, Await] :
+    [ AssignmentExpression_[+In, ?Yield, ?Await] ]
+
+CoverInitializedName_[Yield, Await] :
+    IdentifierReference_[?Yield, ?Await] Initializer_[+In, ?Yield, ?Await]
+
+Initializer_[In, Yield, Await] :
+    = AssignmentExpression_[?In, ?Yield, ?Await]
+**** 注意2 MethodDefinition定义在15.4
+**** 注意3 在某些背景中，ObjectLiteral用于作为更严格的二级语法的覆盖语法。
+            CoverInitializedName产出是这些二级语法的必要覆盖。然而在实际上是
+            期望ObjectLiteral的普通背景里，使用这些产出会导致早期句法错误。
+**** 13.2.6.1 Static Semantics: Early Errors 静态语义：早期错误
+PropertyDefinition : MethodDefinition
+    . 如果MethodDefinition的HasDirectSuper是true，这存在句法错误。
+
+除了描述实际的对象初始化，ObjectLiteral产出还被用作ObjectAssignmentPattern的覆盖
+语法，也可能被识别为CoverParenthesizedExpressionAndArrowParameterList的一部分。当
+ObjectLiteral出现在需要ObjectAssignmentPattern的背景中，不要使用随后的早期错误。
+此外，在初始解析CoverParenthesizedExpressionAndArrowParameterList或者
+CoverCallExpressionAndAsyncArrowHead时也不要使用。
+
+PropertyDefinition : CoverInitializedName
+    . 如果代码匹配到了此产出，就投掷一个句法错误
+***** 注意 这种产出存在，所以ObjectLiteral可以作为ObjectAssignmentPattern的覆盖
+            语法。不能发生在实际的对象初始化里。
+**** 13.2.6.2 Static Semantics: IsComputedPropertyKey
+PropertyName : LiteralPropertyName
+    1. Return false;
+
+PropertyName : ComputedPropertyName
+    1. Return true;
+**** 13.2.6.3 Static Semantics: PropertyNameList
+PropertyDefinitionList : PropertyDefinition
+    1. 如果PropertyDefinition的PropName是空，返回新的空List
+    2. 返回只有PropertyDefinition的PropName的List
+
+PropertyDefinitionList : PropertyDefinitionList , PropertyDefinition
+    1. 让list是PropterDefinitionList的PropertyNameList
+    2. 如果PropertyDefinition的PropName是空，返回list
+    3. 将PropertyDefinition的PropName追加到list的末端
+    4. 返回list
+**** 13.2.6.4 Runtime Semantics: Evaluation 运行时语义：评估
+ObjectLiteral : { }
+    1. 返回!OrdinaryObjectCreate(%Object.prototype%)
+
+ObjectLiteral :
+        { PropertyDefinitionList }
+        { PropertyDefinitionList, }
+    1. 让obj是!OrdinaryObjectCreate(%Object.prototype%)
+    2. 执行在PropertyDefinitionList上的带obj和true参数的?PropertyDefinitionEvaluation
+    3. 返回obj
+
+LiteralPropertyName : IdentifierName
+    1. 返回IdentifierName的字符传值
+
+LiteralPropertyName : StringLiteral
+    1. 返回StringLiteral的SV
+
+LiteralPropertyName : NumericLiteral
+    1. 让nbr是NumericLiteral的数字值
+    2. 返回!ToString(nbr)
+
+ComputedPropertyName : [ AssignmentExpression ]
+    1. 让exprValue是AssignmentExpression的评估结果
+    2. 让propName是?GetValue(exprValue)
+    3. 返回?ToPropertyKey(propName)
+**** 13.2.6.5 Runtime Semantics: PropertyDefinitionEvaluation
+带参数object和enumerable
+
+PropertyDefinitionList : PropertyDefinitionList , PropertyDefinition
+    1. 在PropertyDefinitionList上执行带object和enumerable参数的
+       ?PropertyDefinitionEvaluation
+    2. 返回在PropertyDefinition上执行带object和enumerable参数的
+       PropertyDefinitionEvaluation的结果
+
+PropertyDefinition : ... AssignmentExpression
+    1. 让exprValue是评估AssinmentExpression的结果
+    2. 让fromValue是?GetValue(exprValue)
+    3. 让excludedNames是新的空List
+    4. 返回 ?CopyDataProperties(object, fromValue, excluedeNames)
+
+PropertyDefinition : IdentifierReference
+    1. 让propName是IdentifierReference的字符串值
+    2. 让exprValue是评估IdentifierReference的结果
+    3. 让propValue是?GetValue(exprValue)
+    4. Assert：enumerable是true
+    5. Assert：object是普通的可扩展对象，没有不可设置性质
+    6. 返回!CreateDataPropertyOrThrow(object, propName, propValue)
+
+PropertyDefinition : PropertyName : AssignmentExpression
+    1. 让propKey是PropertyName的评估结果
+    2. ReturnIfAbrupt(propKey)
+    3. 如果IsAnonymousFunctionDefinition(AssignmentExpression)是true， 那么
+        a. 让propValue是在AssignmentExpression上带propKey参数的?NamedEvaluation
+    4. 否则
+        a. 让exprValueRef是AssignmentExpression的评估结果
+        b. 让propValue是?GetValue(exprValueRef)
+    5. Assert：enumerable是true
+    6. Assert：object是普通的可扩展对象，没有不可设置性质
+    7. 返回!CreateDataPropertyOrThrow(object, propName, propValue)
+***** 注意 在B.3.1提供了本产出的备选语义。
+MethodDefinition:
+    PropertyName ( UniqueFormalParameters ) { FunctionBody }
+    get PropertyName ( ) { FunctionBody }
+    set PropertyName ( PropertySetParameterList ) { FunctionBody }
+    1. 返回MethodDefinition上带object和enumerable参数的?MethodDefinitionEvaluation
+
+GeneratorMethod : * PropertyName ( UniqueFormalParameters ) { GeneratorBody }
+    1. 返回GeneratorMethod上带object和enumerable参数的?MethodDefinitionEvaluation
+
+AsyncGeneratorMethod : async * PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody }
+    1. 返回AsyncGeneratorMethod上带object和enumerable参数的?MethodDefinitionEvaluation
+
+AsyncMethod : async PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody }
+    1. 返回AsyncMethod上带object和enumerable参数的?MethodDefinitionEvaluation
+*** 13.2.7 Function Defining Expressions
+见于15.2的 PrimaryExpression : FunctionExpression .
+
+见于15.5的 PrimaryExpression : GeneratorExpression .
+
+见于15.7的 PrimaryExpression : ClassExpression .
+
+见于15.8的 PrimaryExpression : AsyncFunctionExpression .
+
+见于15.6的 PrimaryExpression : AsyncGeneratorExression .
+*** 13.2.8 Regular Expression Literals
+**** Syntax
+见于12.8.5
+**** 13.2.8.1 Static Semantics:Early Errors
+PrimaryExpression : RegularExpressionLiteral
+    . 如果IsValidRegularExpressionLiteral(RegularExpressionLiteral)是false，那么有
+      句法错误。
+**** 13.2.8.2 Static Semantics: IsValidRegularExpressionLiteral(literal)
+抽象操作IsValidRegularExpressionLiteral接受参数literal。明确其参数是否是一个有效
+的正则表达式字面量。被调用时执行下列步骤：
+1. Asset：literal是一个RegularExpressionLiteral
+2. 如果literal的FlagText包含g,i,m,s,u,y以外的编码点，或者有重复的编码点，
+   返回false
+3. 让patternText是literal的BodyText
+4. 让literal的FlagText包含u，让u是true，否则让u是false
+5. 如果u是false，那么
+    a. 让stringValue是CodePointsToString(patternText)
+    b. 设置patternText是将stringValue每个元素的16位数字按照Unicode BMP翻译成
+       编码点的序列。这里不使用UTF-16编码
+6. 让parsedResult是ParsePattern(patternText, u)
+7. 如果parseResult是ParseNode，返回true，否则返回false
+**** 13.2.8.3 Runtime Semantics: Evaluation
+PrimaryExpression : RegularExpressionLiteral
+    1. 让pattern是!CodePointsToString(RegularExpressionLiteral的BodyText)
+    2. 让flags是!CodePointsToString(RegularExpressionLiteral的FlagText)
+    3. 返回RegExpCreate(pattern, flags)
+*** 13.2.9 Template Literals 模板字面量
+**** Syntax
+TempalteLiteral_[Yield, Await, Tagged] :
+    NoSubstitutionTempalte
+    SubstitutionTempalte_[?Yield, ?Await, ?Tagged]
+
+SubstitutionTempalte_[Yield, Await, Tagged] :
+    TempalteHead Expression_[+In, ?Yield, ?Await] TempateSpans_[?Yield, ?Await, ?Tagged]
+
+TemplateSpans_[Yield, Await, Tagged] :
+    TempalteTail
+    TempalteMiddleList_[?Yield, ?Await, ?Tagged] TempalteTail
+
+TemplateMiddleList_[Yield, Await, Tagged] :
+    TemplateMiddle Expression_[+In, ?Yield, ?Await]
+    TemplateMiddleList_[?Yield, ?Await, ?Tagged] TemplateMiddle Expression_[+In, ?Yield, ?Await]
+**** 13.2.9.1 Static Semantics: Early Errors
+TempalteLiteral_[Yield, Await, Tagged] : NoSubstitutionTempalte
+    . 如果没有_[Tagged]参数，而且NoSubstitutionTemplate包含NotEscapeSequence，那么
+      有语法错误
+
+TempalteLiteral_[Yield, Await, Tagged] : SubstitutionTempalte_[?Yield, ?Await, ?Tagged]
+    . 如果TemplateLiteral上带false参数的TemplateStrings的结果里有超过2^32-1个
+      元素，那么有语法错误
+
+SubstitutionTempalte_[Yield, Await, Tagged] : TempalteHead Expression_[+In, ?Yield, ?Await]
+TempateSpans_[?Yield, ?Await, ?Tagged]
+    . 如果没有_[Tagged]参数，而且TemplateHead包含NotEscapeSequence，那么有语法
+      错误
+
+TemplateSpans_[Yield, Await, Tagged] : TempalteTail
+    . 如果没有_[Tagged]参数，而且TemplateTail包含NotEscapeSequence，那么有语法
+      错误
+
+TemplateMiddleList_[Yield, Await, Tagged] :
+    TemplateMiddle Expression_[+In, ?Yield, ?Await]
+    TemplateMiddleList_[?Yield, ?Await, ?Tagged] TemplateMiddle Expression_[+In, ?Yield, ?Await]
+    . 如果没有_[Tagged]参数，而且TemplateMiddle包含NotEscapeSequence，那么有语法
+      错误
+**** 13.2.9.2 Static Semantics: TemplateStrings
+带raw参数
+
+TemplateLiteral : NoSubstitutionTemplate
+    1. 如果raw是false，那么
+        a. 让string是NoSubstitutionTemplate的TV
+    2. 否则
+        a. 让string是NoSubstitutionTemplate的TRV
+    3. 返回只有string作为元素的List
+
+SubstitutionTemplate : TemplateHead Expression TemplateSpans
+    1. 如果raw是false，那么
+        a. 让head是TemplateHead的TV
+    2. 否则
+        a. 让head是TemplateHead的TRV
+    3. 让tail是TemplateSpans上带raw参数的TemplateStrings
+    4. 返回head拼接tail的元素的List
+
+TemplateSpans : TemplateTail
+    1. 如果raw是false，那么
+        a. 让tail是TemplateTail的TV
+    2. 否则
+        a. 让tail是TemplateTail的TRV
+    3. 返回元素是tail的List
+
+TemplateSpans : TemplateMiddleList TemplateTail
+    1. 让middle是TemplateMiddleList上带raw参数的TemplateStrings
+    2. 如果raw是false，那么
+        a. 让tail是TemplateTail的TV
+    3. 否则
+        a. 让tail是TemplateTail的TRV
+    4. 返回middle的元素拼接tail后的List
+
+TemplateMiddleList : TemplateMiddle Expression
+    1. 如果raw是false，那么
+        a. 让string是TemplateMiddle的TV
+    2. 否则
+        a. 让string是TemplateMiddle的TRV
+    3. 返回元素是string的List
+
+TemplateMiddleList : TemplateMiddleList TemplateMiddle Expression
+    1. 让front是TemplateMiddleList上带raw参数的TemplateStrings
+    2. 如果raw是false，那么
+        a. 让last是TemplateMiddle的TV
+    3. 否则
+        a. 让last是TemplateMiddle的TRV
+    4. 在front上追加last
+    5. 返回front
+**** 13.2.9.3 GetTemplateObject(templateLiteral)
+抽象操作GetTemplateObject接受参数templateLiteral（ParseNode）。被调用时执行下列
+步骤：
+1. 让realm是当前的RealmRecord
+2. 让templateRegistry是realm.\[\[TemplateMap]]
+3. 遍历templateRegistry的元素，记作e，做
+    a. 如果e.\[\[Site]]与
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+**** 13.2.9.4
+**** 13.2.9.5
+**** 13.2.9.6
+**** 13.2.6.8
+**** 13.2.6.9
 ** 13.3 Left-Hand-Side Expressions
 ** 13.4 Update Expressions
 ** 13.5 Unary Operators
@@ -8759,6 +9028,7 @@ ComputedPropterName_[Yield
 ** 13.14 Confitional Operator
 ** 13.15 Assignment Operators
 ** 13.16 Comma Operator(,)
+* 14 ECMAScript Language: Statements and Declarations
 * 25
 ** 25.1
 
