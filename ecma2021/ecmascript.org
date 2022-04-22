@@ -9840,17 +9840,571 @@ HostFinalizeImportMeta的默认实现返回空的正常完结
 ** 13.4 Update Expressions
 *** Syntax
 UpdateExpression_[Yield, Await] :
+    LeftHandSideExpression_[?Yield, ?Await]
+    LeftHandSideExpression_[?Yield, ?Await] [no LineTerminator here] ++
+    LeftHandSideExpression_[?Yield, ?Await] [no LineTerminator here] --
+    ++ UnaryExpression_[?Yield, ?Await]
+    -- UnaryExpression_[?Yield, ?Await]
+*** 13.4.1 Static Semantics : Early Errors
+UpdateExpression :
+    LeftHandSideExpression ++
+    LeftHandSideExpression --
+. 如果LeftHandSideExpression的AssignmentTargetType不是simple的，
+  那么有语法错误
+
+UpdateExpression :
+    ++ UnaryExpression
+    -- UnaryExpression
+. 如果UnaryExpression的AssignmentTargetType不是simple的，那么有语法错误
+*** 13.4.2 Postfix Increment Operator
+**** 13.4.2.1 Runtime Semantics : Evaluation
+UpdateExpression : LeftHandSideExpression ++
+1. 让lhs是评估LeftHandSideExpression的评估结果
+2. 让oldValue是?ToNumeric(?GetValue(lhs))
+3. 让newValue是!Type(oldValue)::add(oldValue, Type(oldVAlue)::unit)
+4. 执行?PutValue(lhs, newValue)
+5. 返回oldValue
+*** 13.4.3 Postfix Decrement Operator
+**** 13.4.3.1 Runtime Semantic : Evaluation
+UpdateExpression : LeftHandSideExpression --
+1. 让lhs是评估LeftHandSideExpression的评估结果
+2. 让oldValue是?ToNumeric(?GetValue(lhs))
+3. 让newValue是!Type(oldValue)::subtract(oldValue, Type(oldVAlue)::unit)
+4. 执行?PutValue(lhs, newValue)
+5. 返回oldValue
+*** 13.4.4 Prefix Increment Operator
+**** 13.4.4.1 Runtime Semantics : Evaluation
+UpdateExpression : ++ UnaryExpression
+1. 让expr是评估UnaryExpression的评估结果
+2. 让oldValue是?ToNumeric(?GetValue(expr))
+3. 让newValue是!Type(oldValue)::add(oldValue, Type(oldVAlue)::unit)
+4. 执行?PutValue(expr, newValue)
+5. 返回newValue
+*** 13.4.5 Prefix Decrement
+**** 13.4.5.1 Rntime Semantics : Evaluation
+UpdateExpression : -- UnaryExpression
+1. 让expr是评估UnaryExpression的评估结果
+2. 让oldValue是?ToNumeric(?GetValue(expr))
+3. 让newValue是!Type(oldValue)::subtract(oldValue, Type(oldVAlue)::unit)
+4. 执行?PutValue(lhs, newValue)
+5. 返回newValue
 ** 13.5 Unary Operators
+*** Syntax
+UnaryExpression_[Yield, Await] :
+    UpdateExpression_[?Yield, ?Await]
+    delete UnaryExpression_[?Yield, ?Await]
+    void UnaryExpression_[?Yield, ?Await]
+    + UnaryExpression_[?Yield, ?Await]
+    - UnaryExpression_[?Yield, ?Await]
+    ~ UnaryExpression_[?Yield, ?Await]
+    ! UnaryExpression_[?Yield, ?Await]
+    [+Await]AwaitExpression_[?Yield]
+*** 13.5.1 The delete Operator
+**** 13.5.1.1 Static Semantics : Early Errors
+UnaryExpression : delete UnaryExpression
+. 如果UnaryExpression在严格代码中，而且是PrimaryExpression : IdentifierReference
+  形式，那么有语法错误。
+. 如果UnaryExpresion是派生自
+  PrimaryExpression : CoverParenthesizedExpressionAndArrowParameterList，
+  且CoverParenthesizedExpressionAndArrowParameterList最终派生了一个用在
+  UniaryExpression的短语，根据这些规则会产生语法错误。本规应则递归使用。
+***** 注意 后一条规则意味着例如delete (((foo)))的表达式会产生早期错误，
+            因为符合递归应用第一条规则
+**** 13.5.1.2 Runtime Semantics : Evaluation
+UnaryExpression : delete UnaryExpression
+1. 让ref是UnaryExpression的评估结果
+2. ReturnIfAbrupt(ref)
+3. 如果ref不是ReferenceRecord返回true
+4. 如果IsUnresolvableReference(ref)是true，那么
+    a. Assert：ref.\[\[Strinct]]是false
+    b. 返回true
+5. 如果IsPropertyReference(ref)是true，那么
+    a. 如果IsSuperReference(ref)是true，投掷ReferenceError异常
+    b. 让baseObj是!ToObject(ref.\[\[Base]])
+    c. 让deleteStatus是?baseObj.\[\[Delete]](ref.\[\[ReferencedName]])
+    d. 如果deleteStatus是false而且ref.\[\[Strict]]是true，投掷TypeError异常
+    e. 返回deleteStatus
+6. 否则
+    a. 让base是ref.\[\[Base]]
+    b. Assert：base是EnvironmentRecord
+    c. 返回?base.DeleteBinding(ref.\[\[ReferenceName]])
+***** 注意1 当delete操作发生在严格模式代码里，如果UnaryExpression直接引用到一个
+             变量、函数参数或者函数名，会投掷语法错误。另外，在严格模式代码
+             里delete操作在其属性{\[\[Configurable]]:false}的性质上（换言之不能
+             被删除），会投掷TypeError异常。
+***** 注意2 可能在步骤5.b创建的新对象不能在本抽象操作和基础对象\[\[Delete]]内
+             置方法之外访问到。实现可以选择规避实际创建对象。
+*** 13.5.2 The void Operator
+**** 13.5.2.1 Runtime Semantics : Evaluation
+UnaryExpression : void UnaryExpression
+1. 让expr是评估UnaryExpression的结果
+2. 执行?GetValue(expr)
+3. 返回undefined
+***** 注意 GetValue必须被调用，即使这个值不会被用到，因为它会有可见的
+            意外作用。
+*** 13.5.3 The typeof Operator
+**** 13.5.3.1 Runtime Semantics : Evaluation
+UnaryExpression : typeof UnaryExpression
+1. 让val是评估UnaryExpression的结果
+2. 如果val是Reference Record，那么
+    a. 如果IsUnresolvableReference(val)是true，返回"undefined"
+3. 设置val是?GetValue(al)
+4. 根据表37返回String
+| Type of val                  | 结果        |
+| Undefined                    | "undefined" |
+| Null                         | "object"    |
+| Boolean                      | "boolean"   |
+| Number                       | "number"    |
+| String                       | "string"    |
+| Symbol                       | "symbol"    |
+| BigInt                       | "bigint"    |
+| Object（没有实现\[\[Call]]） | "object"    |
+| Object（实现\[\[Call]]）     | "function"  |
+***** 注意 另外联结了\[\[IsHTMLDDA]]内部占位的实体按B.3.7.3中处理
+| Object（有\[\[IsHTMLDDA]]内部占位） | "undefined"|
+*** 13.5.4 Unary + Operator
+**** 注意 一元操作符 + 会将其操作项转换为数值类型
+**** 13.5.4.1 Runtime Semantics : Evaluation
+UnaryExpression : + UnaryExpression
+1. 让expr是评估UnaryExpression的结果
+2. 返回?ToNumber(?GetValue(expr))
+*** 13.5.5 Unary - Operator
+**** 注意 一元操作符 - 会将其操作项转换为数值类型，再取负数。+0_F产生-0_F，
+           而-0_F产生+0_F
+**** 13.5.5.1 Runtime Semantics : Evaluation
+UnaryExpression : - UnaryExpression
+1. 让expr是评估UnaryExpression的结果
+2. 让oldValue是?ToNumber(?GetValue(expr))
+3. 让T是Type(oldValue)
+4. 返回!T::unaryMinus(oldValue)
+*** 13.5.6 Bitwise NOT Operate ( ~ )
+**** 13.5.6.1 Runtime Semantics : Evaluation
+UnaryExpression : ~ UnaryExpression
+1. 让expr是评估UnaryExpression的结果
+2. 让oldValue是?ToNumeric(?GetValue(expr))
+3. 让T是Type(oldValue)
+4. 返回!T::bitwiseNOT(oldValue)
+*** 13.5.7 Logical NOT Operator ( ! )
+**** 13.5.7.1 Runtime Semantics : Evaluation
+UnaryExpression : ! UnaryExpression
+1. 让expr是评估UnaryExpression的结果
+2. 让oldValue是?ToBoolean(?GetValue(expr))
+3. 如果oldValue是true，返回false
+4. 返回true
 ** 13.6 Exponentiation Operator
+*** Syntax
+ExponentiationExpression_[Yield, Await] :
+    UnaryExpression_[?Yield, ?Await]
+    UpdateExpression_[?Yield, ?Await] ** ExponentiationExpression_[?Yield, ?Await]
+*** 13.6.1 Runtime Semantics : Evaluation
+ExponentiationExpression : UpdateExpression ** ExponentiationExpression
+1. 返回?EvaluateStrngOrNumberBinaryExpression(
+   UpdateExpression, **, ExponentiationExpression)
 ** 13.7 Multiplicative Operators
+*** Syntax
+MultiplicativeExpression_[Yield, Await] :
+    ExponentiationExpression_[?Yield, ?Await]
+    MultiplicativeExpression_[?Yield, ?Await] MultiplicativeOperator \
+        ExponentiationExpression_[?Yield, ?Await]
+MultiplicativeOperator : one of
+    * / %
+*** 注意 . *操作符执行乘法，产生操作项的积
+          . /操作符执行除法，产生操作项的商
+          . %操作符从一个隐式的除法返回操作项的余数
+*** 13.7.1 Runtime Semantics : Evaluation
+MultiplicativeExpression : MultiplicativeExpression MultiplicativeOperator \
+    ExponentiationExpression
+1. 让opText是匹配到MultiplicativeOperator的源文本
+2. 返回?EaluateStringOrNumericBinaryExpression(MultiplicativeExpression,
+   opText, ExponentiationExpression)
 ** 13.8 Additive Operators
+*** Syntax
+AdditiveExpression_[Yield, Await] :
+    MultiplicativeExpression_[?Yield, ?Await]
+    AdditiveExpression_[?Yield, ?Await] + MultiplicativeExpression_[?Yield, ?Await]
+    AdditiveExpression_[?Yield, ?Await] - MultiplicativeExpression_[?Yield, ?Await]
+*** 13.8.1 The Addition Operator ( + ) 加法操作符
+**** 注意 加法操作符执行字符串拼接或者数字求和
+**** 13.8.1.1 Runtime Semantics : Evaluation
+AdditiveExpression : AdditiveExpression + MultiplicativeExpression
+1. 返回?EvaluateStringOrNumericBinaryExpression(AdditiveExpression, +,
+   MultiplicativeExpression)
+*** 13.8.2 The Addition Operator ( - ) 减法操作符
+**** 注意 减法操作符产生操作项的差
+**** 13.8.1.1 Runtime Semantics : Evaluation
+AdditiveExpression : AdditiveExpression - MultiplicativeExpression
+1. 返回?EvaluateStringOrNumericBinaryExpression(AdditiveExpression, -,
+   MultiplicativeExpression)
 ** 13.9 Bitwise Shift Operators
-** 13.10 Relational Operators
+*** Syntax
+ShiftExpression_[Yield, Await] :
+    AdditiveExpression_[?Yield, ?Await]
+    ShiftExpression_[?Yield, ?Await] << AdditiveExpression_[?Yield, ?Await]
+    ShiftExpression_[?Yield, ?Await] >> AdditiveExpression_[?Yield, ?Await]
+    ShiftExpression_[?Yield, ?Await] >>> AdditiveExpression_[?Yield, ?Await]
+*** 13.9.1 The Left Shift Operator ( << ) 左移操作
+**** 注意 在操作符左侧的操作项上执行右侧操作项数量的左移操作
+**** 13.9.1.1 Runtime Semantics : Evaluation
+ShiftExpression : ShiftExpression << AdditiveExpression
+1. 返回?EvaluateStringOrNumericBinaryExpression(ShiftExpression, << ,
+   AdditiveExpression)
+*** 13.9.2 The Signed Right Shift Operator ( >> ) 保持符号右移操作
+**** 注意 在操作符左侧的操作项上执行右侧操作项数量的右移操作
+**** 13.9.2.1 Runtime Semantics : Evaluation
+ShiftExpression : ShiftExpression >> AdditiveExpression
+1. 返回?EvaluateStringOrNumericBinaryExpression(ShiftExpression, >> ,
+   AdditiveExpression)
+*** 13.9.1 The Unsigned Right Shift Operator ( >>> ) 无符号右移操作
+**** 注意 在操作符左侧的操作项上执行右侧操作项数量的0填充右移操作
+**** 13.9.3.1 Runtime Semantics : Evaluation
+ShiftExpression : ShiftExpression >>> AdditiveExpression
+1. 返回?EvaluateStringOrNumericBinaryExpression(ShiftExpression, >>> ,
+   AdditiveExpression)
+** 13.10 Relational Operators 关系操作
+*** 注意1 评估关系操作符的结果总是Boolean，反映运算符对应的关系是否在两个
+           操作项中成立。
+*** Syntax
+RelationalExpression_[In, Yield, Await] :
+    ShiftExpression_[?Yield, ?Await]
+    RelationalExpression_[?In, ?Yield, ?Await] < ShiftExpression_[?Yield, ?Await]
+    RelationalExpression_[?In, ?Yield, ?Await] > ShiftExpression_[?Yield, ?Await]
+    RelationalExpression_[?In, ?Yield, ?Await] <= ShiftExpression_[?Yield, ?Await]
+    RelationalExpression_[?In, ?Yield, ?Await] >= ShiftExpression_[?Yield, ?Await]
+    RelationalExpression_[?In, ?Yield, ?Await] instanceof \
+        ShiftExpression_[?Yield, ?Await]
+    [+In]_RelationalExpression_[+In, ?Yield, ?Await] in ShiftExpression_[?Yield, ?Await]
+*** 注意2 [In]语法参数被用来避免关系表达式的in操作符与for语句的in操作符的
+           混淆
+*** 13.10.1 Runtime Semantics : Evaluation
+RelateionalExpression : RelationalExpression < ShiftExpression
+1. 让lref是评估RelationalExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估ShiftExpression的结果
+4. 让rval是?GetValue(rref)
+5. 让r是执行lval < rval的抽象关系比较（AbstractRelationalComparison）的结果
+6. ReturnIfAbrupt(r)
+7. 如果r是undefined，返回false，否则返回r。
+
+RelateionalExpression : RelationalExpression > ShiftExpression
+1. 让lref是评估RelationalExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估ShiftExpression的结果
+4. 让rval是?GetValue(rref)
+5. 让r是执行rval < lval带LeftFirst为false参数的抽象关系比较（
+   AbstractRelationalComparison）的结果
+6. ReturnIfAbrupt(r)
+7. 如果r是undefined，返回false，否则返回r。
+
+RelateionalExpression : RelationalExpression <= ShiftExpression
+1. 让lref是评估RelationalExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估ShiftExpression的结果
+4. 让rval是?GetValue(rref)
+5. 让r是执行rval < lval带leftFirst为false参数的抽象关系比较（
+   AbstractRelationalComparison）的结果
+6. ReturnIfAbrupt(r)
+7. 如果r是true或者undefined，返回false，否则返回true。
+
+RelateionalExpression : RelationalExpression >= ShiftExpression
+1. 让lref是评估RelationalExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估ShiftExpression的结果
+4. 让rval是?GetValue(rref)
+5. 让r是执行lval < rval的抽象关系比较（AbstractRelationalComparison）的结果
+6. ReturnIfAbrupt(r)
+7. 如果r是true或者undefined，返回false，否则返回true。
+
+RelateionalExpression : RelationalExpression instanceof ShiftExpression
+1. 让lref是评估RelationalExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估ShiftExpression的结果
+4. 让rval是?GetValue(rref)
+5. 返回?InstanceofOperator(lval, rval)
+
+RelateionalExpression : RelationalExpression in ShiftExpression
+1. 让lref是评估RelationalExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估ShiftExpression的结果
+4. 让rval是?GetValue(rref)
+5. 如果Type(rval)不是Object，投掷TypeError异常
+6. 返回?HasProperty(rval, ?ToPropertyKey(lval))
+*** 13.10.2 InstanceofOperator(V, target)
+抽象操作InstanceOfOperator接受参数V（ECMAScript语言值）和target（ECMAScript语言
+值）。实现了泛用算法来明确V是否是target的实例，通过查询target的@@hasInstance
+方法，或者（如果没有@@hasInstance）通过明确target的prototype性质是否存在于V的
+源性链上。被调用时执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 让instOfHandler是?GetMethod(target, @@hasInstance)
+3. 如果isntOfHandler不是undefined，那么
+    a. 返回!ToBoolean(?Call(instOfHandler, target, <<V>>))
+4. 如果IsCallable(target)是false，投掷TypeError异常
+5. 返回?OrdinaryHasInstance(target, V)
+**** 注意 步骤4和5提供了与之前版本的兼容处理，而不是使用@@hasInstance方法定义
+           instanceOf操作符的语义。如果没有定义或者继承@@hasInstance方法，使用
+           默认的instanceOf语义
 ** 13.11 Equality Operators
+*** 注意 评估相等操作符的结果总是Boolean类型，反映运算符对应的关系是否在两个
+          操作项中成立。
+*** Syntax 
+EqualityExpression_[In, Yield, Await] :
+    RelationalExpression_[?In, ?Yield, ?Await]
+    EqualityExpression_[?In, ?Yield, ?Await] \=\= RelationalExpression_[?In, ?Yield, ?Await]
+    EqualityExpression_[?In, ?Yield, ?Await] !\= RelationalExpression_[?In, ?Yield, ?Await]
+    EqualityExpression_[?In, ?Yield, ?Await] \=\=\= RelationalExpression_[?In, ?Yield, ?Await]
+    EqualityExpression_[?In, ?Yield, ?Await] !\=\= RelationalExpression_[?In, ?Yield, ?Await]
+*** 13.11.1 Runtime Semantics : Evaluation
+EqualityExpression : EqualityExpression == RelationalExpression
+1. 让lref是评估EqualityExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估RelationalExpresion的结果
+4. 让rval是?GetValue(rref)
+5. 返回执行rval == lval的抽象操作AbstractEqualityComparison的结果
+
+EqualityExpresion : EqualityExpression != RelationalExpression
+1. 让lref是评估EqualityExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估RelationalExpresion的结果
+4. 让rval是?GetValue(rref)
+5. 让r是执行rval == lval的抽象操作AbstractEqualityComparison的结果
+6. ReturnIfAbrupt(r)
+7. 如果r是true，返回false。否则返回true
+
+EqualityExpression : EqualityExpression \=\=\= RelationalExpression
+1. 让lref是评估EqualityExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估RelationalExpresion的结果
+4. 让rval是?GetValue(rref)
+5. 返回执行rval \=\=\= lval的抽象操作StrictEqualityComparison的结果
+
+EqualityExpression : EqualityExpression !\=\= RelationalExpression
+1. 让lref是评估EqualityExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估RelationalExpresion的结果
+4. 让rval是?GetValue(rref)
+5. 让r是执行rval \=\=\= lval的抽象操作StrictEqualityComparison的结果
+6. Assert：r是一个普通完结
+7. 如果r.\[\[Value]]是true，返回false，其他返回true
+**** 注意1 上述定义的等价形式：
+            . String比较可以强化为：`${a}` == `${b}`
+            . Numeric比较可以强化为：+a == +b
+            . Boolean比较可以强化为：!a == !b
+**** 注意2 相等操作保持下列不变性
+            . A != B 等价于 !(A == B)
+            . A \=\= B 等价于 B \=\= A，处理A、B的评价顺序变化
+**** 注意3 相等操作符的传递性不是总成立。例如两个不同String对象，都表示
+            相同的String值，每个String对象都被\=\=操作符认为与String值性相等，
+            但是这两个String对象上\=\=却不成立。例如
+            . new String("a") \=\= "a"，"a" \=\= new String("a")都是true
+            . new String("a") \=\= new String("a")是false
+**** 注意4 String的比较使用编码单元值序列进行测试。没有试图使用更多复杂的
+            基于Unicode规范定义的面向语义的字符或者字符串的定义判断相等，和
+            校对顺序。因此基于Unicode规范相等的String值会被测试为不相等。所以
+            这个算法是假定了String值都是已经在规范化的形式。
 ** 13.12 Binary Bitwise Operators
+*** Syntax
+BitwiseANDExpression_[In, Yield, Await] :
+    EqualityExpression_[?In, ?Yield, ?Await]
+    BitwiseANDExpression_[?In, ?Yield, ?Await] & EqualityExpression_[?In, ?Yield, ?Await]
+
+BitwiseXORExpression_[In, Yield, Await] : 
+    BitwiseANDExpression_[?In, ?Yield, ?Await]
+    BitwiseXORExpression_[?In, ?Yield, ?Await] ^ BitwiseANDExpression_[?In, ?Yield, ?Await]
+
+BitwiseORExpression_[In, Yield, Await] : 
+    BitwiseXORExpression_[?In, ?Yield, ?Await]
+    BitwiseORExpression_[?In, ?Yield, ?Await] | BitwiseXORExpression_[?In, ?Yield, ?Await]
+*** 13.12.1 Runtime Semantics : Evaluation
+BitwiseANDExpression : BitwiseANDExpression & EqualityExpreesion
+1. 返回?EvaluateStringOrNumericBinaryExpression(BitwiseANDExpression, & , EqualityExpression)
+
+BitwiseXORExpression : BitwiseXORExpression ^ BitwiseANDExpression
+1. 返回?EvaluateStringOrNumericBinaryExpression(BitwiseANDExpression, ^ , BitwiseANDExpression)
+
+BitwiseORExpression : BitwiseORExpression | BitwiseXORExpression
+1. 返回?EvaluateStringOrNumericBinaryExpression(BitwiseORExpression, | , BitwiseXORExpression)
 ** 13.13 Binary Logical Operators
-** 13.14 Confitional Operator
+*** Syntax
+LogicalANDExpression_[In, Yield, Await] : 
+    BitwiseORExpression_[?In, ?Yield, ?Await]
+    LogicalANDExpression_[?In, ?Yield, ?Await] && BitwiseORExpression_[?In, ?Yield, ?Await]
+
+LogicalORExpression_[In, Yield, Await] : 
+    LogicalANDExpression_[?In, ?Yield, ?Await]
+    LogicalORExpression_[?In, ?Yield, ?Await] || LogicalANDExpression_[?In, ?Yield, ?Await]
+
+CoalesceExpression_[In, Yield, Await] : 
+    CoalesceExpressionHead_[?In, ?Yield, ?Await] ?? BitwiseORExpression_[?In, ?Yield, ?Await]
+
+CoalesceExpressionHead_[In, Yield, Await] : 
+    CoalesceExpression_[?In, ?Yield, ?Await]
+    BitwiseORExpression_[?In, ?Yield, ?Await]
+
+ShortCircuitExpression_[In, Yield, Await] : 
+    LogicalORExpression_[?In, ?Yield, ?Await]
+    CoalesceExpression_[?In, ?Yield, ?Await]
+*** 注意 &&或者\|\|操作符产生的值没有必要是Boolean，产生的值通常是操作项的
+          值。
+*** 13.13.1 Runtime Semantics : Evaluation
+LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
+1. 让lref是评估LogicalANDExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让lbool是!ToBoolean(lval)
+4. 如果lbool是false，返回lval
+5. 让rref是评估BitwiseORExpression的结果
+6. 返回?GetValue(rref)
+
+LogicalORExpression : LogicalORExpression || LogicalANDExpression
+1. 让lref是评估LogicalORExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让lbool是!ToBoolean(lval)
+4. 如果lbool是true，返回lval
+5. 让rref是评估LogicalANDExpression的结果
+6. 返回?GetValue(rref)
+
+CoalesceExpression : CoalesceExpressionHead ?? BitwiseORExpression
+1. 让lref是评估CoalesceExpressionHead的结果
+2. 让lval是?GetValue(lref)
+3. 如果lval是undefined或者null，那么
+    a. rref是评估BitwiseORExpression的结果
+    b. 返回?GetValue(rref)
+4. 否则返回lval
+** 13.14 Conditional Operator ( ? : )
+*** Syntax
+ConditionalEpxression_[In, Yield, Await] : 
+    ShortCircuitExpression_[?In, ?Yield, ?Await]
+    ShortCircuitExpression_[?In, ?Yield, ?Await] ? AssignmentExpression_[?In, ?Yield, ?Await] :
+        AssignmentExpression_[?In, ?Yield, ?Await]
+*** 注意 在ECMAScript中的ConditionalExpression与C和Java稍有不同，它们允许第二个
+          子表达式是表达式，但是限制第三个子表达式还是ConditionalExpression。
+          ECMAScript方式的动机是允许赋值表达式由条件的任一臂控制，并消除以
+          逗号表达式作为核心表达式产生的混乱且无用的情况。
+*** 13.14.1 Runtime Semantics : Evaluation
+ConditionalExpression : ShortCircuitExpression ? AssignmentExpression : AssignmentExpression
+1. 让lref是评估ShortCircuitExpression的结果
+2. 让lval是?ToBoolean(?GetValue(lref))
+3. 如果lval是true，那么
+    a. 让trueRef是评估第一个AssignmentExpression的结果
+    b. 返回?GetValue(trueRef)
+4. 否则
+    a. 让falseRef是评估第二个AssignmentExpression的结果
+    b. 返回?GetValue(falseRef)
 ** 13.15 Assignment Operators
+*** Syntax
+AssignmentExpression_[In, Yield, Await] :
+    ConditionalExpression_[?In, ?Yield, ?Await]
+    [+Yield]_YieldExpression_[?In, ?Await]
+    ArrowFunction_[?In, ?Yield, ?Await]
+    AsyncArrowFunction_[?In, ?Yield, ?Await]
+    LeftHandSideExpression_[?Yield, ?Await] = AssignmentExpression_[?In, ?Yield, ?Await]
+    LeftHandSideExpression_[?Yield, ?Await] AssignmentOperator AssignmentExpression_[?In, ?Yield, ?Await]
+    LeftHandSideExpression_[?Yield, ?Await] &&= AssignmentExpression_[?In, ?Yield, ?Await]
+    LeftHandSideExpression_[?Yield, ?Await] ||= AssignmentExpression_[?In, ?Yield, ?Await]
+    LeftHandSideExpression_[?Yield, ?Await] ??= AssignmentExpression_[?In, ?Yield, ?Await]
+
+AssignmentOperator : one of
+    *= /= %= += -= <<= >>= >>>= &= ^= |= **=
+*** Static Semantics : Early Errors
+AssignmentExpression : LeftHandSideExpression = AssignmentExpression
+如果LeftHandSideExpression是ObjectLiteral或者ArrayLiteral，应用下列早期错误：
+. 如果LeftHandSideExpression没有覆盖AssignmentPatter，那么有句法错误
+. AssignmentPattern和其派生的产出适用的早期错误规则也应用到被
+  LeftHandSideExpression覆盖的AssignmentPattern上。
+
+如果LeftHandSideExpression不是ObjectLiteral也不是ArrayLiteral，应用下列早期错误：
+. 如果LeftHandSideExpression的AssignmentTargetType不是简单的，那么有句法错误
+
+AssignmentExpression :
+    LeftHandSideExpression AssignmentOperator AssignmentExpression
+    LeftHandSideExpression &&= AssignmentExpression
+    LeftHandSideExpression ||= AssignmentExpression
+    LeftHandSideExpression ??= AssignmentExpression
+. 如果LeftHandSideExpression的AssignmentTargetType不是简单的，那么有句法错误
+*** Runtime Semantics : Evaluation
+AssignmentExpression : LeftHandSideExpression = AssignmentExpression
+1. 如果LeftHandSideExpression不是ObjectLiteral和ArrayLiteral
+    a. 让lref是评估LeftHandSideExpression的结果
+    b. ReturnIfAbrupt(lref)
+    c. 如果IsAnonymousFunctionDefinition(AssignmentExpression)和LeftHandSideExpression
+       上的IsIdentifierRef都是true，那么
+        i. 让rval是AssignmentExpression上带lref.\[\[ReferenceName]]参数
+           NamedEvaluation
+    d. 否则
+        i. 让rref是评估AssignmentExpression的结果
+       ii. 让rval是?GetValue(rref)
+    e. 执行?PutValue(lref, rval)
+    f. 返回rval
+2. 让assignmentPattern是被LeftHandSideExpression覆盖的AssignemtnPattern
+3. 让rref是评估AssignmentExpression的结果
+4. 让rval是?GetValue(rref)
+5. 在assignmentPattern上用rval做参数执行?DestructiongAssignmentEvaluation
+6. 返回rval
+
+AssignmentExpression : LeftHandSideExpression AssignmentOperator AssignmentExpression
+1. 让lref是评估LeftHandSideExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估AssignmentExpression的结果
+4. 让rval是?GetValue(rref)
+5. 让assignmentOptText是AssignmentOperator匹配到的源文本
+6. 让opText是assignmentOptText按照下表联结的Unicode编码点序列
+   | assignmentOptText | opText |
+   | **=               | **     |
+   | *=                | *      |
+   | /=                | /      |
+   | %=                | %      |
+   | +=                | +      |
+   | -=                | -      |
+   | <<=               | <<     |
+   | >>=               | >>     |
+   | >>>=              | >>>    |
+   | &=                | &      |
+   | ^=                | ^      |
+   | \vert=            | \vert  |
+7. 让r是ApplyStringOrNumericBinaryOperator(lval, opText, rval)
+8. 执行?PutValue(lref, r)
+9. 返回r
+
+AssignmentExpression : LeftHandSideExpression &&= AssignmentExpression
+1. 让lref是评估LeftHandSideExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让lbool是!ToBoolean(lval)
+4. 如果lbool是false，返回lval
+5. 如果IsAnonymousFunctionDefinition(AssignmentExpression)和LeftHandSideExpression上
+   的IsIdentifierRef都是true，那么
+    a. 让rval是AssignmentExpression上带lref.\[\[ReferenceName]]参数的NamedEvaluation
+6. 否则
+    a. 让rref是评估AssignmentExpression的结果
+    b. 让rval是?GetValue(rref)
+7. 执行?PutValue(lref, rval)
+8. 返回rval
+
+AssignmentExpression : LeftHandSideExpression ||= AssignmentExpression
+1. 让lref是评估LeftHandSideExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让lbool是!ToBoolean(lval)
+4. 如果lbool是true，返回lval
+5. 如果IsAnonymousFunctionDefinition(AssignmentExpression)和LeftHandSideExpression上
+   的IsIdentifierRef都是true，那么
+    a. 让rval是AssignmentExpression上带lref.\[\[ReferenceName]]参数的NamedEvaluation
+6. 否则
+    a. 让rref是评估AssignmentExpression的结果
+    b. 让rval是?GetValue(rref)
+7. 执行?PutValue(lref, rval)
+8. 返回rval
+   
+AssignmentExpression : LeftHandSideExpression ??= AssignmentExpression
+1. 让lref是评估LeftHandSideExpression的结果
+2. 让lval是?GetValue(lref)
+3. 让lval不是undefined也不是null，返回lval
+4. 如果IsAnonymousFunctionDefinition(AssignmentExpression)和LeftHandSideExpression上
+   的IsIdentifierRef都是true，那么
+    a. 让rval是AssignmentExpression上带lref.\[\[ReferenceName]]参数的NamedEvaluation
+5. 否则
+    a. 让rref是评估AssignmentExpression的结果
+    b. 让rval是?GetValue(rref)
+6. 执行?PutValue(lref, rval)
+7. 返回rval
+**** 注意 如果这个表达式发生在严格模式，分别在1.e、2、2、2、2步骤的lref
+*** 13.15.3 ApplyStringOrNumericBinaryOperator(lval, opText, rval)
 ** 13.16 Comma Operator(,)
 * 14 ECMAScript Language: Statements and Declarations
 * 25
