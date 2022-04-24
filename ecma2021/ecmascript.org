@@ -10403,8 +10403,322 @@ AssignmentExpression : LeftHandSideExpression ??= AssignmentExpression
     b. 让rval是?GetValue(rref)
 6. 执行?PutValue(lref, rval)
 7. 返回rval
-**** 注意 如果这个表达式发生在严格模式，分别在1.e、2、2、2、2步骤的lref
+**** 注意 如果这个表达式发生在严格模式，分别在1.e、2、2、2、2步骤的lref都是
+           未解决的引用。如果是未解决的，投掷ReferenceError异常。另外，如果在
+           8、7、7、6步骤的lref表示\[\[Writable]]属性是false数据性质的引用，或者
+           表示\[\[Set]]属性是undefined的访问性质的引用，或者表示不可扩展对象
+           上不存在的性质，会有运行时错误，投掷TypeError异常。
 *** 13.15.3 ApplyStringOrNumericBinaryOperator(lval, opText, rval)
+抽象操作ApplyStringOrNumericBinaryOperator接受参数lval（ECMAScript语言值）、
+opText（Unicode编码点序列）和rval（ECMAScript语言值）。被调用时执行下列步骤：
+1. Assert：opText存在于本算法步骤8的列表中
+2. 如果opText是+，那么
+    a. 让lprim是?ToPrimitive(lval)
+    b. 让rprim是?ToPrimitive(rval)
+    c. 如果Type(lprim)是String或者Type(rprim)是String那么
+        i. 让lstr是?ToString(lprim)
+       ii. 让rstr是?ToString(rprim)
+      iii. 返回lstr和rstr的拼接字符串
+    d. 置lval是lprim
+    e. 置rval是rprim
+3. 注意：在此之后，一定是数值运算
+4. 让lnum是?ToNumeric(lval)
+5. 让rnum是?ToNumeric(rval)
+6. 如果Type(lnum)不同于Type(rnum)，投掷TypeError异常
+7. 让T是Type(lnum)
+8. 让operation是opText在下表中联结的抽象操作
+    | opText | operation             |
+    | **     | T::exponentiate       |
+    | \*     | T::multiply           |
+    | \/     | T::divide             |
+    | %      | T::remainder          |
+    | +      | T::add                |
+    | -      | T::subtract           |
+    | <<     | T::leftShift          |
+    | >>     | T::signedRightShift   |
+    | >>>    | T::unsignedRightShift |
+    | &      | T::bitwiseAND         |
+    | \^     | T::bitwiseXOR         |
+    | \vert  | T::bitwiseOR          |
+9. 返回?operation(lnum, rnum)
+**** 注意1 步骤2.a、2.b中没有为ToPrimitive提供hint参数。除Date外的标准对象会按
+            照hint是number处理，Date按照hint是string处理。奇异对象可能使用其他
+            缺省方式处理。
+**** 注意2 步骤2.c不同于AbstractRelationalComparison的步骤3，这里是逻辑或进行
+            判断，而不是逻辑与进行判断。
+*** 13.15.4 EvaluateStringOrNumericBinaryExpression(leftOperand, opText, rightOperand)
+抽象操作EvaluateStringOrNumericBinaryExpression接受参数leftOperand（ParseNode）、
+opText（Unicode编码点序列）和rightOperand（ParseNode）。被调用时执行下列步骤：
+1. 让lref是评估leftOperand的结果
+2. 让lval是?GetValue(lref)
+3. 让rref是评估rightOperand的结果
+4. 让rval是?GetValue(rref)
+5. 返回?ApplyStringOrNumericBinaryOperator(lval, opText, rval)
+*** 13.15.5 Destructuring Assignment
+**** Supplemental Syntax
+在某些条件下进行AssignmentExpression : LeftHandSideExpression = AssignmentExpression
+产出的实例是，LeftHandSideExpression的翻译可以使用下列方式改善：
+AssignmentPattern_[Yield, Await] :
+    ObjectAssignmentPattern_[?Yield, ?Await]
+    ArrayAssignmentPattern_[?Yield, ?Await]
+ObjectAssignmentPattern_[Yield, Await] :
+    { }
+    { AssignmentRestProperty_[?Yield, ?Await] }
+    { AssignmentPropertyList_[?Yield, ?Await] }
+    { AssignmentPropertyList_[?Yield, ?Await] , AssignmentRestProperty_[?Yield, ?Await]_opt }
+ArrayAssignmentPattern_[Yield, Await] :
+    [ Elision_opt AssignmentRestElement_[?Yield, ?Await]_opt ]
+    [ AssignmentElementLsit_[?Yield, ?Await] ]
+    [ AssignmentElementList_[?Yield, ?Await], Elision_opt AssignmentRestElement_[?Yield, ?Await]_opt ]
+AssignmentRestProperty_[Yield, Await] :
+    ... DestructuringAssignmentTarget_[?Yield, ?Await]
+AssignemtnPropertyList_[Yield, Await] :
+    AssignmentProperty_[?Yield, ?Await]
+    AssignmentPropertyList_[?Yield, ?Await] , AssignmentProperty_[?Yield, ?Await]
+AssignmentElisionElement_[Yield, Await] :
+    Elision_opt AssignmentElement_[?Yield, ?Await]
+AssignmentProperty_[Yield, Await] :
+    IdentifierReference_[?Yield, ?Await] Initializer_[+In, ?Yield, ?Await]_opt
+    PropertyName_[?Yield, ?Await] : AssignentElement_[?Yield, ?Await]
+AssignmentElement_[Yield, Await] :
+    DestructuringAssignmentTarget_[?Yield, ?Await] Initializer_[+In, ?Yield, ?Await]_opt
+AssignmentRestElement_[Yield, Await] :
+    ... DestructuringAssignmentTarget_[?Yield, ?Await]
+DestructuringAssignmentTarget_[Yield, Await] :
+    LeftHandSideExpression_[?Yield, ?Await]
+**** 13.15.5.1 Static Semantics : Early Errors
+AssignmentProperty : IdnetifierReferecne Initializer_opt
+. 如果IdentifierReference的AssignmentTargetType不是simple，那么有语法错误
+
+AssignmentRestProperty : ... DestructuringAssignmentTarget
+. 如果DestructuringAssignmentTarget是ArrayLiteral和ObjectLiteral，那么有语法错误
+
+DestructuringAssignmentTarget : LeftHandSideExpression
+如果LeftHandSideExpression是ObjectLiteral或者ArrayLiteral，应用下列早期错误规则：
+. 如果LeftHandSideExpression没有覆盖AssignmentPattern，那么有语法错误
+. 适用于AssignmentPattern以及其派生的产出的早期错误规则，也适用被
+  LeftHandSideExpression覆盖的AssignmentPattern
+
+如果LeftHandSideExpression不是ObjectLiteral或ArrayLiteral，应用下列早期错误规则：
+. 如果LeftHandSideExpression的AssignmentTargetType不是simple，那么有语法错误
+**** 13.15.5.2 DestructuringAssignmntEvaluation
+带参数value
+ObjectAssignmentPattern : { }
+1. 执行?RequireObjectCoercible(value)
+2. 返回NormalCompletion(empty)
+
+ObjectAssignmentPattern : 
+    { AssignmentPropertyList }
+    { AssignmentPropertyList , }
+1. 执行?RequireObjectCoercible(value)
+2. 执行在AssignmentPropertyList上带value参数的
+   ?PropertyDestructuringAssignmentEvaluation
+3. 返回NormalCompletion(empty)
+
+ArrayAssignmentPattern :  [ ]
+1. 让iteratorRecord是?GetIterator(value)
+2. 返回?IteratorClose(iteratorRecord, NormalCompletion(empty))
+
+ArrayAssignmentPattern : [ Elision ]
+1. 让iteratorRecord是?GetIterator(value)
+2. 让result是在Elision上带iteratorRecord的IteratorDestructuringAssignmentEvaluation
+3. 如果iteratorRecord.\[\[Done]]是false，返回?IteratorClose(iteratorRecord, result)
+4. 返回result
+
+ArrayAssignmentPattern : [ Elision_opt AssignmentRestElement ]
+1. 让iteratorRecord是?GetIterator(value)
+2. 如果Elision存在，那么
+    a. 让status是Elision上带参数iteratorRecord的
+       IteratorDestructuringAssignmentEvaluation
+    b. 如果status是意外完结，那么
+        i. Assert：iteratorRecord.\[\[Done]]是true
+       ii. 返回Completion(status)
+3. 让result是AssignmentRestElement上带参数iteratorRecord的
+   IteratorDestructuringAssignmentEvaluation
+4. 如果iteratorRecord.\[\[Done]]是false，返回?IteratorClose(iteratorRecord, result)
+5. 返回result
+
+ArrayAssignmentPattern : [ AssignmentElementList ]
+1. 让iteratorRecord似乎?GetIterator(value)
+2. 让result是AssignmentRestElement上带参数iteratorRecord的
+   IteratorDestructuringAssignmentEvaluation
+3. 如果iteratorRecord.\[\[Done]]是false，返回?IteratorClose(iteratorRecord, result)
+4. 返回result
+
+ArrayAssignmentPattern : [ AssignmentElementList , Elision_opt AssignmentRestElement_opt]
+1. 让iteratorRecord似乎?GetIterator(value)
+2. 让status是AssignmentRestElement上带参数iteratorRecord的
+   IteratorDestructuringAssignmentEvaluation
+3. 如果status是意外完结，那么
+    a. 如果iteratorRecord.\[\[Done]]是false，
+       返回?IteratorClose(iteratorRecord, result)
+    b. 返回Completion(status)
+4. 如果Elision存在，那么
+    a. 置status是Elision上带参数iteratorRecord的
+       IteratorDestructuringAssignmentEvaluation
+    b. 如果status是意外完结，那么
+        i. Assert：iteratorRecord.\[\[Done]]是true
+       ii. 返回Completion(status)
+5. 如果AssignmentRestElement存在，那么
+    a. 置status是AssignmentRestElement上带参数iteratorRecord的
+       IteratorDestructuringAssignmentEvaluation
+6. 如果iteratorRecord.\[\[Done]]是false，返回?IteratorClose(iteratorRecord, result)
+7. 返回Completion(result)
+
+ObjectAssignmentPattern : { AssignmentRestProperty }
+1. 执行?RequrieObjectCoercible(value)
+2. 让excludedNames是新的空List
+3. 返回在AssignmentRestProperty上带value和excludedNames参数的
+   RestDestructuringAssignmentEvaluation
+
+ObjectAssignmentPattern : { AssignmentPropertyList , AssignmentRestProperty }
+1. 执行?RequrieObjectCoercible(value)
+2. 让excludedNames是在AssignmentPropertyList上带value参数的
+   ?PropertyDestructuringAssignmentEvaluation
+3. 返回在AssignmentRestProperty上带value和excludedNames参数的
+   RestDestructuringAssignmentEvaluation
+**** 13.15.5.3 Runtime Semantics: PropertyDestructuringAssignmentEvaluation
+带参数value
+***** 注意 随后的操作收集了所有已解构的性质名
+AssignmentPropertyList : AssignmentPropertyList , AssignmentProperty
+1. 让propertyNames是在AssignmentPropertyList上带value参数的
+   ?PropertyDestructuringAssignmentEvaluation
+2. 让nextNames是在AssignmentProperty上带value参数的
+   ?PropertyDestructuringAssignmentEvaluation
+3. 将nextNames的元素符加到propertyNames里
+4. propertyNames
+
+AssignmentProperty : IdentifierReference Initializer_opt
+1. 让P是IdentifierReference的String值
+2. 让lref是?ResolveBinding(P)
+3. 让v是?GetV(Value, P)
+4. 如果Initializer_opt存在，而且v是undefined，那么
+    a. 如果IsAnonymousFunctionDefinition(Initializer)是true，那么
+        i. 置v是Initializer上带参数P的NamedEvaluation
+    b. 否则
+        i. 让defaultValue是评估Initalizer的结果
+       ii. 值v是?GetValue(defaultValue)
+5. 执行?PutValue(lref, v)
+6. 返回只有P的List
+**** 13.15.5.4 Runtime Semantics: RestDestructuringAssignmentEvaluation
+带参数value和excludeNames
+AssignmentRestProperty : ... DestrcturingAssignmentTarget
+1. 让lref是评估DestructuringAssignmentTarget的结果
+2. ReturnIfAbrupt(lref)
+3. 让restObj是!OridinaryObjectCreate(%Object.prototype%)
+4. 执行?CopyDataProperties(restObj, value, excludedName)
+5. 返回PutValue(lref, restObj)
+**** 13.15.5.5 Runtime Semantics: IteratorDestructuringAssignmentEvaluation
+带参数iteratorRecord
+AssignmentElementList : AssignmentElisionElement
+1. 返回在AssignmentElisionElement上带iteratorRecord参数的
+   IteratorDestructuringAssignmentEvaluation
+
+AssignmentElementList : AssignmentElementList , AssignmentElisionElement
+1. 执行在AssignmentElementList上带iteratorRecord参数的
+   ?IteratorDestructuringAssignmentEvaluation
+2. 返回在AssignmentElisionElement上带iteratorRecord参数的
+   IteratorDestructuringAssignmentEvaluation的结果
+
+AssignmentElisionElement : AssignmentElement
+1. 返回在AssignmentElisionElement上带AssignmentElement参数的
+   IteratorDestructuringAssignmentEvaluation
+
+AssignmentElisionElement : Elison AssignmentElement
+1. 执行在Elision上带iteratorRecord参数的
+   ?IteratorDestructuringAssignmentEvaluation
+2. 返回在AssignmentElement上带iteratorRecord参数的
+   IteratorDestructuringAssignmentEvaluation的结果
+
+Elison : ,
+1. 如果iteratorRecord.\[\[Done]]是false，那么
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+2. 返回NormalCompletion(empty)
+
+Elison : Elison ,
+1. 执行在Elision上带iteratorRecord参数的
+   ?IteratorDestructuringAssignmentEvaluation
+2. 如果iteratorRecord.\[\[Done]]是false，那么
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+3. 返回NormalCompletion(empty)
+
+AssignmentElement : DestructuringAssignmentTarget Initializer_opt
+1. 如果DestructuringAssignmentTarget不是ObjectLiteral或ArrayLiteral，那么
+    a. 让lref是评估DestructuringAssignmentTarget的结果
+    b. ReturnIfAbrupt(lref)
+2. 如果iteratorRecord.\[\[Done]]是false，那么
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+    e. 否则
+        i. 让value是IteratorValue(next)
+       ii. 如果value是意外完结，置iteratorRecord.\[\[Done]]是true
+      iii. ReturnIfAbrupt(value)
+3. 如果IteratorRecord.\[\[Done]]是true，让value是undefined。
+4. 如果Initializer存在，而且value是undefined，那么
+    a. 如果IsAnonymousFunctionDefinition(Initializer)是true而且
+       DestructuringAssignmentTarget的IsIdentifierRef是true，那么
+        i. 让v是在Initializer上带lref.\[\[ReferencedName]]参数的?NamedEvaluation
+    b. 否则
+        i. 让defaultValue是评估Initializer的结果
+       ii. 让v是?GetValue(defaultValue)
+5. 否则，让v是value
+6. 如果DestructuringAssignmentTarget是ObjectLiteral或者ArrayLiteral，那么
+    a. 让nestedAssignmentPattern是被DestructuringAssignmentTarget覆盖的
+       AssignmentPattern
+    b. 返回在nestedAssignmentPattern上带v参数的DestructuringAssignmentEvaluation
+7. 返回?PutValue(lref, v)
+***** 注意 从左到右的评估顺序由评估DestructuringAssignmentTarget来维护，
+            DestructuringAssignmentTarget在访问迭代器或者评估Initializer之前
+            不是解构模式。
+AssignmentRestElement : ... DestructuringAssignmentTarget
+1. 如果DestructuringAssignmentTarget不是ObjectLiteral或ArrayLiteral，那么
+    a. 让lref是评估DestructuringAssignmentTarget的结果
+    b. ReturnIfAbrupt(lref)
+2. 让A是!ArrayCreate(0)
+3. 让n是0
+4. 重复，当iteratorRecord.\[\[Done]]是false
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，设置iteratorRecord.\[\[Done]]是true
+    e. 否则
+        i. 让nextValue是IteratorValue(next)
+       ii. 如果nextValue是意外完结，置iteratorRecord.\[\[Done]]是true
+      iii. ReturnIfAbrupt(nextValue)
+       iv. 执行!CreateDataPropertyOrThrow(A, !ToString(F(n)), nextValue)
+        v. 置n为n+1
+5. 如果DestructuringAssignmentTarget不是ObjectLiteral或ArrayLiteral，那么
+    a. 返回?PutValue(lref, A)
+6. 让nestedAssignmentPattern是被DestructuringAssignmentTarget覆盖的AssignmentPattern
+7. 返回在nestedAssignmentPattern上带A参数的DestructuringAssignmentEvaluation
+**** 13.15.5.6 Runtime Semantics: KeyedDestructuringAssignmentEvaluation
+带参数value和propertyName
+AssignmentElement : DestructuringAssignmentTarget Initializer_opt
+1. 如果DestructuringAssignmentTarget不是ObjectLiteral或ArrayLiteral，那么
+    a. 让lref是评估DestructuringAssignmentTarget的结果
+    b. ReturnIfAbrupt(lref)
+2. 让v是?GetV(value, propertyName)
+3. 如果Initializer存在，而且v是undefined，那么
+    a. 如果IsAnonymousFunctionDefinition(Initializer)是true而且
+       DestructuringAssignmentTarget的IsIdentifierRef是true，那么
+        i. 让rhsValue是在Initializer上带lref.\[\[ReferencedName]]参数的?NamedEvaluation
+    b. 否则
+        i. 让defaultValue是评估Initializer的结果
+       ii. 让rhsValue是?GetValue(defaultValue)
+4. 否则，让rhsValue是v
+5. 如果DestructuringAssignmentTarget是ObjectLiteral或者ArrayLiteral，那么
+    a. 让assignmentPattern是被DestructuringAssignmentTarget覆盖的
+       AssignmentPattern
+    b. 返回在assignmentPattern上带rhsValue参数的DestructuringAssignmentEvaluation
+6. 返回?PutValue(lref, v)
 ** 13.16 Comma Operator(,)
 * 14 ECMAScript Language: Statements and Declarations
 * 25
