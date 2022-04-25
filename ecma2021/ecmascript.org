@@ -27,7 +27,32 @@
 * 前言 [44,46]
 * 第一章 范围
 本标准定义了ECMAScript2021多用途编程语言。
-* 第二章 约定
+* 第二章 一致
+一致的ECMAScript实现必须提供和支持本规范的全部类型、值、对象、性质、函数、
+程序句法和程序语义。
+
+一致的ECMAScript实现必须将源文本按照最新版本的Unicode标准和ISO/IEC 10646进行
+翻译
+
+一致的ECMAScript实现必须按照跟本规范兼容的最新版的ECMA-402提供应用编程接口（
+API），支持编写能够适应被不同人类语言使用的不同语言和文化习惯的程序。
+
+一致的ECMAScript实现可以提供本规范之外的类型、值、对象、性质和函数。特别是
+一致的ECMAScript实现会提供本规范外的性质和性质的值，用于本规范描述的对象。
+
+一致的ECMAScript实现会支持没有描述在本规范的程序和正则表达式。特别是一致的
+ECMAScript实现支持的程序句法使用了在本规范12.6.2中标明的未来保留字。
+
+一致的ECMAScript实现必须不能实现任何在17.1中列出的禁止扩展的扩展内容。
+
+一致的ECMAScript实现必须不能重定义任何不是实现定义、实现近似或者主机定义的
+内容。
+
+一致的ECMAScript实现可以选择实现与否可选规范的子条款。任何被实现的可选规范
+条款，其包含的所有行为都必须实现。本规范的任何可选规范条款使会用名词
+"Normative Optional"标记出来（我用"：：可选规范"标记出来）
+** 2.1 Example Clause Heading ：：可选规范
+示例条款内容
 * 第三章 标准参考
 * 第四章 概述 [47-58]
 本章节包含了非正式的ECMAScript语言的概述。
@@ -4826,7 +4851,7 @@ ObjectEnvironmentRecord绑定标识名称的集合，名称对应绑定绑定对
 键不是字符串形式的标识名不包含在绑定标识中。自有的和继承的性质都包含这个
 集合中无论其\[\[Enumrable]]属性是否。因为性质可以动态的在对象上添加和删除，
 被ObjectEnvironmentRecord绑定的标识集合会潜在的变动，作为性质增加或删除的副
-作用。任何因为这种负作用创建的绑定被认为是可修改的绑定，即使其
+作用。任何因为这种副作用创建的绑定被认为是可修改的绑定，即使其
 \[\[Writable]]属性是fasle。不变绑定不存在于ObjectEnvironmentRecord中。
 
 为with语句创建的ObjectEnvironmentRecord在函数调用中提供绑定对象作为隐式的
@@ -10720,7 +10745,315 @@ AssignmentElement : DestructuringAssignmentTarget Initializer_opt
     b. 返回在assignmentPattern上带rhsValue参数的DestructuringAssignmentEvaluation
 6. 返回?PutValue(lref, v)
 ** 13.16 Comma Operator(,)
+*** Syntax
+Expression_[In, Yield, Await ] :
+    AssignmentExpression_[?In, ?Yield, ?Await ]
+    Expression_[?In, ?Yield, ?Await ] , AssignmentExpression_[?In, ?Yield, ?Await ]
+*** 13.16.1 Runtime Semantics: Evaluation
+Expression : Expression , AssignmentExpression
+1. 让lref是评估Expression的结果
+2. 执行?GetValue(lref)
+3. 让rref是评估AssignmentExpression的结果
+4. 返回?GetValue(rref)
+**** 注意 GetValue必须被调用，即使其结果没有被用到，因为可能有观测副作用。
 * 14 ECMAScript Language: Statements and Declarations
+** Syntax
+Statement_[Yield, Await, Return] :
+    BlockStatement_[?Yield, ?Await, ?Return]
+    VariableStatement_[?Yield, ?Await]
+    EmptyStatement
+    ExpressionStatement_[?Yield, ?Await]
+    IfStatement_[?Yield, ?Await, ?Return]
+    BreakableStatement_[?Yield, ?Await, ?Return]
+    ContinueStatement_[?Yield, ?Await]
+    BreakStatement_[?Yield, ?Await]
+    [+Return]_ReturnStatement_[?Yield, ?Await]
+    WithStatement_[?Yield, ?Await, ?Return]
+    LabelledStatement_[?Yield, ?Await, ?Return]
+    ThrowStatement_[?Yield, ?Await]
+    TryStatement_[?Yield, ?Await, ?Return]
+    DebuggerStatement
+
+Declaration_[Yield, Await] :
+    HoistableDeclaration_[?Yield, ?Await, ~Default]
+    ClassDeclaration_[?Yield, ~Default]
+    LexicalDeclaration_[+In, ?Yield, ?Await]
+
+HoistableDeclaration_[Yield, Await, Default] :
+    FunctionDeclaration_[?Yield, ?Await, ?Default]
+    GeneratorDeclaration_[?Yield, ?Await, ?Default]
+    AsyncFunctionDeclaration_[?Yield, ?Await, ?Default]
+    AsyncGeneratorDeclaration_[?Yield, ?Await, ?Default]
+
+BreakableStatement_[Yield, Await, Return] :
+    IteratironStatement_[?Yield, ?Await, ?Return]
+    SwitchStatement_[?Yield, ?Await, ?Return]
+** 14.1 Statement Semantics
+*** 14.1.1
+HoistableDeclaration :
+    GeneratorDeclaration
+    AsyncFunctionDeclaration
+    AsyncGeneratorDeclaration
+1. 返回NormalCompletion(empty)
+
+HoistableDeclaration : FunctionDelcaration
+1. 返回评估FunctionDeclaration的结果
+
+BreakableStatement :
+    IterationStatement
+    SwitchStatement
+1. 让newLabelSet是新的空List
+2. 返回在本BreakableStatement上带newLabelSet参数的LabelledEvaluation
+** 14.2 Block
+*** Syntax
+BlockStatement_[Yield, Await, Return] :
+    Block_[?Yield, ?Await, ?Return]
+
+Block_[Yield, Await, Return] :
+    { Statement_[?Yield, ?Await, ?Return]_opt }
+
+StatementList_[Yield, Await, Return] :
+    StatementListItem_[?Yield, ?Await, ?Return]
+    StatementList_[?Yield, ?Await, ?Return] StatementListIteme_[?Yield, ?Await, ?Return]
+
+StatementListItem_[Yield, Await, Return] :
+    Statement_[?Yield, ?Await, ?Return]
+    Declaration_[?Yield, ?Await]
+*** 14.2.1 Static Semantics： Early Errors
+Block: { StatementList }
+. 如果StatementList上的LexicallyDeclaredNames包含任何重复实体，那么有语法错误
+. 如果statementList上的LexicallyDeclaredNames的任何元素也出现在了在StatementList
+  上的VarDeclaredNames，那么有语法错误。
+*** 14.2.2 Runtime Semantics: Evaluation
+Block : { }
+1. 返回NormalCompletion(empty)
+
+Block : { StatmentList }
+1. 让oldEnv是运行时执行背景的LexicalEnvironment
+2. 让blockEnv是NewDeclarativeEnvironment(oldEnv)
+3. 执行BlockDeclarationInstantiation(StatementList, blockEnv)
+4. 置运行时背景的LexicalEnvironment是blockEnv
+5. 让blockValue是评估StatementList的结果
+6. 置运行时背景的LexicalEnvironment是oldEnv
+7. 返回blockValue
+**** 注意1 无论如何何种方式离开Block，LexicalEnvironment总存储在它之前的状态里
+StatementList : StatementList StatementListItem
+1. 让sl是评估StatementList的结果
+2. ReturnIfAbrupt(sl)
+3. 让s是评估StatementListItem的结果
+4. 返回Completion(UpdateEmpty(s, sl))
+**** 注意2 StatementList的值是StatementList中最后的产出值的项的值。例如，随后
+            的调用eval都产生值1：
+            eval("1;;;;;")
+            eval("1;{}")
+            eval("1;var a;")
+*** 14.2.3 BlockDeclarationInstantiation(code, env)
+**** 注意 当评估Block或者CaseBlock时，新的DeclarativeEnvironmentRecord被创建出，
+           并绑定块圈内声明的且在本EnvironmentRecord实例化的变量、常量、函数
+           甚至类声明。
+抽象操作BlockDeclarationInstantiation接受参数code（ParseNode）和env（Environment
+Record）。code是与块的内容一致的ParseNode。env是在其内创建绑定的Environemnt
+Record。被调用时执行下列步骤：
+1. Assert：env是DeclarativeEnvironmentRecord
+2. 让Declarations是code的LexicallyScopedDeclarations
+3. 遍历declarations的元素记作d，做
+    a. 遍历d的BoundNames的元素记作dn，做
+        i. 如果d的IsConstantDeclaration是true，那么
+            1. 执行!env.CreateImmutableBinding(dn, true)
+       ii. 否则
+            1. 执行!env.CreateMutableBinding(dn, false)。注意本步骤在B.3.3.6被取
+               代了。
+    b. 如果d是FunctionDeclaration、GeneratorDeclaration、AsyncFunctionDeclaration或者
+       AsyncGeneratorDeclaration那么
+        i. 让fn是d的BoundNames的唯一元素
+       ii. 让fo是d上带env参数InstantiateFunctionObject
+      iii. 执行env.InitializeBinding(fn, fo)。注意本步骤在B.3.3.6被取代了。
+** 14.3 Declarations and the Variable Statement
+*** 14.3.1 Let and Const Declarations
+**** 注意 let和const声明的变量被圈在运行时执行背景的LexicalEnvironment里。变量
+           在它们含有的EnvironmentRecord被初始化时被创建出来，但是不一定被访
+           问，直到变量的LexicalBinding被评估了。用带Initializer的LexicalBinding定
+           义的变量在LexicalBinding被评估时被赋值为变量的Initializer的
+           AssignmentExpression的值
+**** Syntax
+LexicalDeclaration_[In, Yield, Await] :
+    LetOrConst BindingLis[?In, ?Yield, ?Await] ;
+
+LetOrConst :
+    let
+    const
+
+BindingList_[In, Yield, Await] :
+    LexicalBinding[?In, ?Yield, ?Await]
+    BindingLis[?In, ?Yield, ?Await] , LexicalBinding[?In, ?Yield, ?Await]
+
+LexicalBinding_[In, Yield, Await] :
+    BindingIdentifier[?In, ?Yield, ?Await] Initialzier[?In, ?Yield, ?Await]_opt
+    BindingPattern[?In, ?Yield, ?Await] Initializer[?In, ?Yield, ?Await]
+**** 14.3.1.1 Static Semantics : Early Errors
+LexicalDeclaration : LetOrConst BindingList ;
+. 如果BindingList的BoundNames包含let，那么有句法错误。
+. 如果bindingList的BoundNames包含任何重复实体，那么有句法错误。
+
+LexicalBinding : BindingIdentifier Initializer_opt
+. 如果Initializer不存在，而且包含此LxicalBinding的LexicalDeclaration的
+  IsConstantDeclaration时true，那么有句法错误。
+**** 14.3.1.2 Runtime Semantics: Evaluation
+LexicalDeclaration : LetOrConst BindingList ;
+1. 让next是评估BindingList的结果
+2. ReturnIfAbrupt(next)
+3. 返回NormalCompletion(empty)
+
+BindingList : BindingList , LexicalBinding
+1. 让next是评估BindingList的结果
+2. ReturnIfAbrupt(next)
+3. 返回评估LexicalBinding的结果
+
+LexicalBinding : BindingIdentifer
+1. 让lhs是ResolveBinding(BindingIdentifer的String值)
+2. 返回InitializeReferencedBinding(lhs undefined)
+***** 注意 静态语义规则确保了LexicalBinding的这种形式不会发生在const声明里。
+LexicalBinding : BindingIdentifier Initializer
+1. 让bindingId是BindingIdentifer的String值
+2. 让lhs是ResolveBinding(bindingId)
+3. 如果IsAnonymousFunctionDefinition(Initializer)是true，那么
+    a. 让value是在Initializer带bindingId参数的NamedEvaluation
+4. 否则
+    a. 让rhs是评估Initializer的结果
+    b. 让value是?GeValue(rhs)
+5. 返回InitializeReferencedBinding(lhs, value)
+
+LexicalBinding : BindingPattern Initializer
+1. 让rhs是评估Initializer的结果
+2. 让value是?GetValue(rhs)
+3. 让env是运行执行背景的LexicalEnvironment
+4. 返回在BndingPattern上带value和env参数的BindingInitialization的执行结果
+*** 14.3.2 Variable Statment
+**** 注意 var语句声明的变量被圈在运行时执行背景的VariableEnvironemnt。var变量
+           在它们包含的EnvironmentRecord被实例化的时候被创建，并被初始化为
+           undefined。在任何VariableEnvironment的圈内普通BindingIdentifier会出现在
+           一个或多个VariableDeclaration中，但是这些声明会集中定义为一个变量。
+           被带Initializer的VariableDeclaration定义的变量在其被执行时赋予
+           Initializer的AssignmentExpression的值，而不是变量被创建的时候。
+**** Syntax
+VariableStatement_[Yield, Await] :
+    var VariableDeclarationList_[+In, ?Yield, ?Await];
+
+VariableDeclarationList_[In, Yield, Await] :
+    VariableDeclaration_[?In, ?Yield, ?Await]
+    VariableDeclarationList_[?In, ?Yield, ?Await] , VariableDeclaration_[?In, ?Yield, ?Await]
+
+VariableDeclaration_[In, Yield, Await] :
+    BindingIdentifier_[?Yield, ?Await] Initializer_[?In, ?Yield, ?Await]_opt
+    BindingPattern_[?Yield, ?Await] Initializer_[?In, ?Yield, ?Await]
+**** 14.3.2.1 Runtime Semantics: Evaluation
+VariableStatement : var VariableDeclarationList ;
+1. 让next是评估VariableDeclarationList的结果
+2. ReturnIfAbrupt(next)
+3. 返回NormalCompletion(empty)
+
+VariableDeclarationList : VariableDeclarationList , VariableDeclaration
+1. 让next是评估VariableDeclarationList的结果
+2. ReturnIfAbrupt(next)
+3. 返回评估VariableDeclaration的结果
+
+VariableDeclaration : BindingIdentifier
+1. 返回NormalCompletion(empty)
+
+VariableDeclaration : BindingIdentifier Initializer
+1. 让bindingId是BindingIdentifer的String值
+2. 让lhs是ResolveBinding(bindingId)
+3. 如果IsAnonymousFunctionDefinition(Initializer)是true，那么
+    a. 让value是在Initializer带bindingId参数的NamedEvaluation
+4. 否则
+    a. 让rhs是评估Initializer的结果
+    b. 让value是?GeValue(rhs)
+5. 返回?PutValue(lhs, value)
+**** 注意 如果VariableDeclaration是嵌入在with语句里，而且在VariableDeclaration里
+           的BindingIdentifier与with语句ObjectEnvironmentRecord的绑定对象的性质名
+           相同，那么步骤5会将value赋值给性质，而不是绑定Identifier的
+           VariableEnvironemnt.
+VariableDeclaration : BindingPattern Initializer
+1. 让rhs是评估Initializer的结果
+2. 让rval是?GetValue(rhs)
+3. 返回在BndingPattern上带rval和undefined参数的BindingInitialization的执行结果
+*** 14.3.3 Destructuring Binding Patterns
+**** Syntax
+BindingPattern_[Yield, Await] :
+    ObjectBindingPattern_[?Yield, ?Await]
+    ArrayBindingPattern_[?Yield, ?Await]
+
+ObjectBindingPattern_[Yield, Await] :
+    { }
+    { BindingRestProperty_[?Yield, ?Await] }
+    { BindingPropertyList_[?Yield, ?Await] }
+    { BindingPropertyList_[?Yield, ?Await] , BindignRestProperty_[?Yield, ?Await]_opt }
+
+ArrayBindingPattern_[Yield, Await] :
+    [ Elision_opt BindingRestElement_[?Yield, ?Await]_opt ]
+    [ BindingElementList_[?Yield, ?Await] ]
+    [ BindingElementList_[?Yield, ?Await] , Elision_opt BindingRestElement_[?Yield, ?Await]_opt ]
+
+BindingRestProperty_[Yield, Await] :
+    ... BindingIdentifier_[?Yield, ?Await]
+
+BindingPropertyList_[Yield, Await] :
+    BindingProperty_[?Yield, ?Await]
+    BindingPropertyList_[?Yield, ?Await] , BindingProperty_[?Yield, ?Await]
+
+BindingElementList_[Yield, Await] :
+    BindingElisionElement_[?Yield, ?Await]
+    BindingElmentList_[?Yield, ?Await] , BindingElisionElement_[?Yield, ?Await]
+
+BindingElisionElement_[Yield, Await] :
+    Elision_opt BindingElment_[?Yield, ?Await]
+
+BindingProperty_[Yield, Await] :
+    SingleNameBinding_[?Yield, ?Await]
+    PropertyName_[?Yield, ?Await] : BindingElement_[?Yield, ?Await]
+
+BindingElement_[Yield, Await] :
+    SingleNameBinding_[?Yield, ?Await]
+    BindingPattern_[?Yield, ?Await] Initializer_[?Yield, ?Await]_opt
+
+SingleNameBinding_[Yield, Await] :
+    BindingIdentifier_[?Yield, ?Await] Initializer_[?Yield, ?Await]
+
+BindingRestElement_[Yield, Await] :
+    ... BindingIdentifier_[?Yield, ?Await]
+    ... BindingPattern_[?Yield, ?Await]
+**** 14.3.3.1
+带参数value和environment
+***** 注意
+**** 14.3.3.2
+**** 14.3.3.3
+**** 14.3.3.4
+** 14.4
+** 14.5
+** 14.6
+** 14.7
+** 14.8
+** 14.9
+** 14.10
+** 14.11
+** 14.12
+** 14.13
+** 14.14
+** 14.15
+** 14.16
+** 14.17
+** 14.18
+** 14.19
+** 14.20
+** 14.2
+** 14.2
+** 14.2
+** 14.2
+** 14.2
+** 14.2
+** 14.2
+** 14.2
+* 15 ECMAScript Language: Functions and Classes
 * 25
 ** 25.1
 
