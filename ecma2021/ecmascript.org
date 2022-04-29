@@ -11022,37 +11022,972 @@ SingleNameBinding_[Yield, Await] :
 BindingRestElement_[Yield, Await] :
     ... BindingIdentifier_[?Yield, ?Await]
     ... BindingPattern_[?Yield, ?Await]
-**** 14.3.3.1
+**** 14.3.3.1 Runtime Semantics : PropertyBindingInitialization
 带参数value和environment
-***** 注意
-**** 14.3.3.2
-**** 14.3.3.3
-**** 14.3.3.4
-** 14.4
-** 14.5
-** 14.6
-** 14.7
-** 14.8
-** 14.9
-** 14.10
-** 14.11
-** 14.12
-** 14.13
-** 14.14
-** 14.15
-** 14.16
-** 14.17
-** 14.18
-** 14.19
-** 14.20
-** 14.2
-** 14.2
-** 14.2
-** 14.2
-** 14.2
-** 14.2
-** 14.2
-** 14.2
+***** 注意 这些将所有绑定的性质名收集为List返回，而不是空完结
+BindingPropertyList : BindingPropertyList , BindingProperty
+1. 让boundNames是在BindingPropertyList上带value和environment参数的
+   ?PropertyBindingInitialization
+2. 让nextNames是在BindingProperty上带value和environment参数的
+   ?PropertyBindingInitialization
+3. 追加nextNames的元素到boundNames的末端
+4. 返回boundNames
+
+BindingProperty : SingleNameBinding
+1. 让name是SingleNameBinding的BoundNames的唯一元素，是字符串值
+2. 在SingleNameBinding上带value、environment和name参数执行
+   ?KeyedBindingInitialization
+3. 返回只有name一个元素的List
+
+BindingProperty : PropertyName : BindingElement
+1. 让P是评估PropertyName的结果
+2. ReturnIfAbrupt(P)
+3. 在BindingElement上带value、environment和P参数执行?KeyedBindingInitialization
+4. 返回只有P一个元素的List
+**** 14.3.3.2 Runtime Semantics : RestBindingInitialization
+带完参数value、environment和excludedNames
+BindingRestProperty : ... BindingIdentifier
+1. 让lhs是?ResolveBinding(BindingIdentifier的String值, environment)
+2. 让restObj是!OrdinaryObjectCreate(%Object.prototype%)
+3. 执行?CopyDataProperties(restObj, value, excluedeNames)
+4. 如果envriornment是undefinded，返回PutValue(lhs, restObj)
+5. 返回InitializeReferencedBinding(lhs, restObj)
+**** 14.3.3.3 Runtime Semantics : KeyedBndingInitialization
+带完参数value、environment和excludedNames
+***** 注意 当environment参数是undefined时，表明应当用PutValue操作赋予初始化值。
+            这会出现在非严格模式函数的形式参数里。形式参数绑定被预先初始化
+            以便处理多个参数具有相同名称的可能。
+BindingElement : BindingPattern Initializer_opt
+1. 让v时?GetV(value, propertyName)
+2. 如果Initializer存在而且v是undefined，那么
+    a. 让defaultValue是评估Initializer的结果
+    b. 置v是?GetValue(defaultValue)
+3. 返回在BindingPattern上带v和environment参数执行BindingInitialization的结果
+
+SingleNameBinding : BindingIddentifier Initialzier_opt
+1. 让bindingId是BindingIdentifer的StringValue
+2. 让lhs是?ResolveBinding(bindingId, environment)
+3. 让v是?Get(value, propertyName)
+4. 如果Initializer存在而且v是undefined，那么
+    a. 如果IsAnonymousFunctionDefinition(Initializer)是true，那么
+        i. 置v是在Initializer上带bindingId参数执行NamedEvaluation的结果
+    b. 否则
+        i. 让defaultValue是评估Initializer的结果
+       ii. 置v是?GetValue(defaultValue)
+5. 如果environment是undefined，返回?PutValue(lhs, v)
+6. 返回InitializeReferencedBinding(lhs, v)
+** 14.4 Empty Statement
+*** Syntax
+EmptyStatement :
+    ;
+*** 14.4.1 Runtime Semantics: Evaluation
+EmptyStatement : ;
+1. 返回NormalCompletion(empty)
+** 14.5 Expression Statement
+*** Syntax
+ExpressionStatement_[Yield, Await]
+    [lookahead ∉ { \{ , function , async [no LineTerminator here] function , class , let [ \}] 
+        Expression [+In, ?Yield, ?Await] ;
+*** 注意 ExpressionStatement不能用U+007B（左大括号）开始，因为这会与Block产生
+          混淆。ExpressionStatement不能用function和class关键词开始，这会与
+          FunctionDeclaration、GeneratorDeclaration或ClassDeclaration产生混淆。
+          ExpressionStatement也不能用async function开始，因为这会与
+          AsyncFunctionDeclaration或者AsyncGeneratorDeclaration产生混淆。
+          ExpressionStatement不能用let [开始，因为这会与第一个LexicalBinding是
+          ArrayBindingPattern的let LexicalDeclaration产生混淆。
+*** 14.5.1 Runtime Semantics : Evaluation
+ExpressionStatement : Expression ;
+1. 让exprRef是评估Expression的结果
+2. 返回?GetValue(exprRef)
+** 14.6 The if Statement
+*** Syntax
+IfStatement_[Yield, Await, Return] :
+    if ( Expression_[+In, ?Yield, ?Await] ) Statement_[+In, ?Yield, ?Await] else
+        Statement_[+In, ?Yield, ?Await]
+    if ( Expression_[+In, ?Yield, ?Await] ) Statement_[+In, ?Yield, ?Await] [lookahead ≠ else]
+*** 注意 前置限制[lookahead ≠ else]解决常见的经典的悬挂else问题。就是选择其
+          联结的if的混淆问题，else会联结到最近（最内层）的候选if。
+*** 14.6.1 Static Semantics: Early Errors
+IfStatement :
+    if ( Expression ) Statement else Statement
+    if ( Expression ) Statement
+. 如果IsLabelledFunction(Statement)是true，那么有语法错误。
+**** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
+*** 14.6.2 Runtime Semantics: Evaluation
+IfStatement : if ( Expression ) Statement else Statement
+1. 让exprRef是评估Expression的结果
+2. 让exprValue是!ToBoolean(?GetValue(exprRef))
+3. 如果exprValue是true，那么
+    a. 让stmtComletion是评估第一个Statement的结果
+4. 否则
+    a. 让stmtComletion是评估第二个Statement的结果
+5. 返回Completion(UpdateEmpty(stmtCompletion, undefined))
+
+IfStatement : if ( Expression ) Statement
+1. 让exprRef是评估Expression的结果
+2. 让exprValue是!ToBoolean(?GetValue(exprRef))
+3. 如果exprValue是false，那么
+    a. 返回NormalCompletion(undefined)
+4. 否则
+    a. 让stmtComletion是评估Statement的结果
+    b. 返回Completion(UpdateEmpty(stmtCompletion, undefined))
+** 14.7 Iteration Statements
+*** Syntax
+IterationStatement_[Yield, Await, Return] :
+    DoWhileStatement_[?Yield, ?Await, ?Return]
+    WhileStatement_[?Yield, ?Await, ?Return]
+    ForStatement_[?Yield, ?Await, ?Return]
+    ForInOfStatement_[?Yield, ?Await, ?Return]
+*** 14.7.1 Semantics
+**** 14.7.1.1 LoopContinues(completion, labelSet)
+抽象操作LoopContinues接受参数completion和labelSet。被调用时执行下列步骤：
+1. 如果completion.\[\[Type]]是normal，返回true
+2. 如果completion.\[\[Type]]不是continue，返回false
+3. 如果completion.\[\[Target]]是empty，返回true
+4. 如果completion.\[\[Target]]是labelSet的任意元素，返回true
+5. 返回false
+***** 注意 在IterationStatement的Statement部分内，ContinueStatement会被用于开始
+            新的遍历。
+**** 14.7.1.2 RuntimeSemantics: LoopEvaluation
+带参数labelSet
+IterationStatement : DoWhileStatement
+1. 返回在DoWhileStatement带labelSet参数的?DoWhileLoopEvaluation
+
+IterationStatement : WhileStatement
+1. 返回在WhileStatement带labelSet参数的?WhileLoopEvaluation
+
+IterationStatement : ForStatement
+1. 返回在ForStatement带labelSet参数的?ForLoopEvaluation
+
+IterationStatement : ForInOfStatement
+1. 返回在ForInOfStatement带labelSet参数的?ForInOfLoopEvaluation
+*** 14.7.2 do-while语句
+**** Syntax
+DoWhileStatement_[Yield, Await, Return] :
+    do Statement_[?Yield, ?Await, ?Return] while ( Expression_[+In, ?Yield, ?Await] ) ;
+**** 14.7.2.1 Static Semantics: Early Errors
+DoWhileStatement : do Statement while ( Expression ) ;
+. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+***** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
+**** 14.7.2.2 Runtime Semantics: DoWhileLoopEvaluation
+带参数labelSet.
+DoWhileStatement : do Statement while ( Expression ) ;
+1. 让V是undefined
+2. 重复
+    a. 让stmtResult是评估Statement的结果
+    b. 如果LoopContinues(stmtResult, labelSet)是false，返回Completion(UpdateEmpty(stmtResult, V))
+    c. 如果stmtResult.\[\[Value]]不是empty，置V是stmtResult.\[\[Value]]
+    d. 让exprRef是评估Expression的结果
+    e. 让exprValue是?GetValue(exprRef)
+    f. 如果!ToBoolean(exprValue)是false，返回NormalCompletion(V)
+*** 14.7.3 while语句
+**** Syntax
+WhileStatement_[Yield, Await, Return] :
+    while ( Expression_[+In, ?Yield, ?Await] ) Statement_[?Yield, ?Await, ?Return]
+**** 14.7.3.1 Static Semantics: Early Errors
+WhileStatement : while ( Expression ) Statement
+. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+***** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
+**** 14.7.3.2 Runtime Semantics: DoWhileLoopEvaluation
+带参数labelSet.
+WhileStatement : while ( Expression ) Statement
+1. 让V是undefined
+2. 重复
+    a. 让exprRef是评估Expression的结果
+    b. 让exprValue是?GetValue(exprRef)
+    c. 如果!ToBoolean(exprValue)是false，返回NormalCompletion(V)
+    d. 让stmtResult是评估Statement的结果
+    e. 如果LoopContinues(stmtResult, labelSet)是false，返回Completion(UpdateEmpty(stmtResult, V))
+    f. 如果stmtResult.\[\[Value]]不是empty，置V是stmtResult.\[\[Value]]
+*** 14.7.4 for语句
+**** Syntax
+ForStatement_[Yield, Await, Return] :
+    for ( [lookhead ≠ let \[] Expression_[~In, ?Yield, ?Await]_opt ;
+        Expression_[+In, ?Yield, ?Await]_opt ; Expression_[+In, ?Yield, ?Await]_opt )
+        Statement_[?Yield, ?Await, ?Return]
+    for ( var VariableDeclarationList_[~In, ?Yield, ?Await]_opt ;
+        Expression_[+In, ?Yield, ?Await]_opt ; Expression_[+In, ?Yield, ?Await]_opt )
+        Statement_[?Yield, ?Await, ?Return]
+    for ( LexicalDeclaration_[~In, ?Yield, ?Await]_opt Expression_[+In, ?Yield, ?Await]_opt ;
+        Expression_[+In, ?Yield, ?Await]_opt ) Statement_[?Yield, ?Await, ?Return]
+**** 14.7.4.1 Static Semantics: Early Errors
+ForStatement :
+    for ( Expression_opt ; Expression_opt ; Expression_opt ) Statement
+    for ( var VariableDeclarationList ; Expression_opt ; Expression_opt ) Statement
+    for ( LexcialDeclaration Expression_opt ; Expression_opt ) Statement
+. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+***** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
+ForStatement : for ( LexcialDeclaration Expression_opt : Expression_opt ) Statement
+. 如果LexicalDeclaration的BoundNames的元素出现在Statement的VarDeclaredNames中，
+  那么有句法错误。
+**** 14.7.4.2 Runtime Semantics: ForLoopEvaluation
+带参数labelSet.
+ForStatement : for ( Expression_opt ; Expression_opt ; Expression_opt ) Statement
+1. 如果第一个Expression存在，那么
+    a. 让exprRef是评估第一个Expression的结果
+    b. 执行?GetValue(exprRef)
+2. 返回?ForBodyEvaluation(第二个Expression, 第三个Expression, Statement, <<>>, labelSet)
+
+ForStatement : for ( var VariableDeclarationList ; Expression_opt ; Expression_opt ) Statement
+1. 让valDcl是评估VariableDeclarationList的结果
+2. ReturnIfAbrupt(varDcl)
+3. 返回?ForBodyEvaluation(第一个Expression, 第二个Expression, Statement, <<>>, labelSet)
+
+ForStatement : for ( LexcialDeclaration Expression_opt ; Expression_opt ) Statement
+1. 让oldEnv是运行时执行背景的LexicalEnvironment
+2. 让llpEnv是NewDeclarativeEnvironment(oldEnv)
+3. 让isConst是LexicalDeclaration的IsConstantDeclaration
+4. 让boundNames是LexicalDeclaration的BoundNames
+5. 遍历boundNames的元素记作dn，做
+    a. 如果isConst是true，那么
+        i. 执行!loopEnv.CreateImmutableBinding(dn, true)
+    b. 否则
+        i. 执行!loopEnv.CreateImmutableBinding(dn, false)
+6. 置运行时执行背景的LexicalEnvironment为loopEnv
+7. 让forDcl是评估LexicalDeclaration的结果
+8. 如果forDcl是意外完结，那么
+    a. 置运行时执行背景的LexicalEnvironment为oldEnv
+    b. 返回Completion(forDcl)
+9. 如果isConst是false，让perIterationLets是boundNames，否则让perIterationLets是<<>>
+10. 让bodyResult是ForBodyEvaluation(第一个Expression, 第二个Expression, Statement, perIterationLets, labelSet)
+11. 置运行时执行背景的LexicalEnvironment为oldEnv
+12. 返回Completion(bodyResult)
+**** 14.7.4.3 ForBodyEvaluation(test, increment, stmt, perIterationBindings, labelSet)
+抽象操作ForBodyEvaluation接受参数test、increment、stmt、perIterationBindings和
+labelSet。被调用时执行下列步骤：
+1. 让V是undefined
+2. 执行?CreatePerIterationEnvironment(perIterationBindings)
+3. 重复
+    a. 如果test不是[empty]，那么
+        i. 让testRef是评估test的结果
+       ii. 让testValue是?GetValue(testRef)
+      iii. 如果!ToBoolean(testValue)是false，返回NormalCompletion(V)
+    b. 让result是评估stmt的结果
+    c. 如果LoopContinue(result, labelSet)是false，返回Completion(UpdateEmpty(result, V))
+    d. 如果result.\[\[Value]]不是empty，置V是to.\[\[Value]]
+    e. 执行?CreatePerIterationEnvironment(perIterationBindings)
+    f. 如果increment不是[empty]，那么
+        i. 让incRef是评估increment的结果
+       ii. 执行?GetValue(incRef)
+**** 14.7.4.4 CreatePerIterationEnvironemnt(perIterationBindings)
+抽象操作CreatePerIterationEnvironment接受参数perIterationBindings。被调用时执行
+下列步骤：
+1. 如果perIterationBindings有内容，那么
+    a. 让lastIterationEnv是运行时执行背景的LexicalEnvironment
+    b. 让outer是lastIterationEnv.\[\[OuterEnv]]
+    c. Assert：outer不是null
+    d. 让thisIterationEnv是NewDeclarativeEnvironment(outer)
+    e. 遍历perIterationBindings的元素记作bn，做
+        i. 执行!thisIterationEnv.CreateMutableBinding(bn, false)
+       ii. 让lastValue是?LatIterationEnv.GetBindingValue(bn, true)
+      iii. 执行thisIterationEnv.InitializeBinding(bn, lastValue)
+    f. 置运行时执行背景的LexicalEnvironment是thisIterationEnv
+2. 返回undefined
+*** 14.7.5 for-in、for-of和for-await-of语句
+**** Syntax
+ForInOfStatement_[Yield, Await, Return] :
+    for ( [lookhead ≠ let \[] LeftHandSideExpression_[?Yield, ?Await] in
+        Expression_[+In, ?Yield, ?Await] ) Statement_[?Yield, ?Await, ?Return]
+    for ( var ForBinding_[?Yield, ?Await] in Expression_[+In, ?Yield, ?Await] )
+        Statement_[?Yield, ?Await, ?Return]
+    for ( ForDeclaration_[?Yield, ?Await] in Expression_[+In, ?Yield, ?Await] )
+        Statement_[?Yield, ?Await, ?Return]
+    for ( [lookhead ≠ let \[] LeftHandSideExpression_[?Yield, ?Await] of
+        AssignmentExpression_[+In, ?Yield, ?Await] ) Statement_[?Yield, ?Await, ?Return]
+    for ( var ForBinding_[?Yield, ?Await] of AssignmentExpression_[+In, ?Yield, ?Await] )
+        Statement_[?Yield, ?Await, ?Return]
+    for ( ForDeclaration_[?Yield, ?Await] of AssignmentExpression_[+In, ?Yield, ?Await] )
+        Statement_[?Yield, ?Await, ?Return]
+    [+Await]_for await ( [lookhead ≠ let \[] LeftHandSideExpression_[?Yield, ?Await] of
+        AssignmentExpression_[+In, ?Yield, ?Await] ) Statement_[?Yield, ?Await, ?Return]
+    [+Await]_for await ( var ForBinding_[?Yield, ?Await] of 
+        AssignmentExpression_[+In, ?Yield, ?Await] ) Statement_[?Yield, ?Await, ?Return]
+    [+Await]_for await ( ForDeclaration_[?Yield, ?Await] of
+        AssignmentExpression_[+In, ?Yield, ?Await] ) Statement_[?Yield, ?Await, ?Return]
+ForDeclaration_[Yield, Await] :
+    LetOrConst ForBinding_[?Yield, ?Await]
+ForBinding_[Yield, Await] :
+    BindingIdentifier_[?Yield, ?Await]
+    BindingPattern_[?Yield, ?Await]
+**** 注意 本节在附件B.3.6中进行了扩展。
+**** 14.7.5.1 Static Semantics: Early Errors
+ForInOfStatement ：
+    for ( LeftHandSideExpression in Expression ) Statement
+    for ( var ForBinding in Expression ) Statement
+    for ( ForDeclaration in Expression ) Statement
+    for ( LeftHandSideExpression of AssignmentExpression ) Statement
+    for ( var ForBinding of AssignmentExpression ) Statement
+    for ( ForDeclaration of AssignmentExpression ) Statement
+    for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+    for await ( var ForBinding of AssignmentExpression ) Statement
+    for await ( ForDeclaration of AssignmentExpression ) Statement
+. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+***** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
+ForInOfStatement :
+    for ( LeftHandSideExpression in Expression ) Statement
+    for ( LeftHandSideExpression of AssignmentExpression ) Statement
+    for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+如果LeftHandSideExpression是ObjectLiteral或者ArrayLiteral，应用下列早期错误规则：
+. 如果LeftHandSideExpression没有覆盖一个AssignmentPattern，那么有句法错误
+. 所有适用AssignmentPattern和其派生产出的规则，也适用于被LeftHandSideExpression
+  覆盖AssignmentPattern
+如果LeftHandSideExpression不是ObjectLiteral和ArrayLiteral，应用下列早期错误规则：
+. leftHandSideExpression的AssignmentTargetType不是simple，那么有句法错误。
+
+ForInOfStatement
+    for ( ForDeclaration in Expression ) Statement
+    for ( ForDeclaration of AssignmentExpression ) Statement
+    for await ( ForDeclaration of AssignmentExpression ) Statement
+. 如果ForDeclaration的BoundNames包含let，那么有句法错误
+. 如果ForDeclaration的BoundNames的任何元素也出现在Statement的VarDeclarationNames，
+  那么有句法错误
+. 如果ForDeclaration的BoundNames含有任何重复的元素，那么有句法错误
+**** 14.7.5.2 Static Semantics: IsDestructuring
+MemberExpression : PrimaryExpression
+1. 如果PrimaryExpression是ObjectLiteral或者ArrayLiteral，返回true
+2. 返回false
+
+MemberExpression :
+    MemberExpression [ Expression ]
+    MemberExpression . IdentifierName
+    MemberExpression TempalteLiteral
+    SuperProperty
+    MetaProperty
+    new MemberExpression Arguments
+NewExpression : new NewExpression
+LeftHandSideExpression :
+    CallExpression
+    OptionalExpression
+1. 返回false
+
+ForDeclaration : LetOrConst ForBinding
+1. 返回ForBinding的IsDestructuring
+
+ForBinding : BindingIdentifier
+1. 返回false
+
+ForBinding : BindingPattern
+1. 返回true
+***** 注意 本节在附件B.3.6被扩展
+**** 14.7.5.3 Runtime Semantics: ForDeclarationBindingInitialization
+带参数value和environment
+***** 注意 当environment参数是undefined时，表明应当用PutValue操作赋予初始化值。
+            这会出现在非严格模式函数（10.2.10）的形式参数和var语句里。在这些
+            情况里词法绑定是主机化的而且在评估之前预先初始化。
+ForDeclaration : LetOrConst ForBinding
+1. 返回ForBinding上带value和environment参数的BindingInitialization的执行结果
+**** 14.7.5.4 Runtime Semantics: ForDeclarationBindingInstantiation
+带参数environment
+ForDeclaration : LetOrConst ForBinding
+1. Assert：environment是DeclarativeEnvironmentRecord
+2. 遍历BoundNames的元素记作name，做
+    a. 如果LetOrConst的IsConstantDeclaration是true
+        i. 执行!environment.CreateImmutableBinding(name, true)
+    b. 否
+        i. 执行!environment.CreateMutalbeBinding(name, false)
+**** 14.7.5.5 Runtime Semantics : ForInOfLoopEvaluation
+带参数labelSet
+ForInOfStatement : for ( LeftHandSideExpression in Expression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(<<>>, Expression, enumerate)
+2. 返回?ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, enumerate,
+   assignment, labelSet)
+
+ForInOfStatement : for ( var ForBinding in Expression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(<<>>, Expression, enumerate)
+2. 返回?ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, enumerate,
+   varBinding, labelSet)
+
+ForInOfStatement : for ( ForDeclaration in Expression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(ForDeclaration的BoundNames, Expression,
+   enumerate)
+2. 返回?ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, enumerate,
+   lexicalBinding, labelSet)
+
+ForInOfStatement : for ( LeftHandSideExpression of AssignmentExpression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(<<>>, AssignmentExpression, iterate)
+2. 返回?ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate,
+   assignment, labelSet)
+
+ForInOfStatement : for ( var ForBinding of AssignmentExpression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(<<>>, AssignmentExression, iterate)
+2. 返回?ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate,
+   varBinding, labelSet)
+
+ForInOfStatement : for ( ForDeclaration of AssignmentExpression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(ForDeclaration的BoundNames,
+   AssignmentExpression, iterate)
+2. 返回?ForIn/OfBodyEvaluation(ForDeclaration, Statement, keyResult, iterate,
+   lexicalBinding, labelSet)
+
+ForInOfStatement : for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(<<>>, AssignmentExpression, async-iterate)
+2. 返回?ForIn/OfBodyEvaluation(LeftHandSideExpression, Statement, keyResult, iterate,
+   assignment, labelSet, async)
+
+ForInOfStatement : for await ( var ForBinding of AssignmentExpression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(<<>>, AssignmentExression, async-iterate)
+2. 返回?ForIn/OfBodyEvaluation(ForBinding, Statement, keyResult, iterate,
+   varBinding, labelSet, async)
+
+ForInOfStatement : for await ( ForDeclaration of AssignmentExpression ) Statement
+1. 让keyResult是?ForIn/OfHeadEvaluation(ForDeclaration的BoundNames,
+   AssignmentExpression, async-iterate)
+2. 返回?ForIn/OfBodyEvaluationn(ForDeclaration, Statement, keyResult, iterate,
+   lexicalBinding, labelSet, async)
+***** 注意 本节在附件B.3.6中被扩展了。
+**** 14.7.5.6 ForIn/OfHeadEvaluation(uninitializedBoundNames, expr, iterationKind)
+抽象操作ForIn/OfHeadEvaluation接受参数uninitializedBoundNames、expr和iterationKind
+（enumerate、iterate或async-iterate）。被调用时执行下列步骤：
+1. 让oldEnv是运行时执行背景的LexicalEnvironment
+2. 如果uninitializedBoundNames是新的空List，那么
+    a. Assert：uninitializedBoundNames没有重复实体
+    b. 让newEnv是NewDeclarativeEnvironment(oldEnv)
+    c. 遍历uninitializedBoundNames的元素记作name，做
+        i. 执行!newEnv.CreateMutableBinding(name, false)
+    d. 置运行时执行背景的LexicalEnvironment是newEnv
+3. 让exprRef是评估expr的结果
+4. 置运行时执行背景的LexicalEnvironment是oldEnv
+5. 让exprValue是?GetValue(exprRef)
+6. 如果iterationKind是enumerate那么
+    a. 如果exprValue是undefined或者null，那么
+        i. 返回Completion { \[\[Type]]:break, \[\[Value]]:empty, \[\[Target]]:empty }
+    b. 让obj是!ToObject(exprValue)
+    c. 让iterator是?EnumerateObjectProperties(obj)
+    d. 让nextMethod是!GetV(iterator, "next")
+    e. 返回Record { \[\[Iterator]]:iterator, \[\[NextMethod]]:nextMethod,
+       \[\[Done]]:false }
+7. 否则
+    a. Assert：iterationKind是iterate或者async-iterate
+    b. 如果iterationKind是async-iterate，让iteratorHint是async
+    c. 否则，让iteratorHint是sync
+    d. 返回?GetIterator(exprValue, iteratorHint)
+**** 14.7.5.7 ForIn/OfBodyEvaluation( lhs,stmt, iteratorRcord, iterationKind,
+              lhsKind, labeSet[, iteratorKind] )
+抽象操作ForIn/OfBodyEvaluation接受参数lhs、stmt、iteratorRecord、iterationKind、
+lhsKind（assignment、varBinding或lexicalBinding）和labelSet，以及可选参数
+iteratorKind（sync或async）。被调用时执行下列背景。
+1. 如果iteratorKind不存在，让iteratorKind是sync
+2. 让oldEnv是运行时执行背景的LexicalEnvironment
+3. 让V是undefined
+4. 让destructuring是lhs的IsDestructuring
+5. 如果destructuring是true，而且lhsKind是assignment，那么
+    a. Assert：lhs是LeftHandSideExpression
+    b. 让assignmentPattern是被lhs覆盖的AssignmentPattern
+6. 重复
+    a. 让nextResult是?Call(iteratorRecord.\[\[NextMethod]],
+       iteratorRecord.\[\[Iterator]])
+    b. 如果iteratorKind是async，置nextResult是?Await(nextResult)
+    c. 如果Type(nextResult)不是Object，投掷TypeError异常
+    d. 让done是?IteratorComplete(nextResult)
+    e. 如果done是true，返回NormalCompletion(V)
+    f. 让nextValue是?IteratorValue(nextResult)
+    g. 如果lhsKind是assignment或者varBinding，那么
+        i. 如果destructuring是false，那么
+            1. 让lhsRef是评估lhs的结果（可能会反复评估）
+    h. 否则
+        i. Assert：lhsKind是lexicalBinding
+       ii. Assert：lhs是ForDeclaration
+      iii. 让iterationEnv是NewDeclarativeEnvironment(oldEnv)
+       iv. 在lhs上带iterationEnv参数执行ForDelcarationBindingInstantiation
+        v. 置运行时执行背景的LexicalEnvironment是iterationEnv
+       vi. 如果destructuring是false，那么
+           1. Assert：lhs绑定了唯一名称
+           2. lhsName是lhs的BoundNames的唯一元素
+           3. 让lhsRef是!ResolveBinding(lhsName)
+    i. 如果destructuring是false，那么
+        i. 如果lhsRef是意外完结，那么
+            1. 让status是lhsRef
+       ii. 否则如果lhsKind是lexicalBinding，那么
+            1. 让status是InitializeReferencedBinding(lhsRef, nextValue)
+      iii. 否则
+            1. 让status是PutValue(lhsRef, nextValue)
+    j. 否则
+        i. 如果lhsKind是assignment，那么
+            1. 让status是在assignmentPattern上带nextValue参数的
+               DestructuringAssignmentEvaluation
+       ii. 否则如果lhsKind是varBinding，那么
+            1. Assert：lhs是ForBinding
+            2. 让status是lhs上带nextValue和undefined参数的BindingInitialization
+      iii. 否则
+            1. Assert：lhsKind是lexicalBinding
+            2. Assert：lhs是ForDeclaration
+            3. 让status是lhs上带nextValue和iterationEnv参数的
+               ForDeclarationBindingInitialization
+    k. 如果status是意外完结，那么
+        i. 置运行时背景的LexicalEnvironment是oldEnv
+       ii. 如果iteratorKind是async，返回?AsyncIteratorClose(iteratorRecord, status)
+      iii. 如果iterationKind是enumerate，那么
+            1. 返回status
+       iv. 否则
+            1. Assert：iterationKind是iterate
+            2. 返回?IteratorClose(iteratorRecord, status)
+    l. 让result是评估stmt的结果
+    m. 置运行时执行背景的LexicalEnvironment是oldEnv
+    n. 如果LoopContinue(result, labelSet)是false，那么
+        i. 如果iterationKind是enumerate，那么
+            1. 返回Completion(UpdateEmpty(result, V))
+       ii. 否则
+            1. Assert：iterationKind是iterate
+            2. 置status是UpdateEmpty(result, V)
+            3. 如果iteatorKind是async，返回?AsyncIteratorClose(iteratorRecord, status)
+            4. 返回?IteratorClose(iteratorRecord, status)
+    o. 如果result.\[\[Value]]不是empty，置V是result.\[\[Value]]
+**** 14.7.5.8 Runtime Semantics : Evaluation
+ForBinding : BindingIdentifier
+1. 让bindingId是BindingIdentifier的String值
+2. 返回?ResolveBinding(bindingId)
+**** 14.7.5.9 EnumerateObjectProperties(O)
+抽象操作EnumerateObjectProperties接受参数O。被调用时执行下列步骤：
+1. Assert：Type(O)是Object
+2. 返回遍历器对象（27.1.1.2），其next方法遍历O中全部字符串键的可遍历性质。
+   这个遍历器对象无法通过ECMAScript代码直接访问。枚举性质的机制和顺序没有
+   特别规定，但是符合下述规定。
+
+遍历器的throw和return方法是null，而且不会被调用。遍历器的next方法处理对象的
+性质来明确此性质能否被返回为一个遍历的值。返回的性质键不包含Symbol。在
+枚举过程中目标对象的性质可以被删除。忽略在遍历器next方法访问前被删除的性
+质。在遍历时新增的性质，不保证活跃的枚举过程处理此性质。在任何枚举过程
+中一个性质键仅能被遍历器next方法返回一次。
+
+枚举目标对象的性质过程有需要枚举目标对象原型上的性质，递归辖区。但是如果
+next方法已经返回相同的性质键，原型链上的不再返回。在明确原型上的性质是否
+被处理过的时候不考虑\[\[Enumerable]]属性的值。原型对象上的可枚举性质必须包含
+在以原型对象为参数的正调用EnumerateObjectProperties中。EnumerateObjectProperties
+必须含有目标对象的内部方法\[\[OwnPropertyKeys]]返回的自有性质键。目标对象的
+性质属性必须被\[\[GetOwnProperty]]内部方法包含。
+
+而且如果O和其原型链的任何对象都不是ProxyExoticObject、IntegerIndexedExoticObjct、
+ModuleNamespaceExoticObject或者实现的ExoticObject，那么这个遍历器必须与
+CreateForInIterator(O)的行为一致，直到出现下列某种情况：
+. O或者原型链上对象的内部占位\[\[Prototype]]值发生了变化
+. O或者原型链上对象的性质被移除
+. O的原型上加入了新的性质
+. O或者原型链上对象的性质的\[\[Enumerable]]属性发生变化
+***** 注意1 ECMAScript实现没有要求实现14.7.5.10.2.1的算法。他们可以选择任何与
+             其算法没有歧义行为的实现，除非违反了之前描述的限制。
+
+             下面是用ECMAScript生成器函数实现本规则：
+             function * EnumerateObjectProperties(obj) {
+               const visited = new Set()
+               for (const key of Reflect.ownKeys(obj)) {
+                 if (typeof key === 'symbol') continume;
+                 const desc = Reflect.getOwnPropertyDescriptor(obj, key);
+                 if (desc) {
+                   visited.add(key)
+                   if(desc.enumeralbe) yield key;
+                 }
+               }
+               const proto = Reflect.getPropertyOf(obj);
+               if(proto === null) return;
+               for (const protoKey of EnumerateObjectProperties(proto)) {
+                 if(!visited.has(protoKey)) yield protoKey;
+               }
+             }
+***** 注意2 实现提供的奇异对象不要求匹配CreateForInIterator，因为过去的实现
+             在这里的行为是不同，其他行为的也是如此。
+**** 14.7.5.10 For-In Iterator Objects
+For-In遍历器是表示某些特定对象上的特定遍历器的对象。For-In遍历器对象无法从
+ECMAScript代码直接访问，他们独立存在来展示EnumerateObjectProperties的行为。
+**** 14.7.5.10.1 CreateForInIterator(object)
+抽象操作CreateForinterator接受参数object。用于创建For-In遍历器对象来按照特定
+顺序遍历object的字符串键的自有和继承性质。被调用时执行下列步骤：
+1. Assert：Type(object)是Object
+2. 让iterator是!OrdinaryObjectCreate(%ForInIteratorPrototype%, <<\[\[Object]],
+   \[\[ObjectWasVisited]], \[\[VisitedKey]], \[\[RemainingKeys]]>>)
+3. 置iterator.\[\[Object]]是object
+4. 置iterator.\[\[ObjectWasVisited]]是false
+5. 置iterator.\[\[VisitedKeys]]是新的空List
+6. 置iterator.\[\[RemainingKeys]]是新的空List
+7. 返回iterator
+**** 14.7.5.10.2 The %ForInIteratorPrototype% Object
+%FrInIteratorPrototype% 对象
+. 有被所有For-In遍历器对象的性质
+. 是一个基本对象
+. 有\[\[Prototype]]内部占位，其值是%IteratorPrototype%
+. 无法被ECMAScript代码直接访问
+. 有下列性质：
+**** 14.7.5.10.2.1 %ForInIteratorPrototype%.next()
+1. 让O是this值
+2. Assert: Type(O)是Object
+3. Assert: O有For-In遍历器对象（14.7.5.10.3）的所有内部占位
+4. 让object是O.\[\[Object]]
+5. 让visited是O.\[\[VisitedKeys]]
+6. 让remaining是O.\[\[RemainingKeys]]
+7. 重复
+    a. 如果O.\[\[ObjectWasVisited]]是false，那么
+        i. 让keys是?object.\[\[OwnPropertyKeys]]()
+       ii. 遍历keys元素记作key，做
+            1. 如果Type(key)是String，那么
+                a. 追加key到remainings
+      iii. 置O.\[\[ObjectWasVisited]]是true
+    b. 重复，当remaing不是空的
+        i. 让r是remaing的第一个元素
+       ii. 移除remaing的第一个元素
+      iii. 如果r与visited的任何元素都不能让SameValue(r, v)是true，那么
+            1. 让desc是?object.\[\[GetOwnProperty]](r)
+            2. 如果desc不是undefined，那么
+                a. 追加r到visited
+                b. 如果desc.\[\[Enumerable]]是true，
+                   返回CreateIterResultObject(f, false)
+    c. 置object是?object.\[\[GetPrototypeOf]]()
+    d. 置O.\[\[Object]]是object
+    e. 置O.\[\[ObjectWasVisited]]是false
+    f. 如果object是null，返回CreateIterResultObject(undefined, true)
+**** 14.7.5.10.3 PProperties of For-In Iterator Instance
+For-In遍历器实例是从%ForInIteratorPrototype%内部对象继承性质的基本对象。For-In
+遍历器实例创建时带有表38所列的内部占位
+| Internal Slot          | Description                                                                |
+| \[\[Object]]           | 值是：需要遍历其性质的目标对象                                             |
+| \[\[ObjectWasVisited]] | 如果已经调用过\[\[Object]]上的\[\[OwnPropertyKeys]]就是true，否则就是false |
+| \[\[VisitedKeys]]      | 记录到遍历时已经访问过的字符串性质键的list                                 |
+| \[\[RemainingKeys]]    | 在遍历其原型对象之前，尚未发射的字符串键的性质。                           |
+** 14.8 The continue Statement
+*** Syntax
+ContinueStatemnet_[Yield, Await]
+    continue ;
+    continue [no LineTerminator here] LabelIdentifier_[?Yield, ?Await] ;
+*** 14.8.1 Static Semantics: Early Errors
+ContinueStatement:
+    continue ;
+    continue LabelIdentifier ;
+如果ContinumeStatement不是在IterationStatement内嵌入的，而是直接或者间接的（没有
+穿过函数边界），那么有句法错误
+*** 14.8.2 Runtime Semantics: Evaluation
+ContinueStatement: continue ;
+1. 返回Completion { \[\[Type]]:continue, \[\[Value]]:empty, \[\[Target]]:empty }
+
+ContinueStatement: continue LabelIdentifier ;
+1. 让label是LabelIdentifier的字符串值
+2. 返回Completion { \[\[Type]]:continue, \[\[Value]]:empty, \[\[Target]]:label }
+** 14.9 The break Statement
+BreakStatement_[Yield, Await]
+    break ;
+    break [no LineTerminator here] LabelIdentifier_[?Yield, ?Await] ;
+*** 14.9.1 Static Semantics: Early Errors
+BreakStatement: break;
+如果ContinumeStatement不是在IterationStatement内嵌入的，而是直接或者间接的（没有
+穿过函数边界），那么有句法错误
+*** 14.9.2 Runtime Semantics: Evaluation
+ContinueStatement: continue ;
+1. 返回Completion { \[\[Type]]:continue, \[\[Value]]:empty, \[\[Target]]:empty }
+
+ContinueStatement: continue LabelIdentifier ;
+1. 让label是LabelIdentifier的字符串值
+2. 返回Completion { \[\[Type]]:continue, \[\[Value]]:empty, \[\[Target]]:label }
+** 14.10 The return Statement
+*** Syntax
+ReturnStatement_[Yield, Await] :
+    return ;
+    return [no LineTerminator here] Expression_[+In, ?Yield, ?Await] ;
+*** 注意 return语句会导致函数中止执行，在大多数情况，返回一个值给调用者。
+          如果省略了Expression，那么返回值是undefined。否则返回Expression的值。
+          根据环绕的背景return语句可能不会实际返回值给调用者。比如在try块里，
+          return语句的完结记录可能会被替换为评估在finally块里的其他完结记录。
+*** 14.10.1 Runtime Semantics: Evaluation
+ReturnStatement: return ;
+1. 返回Completion { \[\[Type]]:return, \[\[Value]]:empty, \[\[Target]]:empty }
+
+ReturnStatement: return Expression ;
+1. 让exprRef是评估Expression的值
+2. 让exprValue是?GetValue(exprRef)
+3. 如果!GetGenratorKind()是sync，置exprValue是?Await(exprValue)
+4. 返回Completion { \[\[Type]]:return, \[\[Value]]:exprValue, \[\[Target]]:empty }
+** 14.11 The with Statement
+*** Syntax
+WithStatement_[Yield, Await, Return]
+    with ( Expression_[+In, ?Yield, ?Await] ) Statement_[?Yield, ?Await, ?Return]
+*** 注意 with语句为被计算的对象向运行时执行背景的词法环境里增加了
+          ObjectEnvironmentRecord。然后适用这个扩增的词法环境运行语句。
+          最后这个词法环境恢复为原来样子。
+*** 14.11.1 Static Semantics: Early Errors
+WithStatement : with ( Expression )  Statement
+. 如果匹配此产出的代码在严格模式代码里，那么有句法错误
+. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+**** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
+*** 14.11.2 Runtime Semantics: Evaluation
+WithStatement : with ( Expression ) Statmenet
+1. 让val是评估Expression的结果
+2. 让obj是?ToObject(?GetValue(val))
+3. 让oldEnv是运行时执行背景的LexicalEnvironment
+4. 让newEnv是NewObjectEnvironment(obj, oldEnv)
+5. 置newEnv的withEnvironment是true
+6. 置运行时执行背景的LexicalEnvironment是newEnv
+7. 让C是评估Statement的结果
+8. 置运行时执行背景的LexicalEnvironment是oldEnv
+9. 返回Completion(UpdateEmpty(C, undefined))
+**** 注意 无论何种控制离开嵌入的Statement，不管正常完结、异常完结或者
+           异常，LexicalEnvironment总是被恢复成之前的状态。
+** 14.12 The switch Statement
+*** Syntax
+SwitchStatement_[Yield, Await, Return] :
+    switch ( Expression_[+In, ?Yield, ?Await]) CaseBlock_[?Yield, ?Await, ?Return]
+CaseBlock_[Yield, Await, Return] :
+    { CaseClauses_[?Yield, ?Await, ?Return]_opt }
+    { CaseClauses_[?Yield, ?Await, ?Return]_opt DefaultClause_[?Yield, ?Await, ?Return]
+        CaseClauses_[?Yield, ?Await, ?Return]_opt }
+CaseClauses_[Yield, Await, Return] :
+    CaseClause_[?Yield, ?Await, ?Return]
+    CaseClauses_[?Yield, ?Await, ?Return] CaseClause_[?Yield, ?Await, ?Return]
+CaseClause_[Yield, Await, Return] :
+    case Expression_[+In, ?Yield, ?Await] : StatementList_[?Yield, ?Await, ?Return]_opt
+DefaultClause_[Yield, Await, Return] :
+    default : StatementList_[?Yield, ?Await, ?Return]_opt
+*** 14.12.1 Static Semantics: Early Errors
+SwitchStatement : switch ( Expression ) CaseBlock
+. 如果CaseBlock的LexicallyDeclaredNames含有重复的实体，那么有句法错误
+. 如果CaseBlock的LexicallyDeclaredNames有元素出现在CaseBlock的VarDeclaredNames，
+  那么有句法错误
+*** 14.12.2 Runtime Semantics: CaseBlockEvaluation
+带参数input
+CaseBlock : { }
+1. 返回NormalCompletion(undefined)
+
+CaseBlock : { CaseClauses }
+1. 让V是undefined
+2. 让A是在CaseClauses里的CaseClause按照源文本顺序构成的List
+3. 让found是false
+4. 遍历A中的CaseClause记作C，做
+    a. 如果found是false，那么
+        i. 置found是?CaseClauseIsSelected(C, input)
+    b. 如果found是true，那么
+        i. 让R是评估C的结果
+       ii. 如果R.\[\[Value]]不空，置V是R.\[\[Value]]
+      iii. 如果R是意外完结，返回Compeltion(UdpateEmpty(R, V))
+5. 返回NormalCompletion(V)
+
+CaseBlock : { CaseClauses_opt DefaultClause CaseClauses_opt }
+1. 让V是undefined
+2. 如果存在第一个CaseClauses，那么
+    a. 让A是在第一个CaseClauses里的CaseClause按照源文本顺序构成的List
+3. 否则
+    a. 让A是<< >>
+4. 让found是false
+5. 遍历A中的CaseClause记作C，做
+    a. 如果found是false，那么
+        i. 置found是?CaseClauseIsSelected(C, input)
+    b. 如果found是true，那么
+        i. 让R是评估C的结果
+       ii. 如果R.\[\[Value]]不空，置V是R.\[\[Value]]
+      iii. 如果R是意外完结，返回Compeltion(UdpateEmpty(R, V))
+6. 让foundInB是false
+7. 如果存在第二个CaseClauses，那么
+    a. 让B是在第二个CaseClauses里的CaseClause按照源文本顺序构成的List
+8. 否则
+    a. 让B是<< >>
+9. 如果found是false，那么
+    a. 遍历B中的CaseClause记作C，做
+        i. 如果foundInB是false，那么
+            1. 置foundInB是?CaseClauseIsSelected(C, input)
+       ii. 如果foundInB是true，那么
+            1. 让R是评估C的结果
+            2. 如果R.\[\[Value]]不空，置V是R.\[\[Value]]
+            3. 如果R是意外完结，返回Compeltion(UdpateEmpty(R, V))
+10. 如果foundInB是true，返回NormalCompletion(V)
+11. 让R是评估DefaultClause的结果
+12. 如果R.\[\[Value]]不是empty，置V是R.\[\[Value]]
+13. 如果R是意外完结，返回Compeltion(UdpateEmpty(R, V))
+14. 注意：随后的内容是第二个CaseClauses的其他完结遍历。
+15. 遍历B中的CaseClause记作C，做
+    a. 让R是评估C的结果
+    b. 如果R.\[\[Value]]不空，置V是R.\[\[Value]]
+    c. 如果R是意外完结，返回Compeltion(UdpateEmpty(R, V))
+16. 返回NormalCompletion(V)
+*** 14.12.3 CaseClauseIsSelected(C, iput)
+抽象操作CaseClauseIsSelected接受参数C（CaseClause的ParseNode）和input（
+ECMAScript语言值）。明确C是否匹配input。被调用时执行下列步骤：
+1. Assert：C是CaseClause : case Expression : Statement_opt产出的实例
+2. 让exprRef是评估C的Expression
+3. 让clauseSelector是?GetValue(epxrRef)
+4. 返回执行严格相等比较input \=\=\= clauseSelector的结果
+**** 注意 这操作不会执行C的任何Statement。CaseBlock算法使用其返回的值明确
+           那个StatementList开始执行
+*** 14.12.4 Runtime Semantics: Evaluation
+SwitchStatement : switch ( Expression ) CaseBlock
+1. 让exprRef是评估Expression的结果
+2. 让switchValue是?GetValue(exprRef)
+3. 让oldEnv是运行时执行背景的LexicalEnvironment
+4. 让blockEnv是NewDeclarativeEnvironment(oldEnv)
+5. 执行BlockDeclarationInstantiation(CaseBlock, blockEnv)
+6. 置运行时执行背景的LexicalEnvironment是lockEnv
+7. 让R是在CaseBlock上带switchValue参数的CaseBlockEvaluation
+8. 置运行时执行背景的LexicalEnvironment是oldEnv
+9. 返回R
+**** 注意 无论何种方式离开SwitchStatement，LexicalEnvironment总是恢复到之前的
+           状态
+CaseClause : case Expression :
+    1. 返回NormalCompletion(empty)
+
+CaseClause : case Expression : StatementList
+    1. 返回评估StatementList的结果
+
+DefaultClause : default :
+    1. 返回NormalCompletion(empty)
+
+DefaultClause : default : StatementList
+    1. 返回评估StatementList的结果
+** 14.13 Labelled Statements
+*** Syntax
+LabelledStatement_[Yield, Await, Return] :
+    LabelIdentifier_[?ield, ?Await] : LabelledItem_[?Yield, ?Await, ?Return] :
+
+LabelledItem_[Yield, Await, Return] :
+    Statement_[?ield, ?Await, ?Return]
+    FunctionDeclaration_[?Yield, ?Await, ~Default] :
+**** 注意 语句可以前缀一个label。标记后的语句仅用于连接标记的break和
+           continue语句。ECMAScript没有goto语句。Statement可以是
+           LabelledStatement的一部分，且这个LabelledStatement是还是其他
+           LabelledStatement的一部分，递归下去。在描述独立语句的语义时，
+           从此引入的labels被收集起来引用到“当前label集”。
+*** 14.13.1 Static Semantics: Early Errors
+LabelledItem : FunctionDelcaration
+. 如果源文本匹配此规则，那么有语法错误。
+**** 在B.3.2中的扩展提供了本规则的备选定义。
+*** 14.13.2 Static Semantics: IsLabelledFunction(stmt)
+抽象操作IsLabelledFunction接受参数stmt。被调用时执行下列步骤：
+1. 如果stmt不是LabelledStatement，返回false
+2. 让item时stmt的LabelledItem
+3. 如果item是 LabelledItem : FunctionDeclaration ，返回true
+4. 让subStmt是item的Statement
+5. 返回IsLabelledFunction(subStmt)
+*** 14.13.3 Runtime Semantics: Evaluation
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 让newLabelSet是新的空List
+2. 返回本LabelledStatment上带newLabelSet参数的LabelledEvaluation
+*** 14.13.4 Runtime Semantics: LabelledEvaluation
+带参数labelSet
+BreakableStatement : IterationStatement
+1. 让stmtResult是在IterationStatement上带labelSet参数的LoopEvaluation
+2. 如果stmtResult.\[\[Type]]是break，那么
+    a. 如果stmtResult.\[\[Target]]是empty，那么
+        i. 如果stmtResult.\[\[Value]]是empty，置stmtResult是
+           NormalCompeltion(undefined)
+       ii. 否则，置stmtResult是NormalCompletion(stmtResult.\[\[Value]])
+3. 返回 Completion(stmtResult)
+
+BreakableStatement : SwitchStatement
+1. 让stmtResult是评估SwitchStatement的结果
+2. 如果stmtResult.\[\[Type]]是break，那么
+    a. 如果stmtResult.\[\[Target]]是empty，那么
+        i. 如果stmtResult.\[\[Value]]是empty，置stmtResult是
+           NormalCompeltion(undefined)
+       ii. 否则，置stmtResult是NormalCompletion(stmtResult.\[\[Value]])
+3. 返回 Completion(stmtResult)
+**** 注意1 BreakableStatement是通过未标记的BreakStatement能退出的。
+LabelledStatement : LabelIdentifier : LabelledItem
+1. 让label是LabelIdentifier的StringValue
+2. 追加label到labelSet中
+3. 让stmtResult是在LabelledItem上带labelSet参数的LabelledEvaluation
+4. 如果stmtResult.\[\[Type]]是break，而且SameValue(stmtResult.\[\[Target]], label)
+   是true，那么
+    a. 置stmtResult是NormalCompletion(stmtResult.\[\[Value]])
+5. 返回 Completion(stmtResult)
+
+LabelledItem : FunctionDeclaration
+1. 返回评估FunctionDeclaration的结果
+
+Statement :
+    BlockStatement
+    VariableStatmeent
+    EmptyStatement
+    ExpressionStatement
+    IfStatement
+    ContinueStatement
+    BreakStatement
+    ReturnStatement
+    WithStatement
+    ThrowStatement
+    TryStatement
+    DebuggerStatement
+1. 返回评估Statment的结果
+**** 注意2 为LabelledEvaluation有特定语义Statement的产出只有BreakableStatement和
+            LabelledStatement
+** 14.14 The throw Statement
+*** Syntax
+ThrowStatement_[Yield, Await] :
+    throw [no LineTerminator here] Expression_[+In, ?Yield, ?Await] ;
+*** 14.14.1 Runtime Semantics : Evaluation
+ThrowStatement : throw Expression
+1. 让exprRef是评估Expression的结果
+2. 让exprValue是?GetValue(exprRef)
+3. 返回ThrowCompeltion(exprValue)
+** 14.15 The try Statement
+*** Syntax
+TryStatement_[Yield, Await, Return]
+    try Block_[?Yield, ?Await, ?Return] Catch_[?Yield, ?Await, ?Return]
+    try Block_[?Yield, ?Await, ?Return] Finally_[?Yield, ?Await, ?Return]
+    try Block_[?Yield, ?Await, ?Return] Catch_[?Yield, ?Await, ?Return]
+        Finally_[?Yield, ?Await, ?Return]
+Catch_[Yield, Await, Return] :
+    catch ( CatchParameter_[?Yield, ?Awati] ) Block_[?Yield, ?Await, ?Return]
+    catch Block_[?Yield, ?Await, ?Return]
+
+Finally_[Yield, Await, Return] :
+    finally Block_[?Yield, ?Await, ?Return]
+CatchParameter_[Await, Return] :
+    BindingIdentifier_[?Await, ?Return]
+    BindingPattern_[?Await, ?Return]
+*** 注意 try语句封闭一个代码块，在其中可以发生异常，比如运行时错误或者
+          投掷语句。catch语句提供了异常处理代码。当catch条款捕获了某个异常，
+          其CatchParameter被绑定为此异常。
+*** 14.15.1 Static Semantics: Early Errors
+Catch : catch ( CatchParameter ) Block
+. 如果CatchParameter的BoundNames含有任何重复的元素，那么有句法错误。
+. 如果CatchParameter的BoundNames的任何元素出现在Block的LexicallyDeclaredNames中，
+  那么有句法错误。
+. 如果CatchParameter的BoundNames的任何元素出现在Block的VarDeclaredNames中，
+  那么有句法错误。
+**** 注意 在B.3.5为本产出提供了备选语义。
+*** 14.15.2 Runtime Sematics: CatchClauseEvaluation
+带参数thrownValue
+Catch : catch ( CatchParameter ) Block
+1. 让oldEnv是运行时执行背景的LexicalEnvironment
+2. 让catchEnv时NewDeclarativeEnvironment(oldEnv)
+3. 遍历CatchParameter的BoundNames的元素记作argName，做
+    a. 执行!catchEnv.CreateMutableBinding(argName, false)
+4. 置运行时执行背景的LexicalEnvironment是catchEnv
+5. 让status是在CatchParameter上带thrownValue和catchEnv参数的BindingInitialization
+6. 如果status是意外完结，那么
+    a. 置运行时执行背景的LexicalEnvironment是oldEnv
+    b. 返回Completion(status)
+7. 让B是评估Block的结果
+8. 置运行时执行背景的LexicalEnvironment是oldEnv
+9. 返回Completion(B)
+
+Catch : catch Block
+1. 返回评估Block的结果
+**** 注意 无论何种方式离开Block，LexicalEnvironment总是恢复到之前的状态
+*** 14.15.3 Runtime Semantics: Evaluation
+TryStatement : try Block Catch
+1. 让B是评估Block的结果
+2. 如果B.\[\[Type]]是throw，让C是在Catch上带B.\[\[Value]]参数的
+   CatchClauseEvaluation
+3. 否则，让C是B
+4. 返回Completion(UpdateEmpty(C, undefined))
+
+TryStatement : try Block Finally
+1. 让B是评估Block的结果
+2. 让F是评估Finally的结果
+3. 如果F.\[\[Type]]是normal，置F是B
+4. 返回Completion(UpdateEmpty(F, undefined))
+
+TryStatement : try Block Catch Finally
+1. 让B是评估Block的结果
+2. 如果B.\[\[Type]]是throw，让C是在Catch上带B.\[\[Value]]参数的
+   CatchClauseEvaluation
+3. 否则，让C是B
+4. 让F是评估Finally的结果
+5. 如果F.\[\[Type]]是normal，置F是C
+6. 返回Completion(UpdateEmpty(F, undefined))
+** 14.16 The debugger Statement
+*** 注意 当实现运行调试时，评估DebuggerStatement会引发中断。如果调试不存在
+          或不活跃，本语句没有可观测的效果。
+DebuggerStatement : debugger
+1. 如果一个实现定义的调试特性是可用的且激活的，那么
+    a. 执行实现定义的调试动作
+    b. 让result是实现定义的完结值
+2. 否则
+    a. 让result是NormalCompletion(empty)
+3. 返回result
 * 15 ECMAScript Language: Functions and Classes
 * 25
 ** 25.1
