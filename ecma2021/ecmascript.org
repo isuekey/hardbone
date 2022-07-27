@@ -12156,9 +12156,55 @@ FormalParameters :
 
 FormalParameters : FormalParameterList , FunctionRestParameter
 1. 返回 FormalParameterList的ExpectedArgumentCount。
-**** 注意 FormalParameterList的ExprectedArgumentCount是左侧的RestParameter或者
-           第一个FormalParameterList
-** 15.2 Parameter
+**** 注意 FormalParameterList的ExprectedArgumentCount就是左侧有剩余参数或者
+         带初始化的第一个FormalParameter的FormalParameters的数量。不带初始化的
+         FromalParameter允许在带初始化的第一个参数之后，但是这些参数被认为使用了
+         undefined作为默认值。
+
+FormalParameterList : FormalParameter
+1. 如果FormalParameter的HasInitializer是true, 返回0.
+2. 返回1.
+
+FormalParameterList : FormalParameterList , FormalParameter
+1. 让count是FormalParameterList的ExpectedArgumentCount。
+2. 如果FormalParameterList的HasInitializer是true，或者FormalParameter的HasInitializer是true，
+   返回count。
+3. 返回count + 1。
+
+ArrowParameters : BindingIdentifier
+1. 返回1。
+
+ArrowParameters : CoverParenthesizedExpressionAndArrowParameterList
+1. 让formals是CoverParenthesizedExpressionAndArrowParameterList的CoveredFormalsList.
+2. 返回formals的ExpectedArgumentCount.
+
+PropertySetParameterList : FormalParameter
+1. 如果FormalParameter的HasInitializer是true, 返回0.
+2. 返回1.
+
+AsyncArrowBindingIdentifier : BindingIdentifier
+1. 返回1.
+** 15.2 Function Definitions
+*** Syntax
+FunctionDelcaration_[Yield, Await, Default] :
+    function BindingIdentifier_[?Yield, ?Await] ( FormalParameters_[~Yield, ~Await] ) {
+        FunctionBody_[~Yield, ~Await] }
+    [+Default] function( FormalParameters_[~Yield, ~Await] ) { FunctionBody_[~Yield, ~Await] }
+FunctionExpression :
+    function BindingIdentifier_[~Yield, ~Await]_opt ( FormalParameters_[~Yield, ~Await])  {
+        FunctionBody_[~Yield, ~Await] }
+FunctionBody_[Yield, Await] :
+    FunctionStatementList_[~Yield, ~Await]
+FunctionStatementList_[Yield, Await] :
+    StatementList_[?Yield, ?Await, +Return]_opt
+*** 15.2.1 Static Semantics: Early Error
+FunctionDeclaration :
+    function BindingIdentifier ( FormalParameters ) { FunctionBody }
+    function ( FormalParameters ) { FunctionBody }
+. 如果匹配到FormalParameters的源代码是严格模式代码，需要应用UniqueFormalParameters : FormalParameters
+  的EarlyError的规则
+. 存在BndingIdentifier，而且匹配BindingIdentifier的源码是严格模式代码，如果BindingIdentifier的
+  StringValue是"eval"或者“arguments”，那么有句法错误。
 ** 15.3 Parameter
 ** 15.4 Parameter
 ** 15.5 Parameter
