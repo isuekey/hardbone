@@ -12201,18 +12201,244 @@ FunctionStatementList_[Yield, Await] :
 FunctionDeclaration :
     function BindingIdentifier ( FormalParameters ) { FunctionBody }
     function ( FormalParameters ) { FunctionBody }
+FunctionExpression :
+    function BindingIdentifier_opt { FormalParameters ) { FunctionBody }
 . 如果匹配到FormalParameters的源代码是严格模式代码，需要应用UniqueFormalParameters : FormalParameters
   的EarlyError的规则
 . 存在BndingIdentifier，而且匹配BindingIdentifier的源码是严格模式代码，如果BindingIdentifier的
   StringValue是"eval"或者“arguments”，那么有句法错误。
-** 15.3 Parameter
-** 15.4 Parameter
-** 15.5 Parameter
-** 15.6 Parameter
-** 15.7 Parameter
-** 15.8 Parameter
-** 15.9 Parameter
-** 15.10 Parameter
+. 如果FunctionBody的FunctionBodyContainsUseStrict是true而且FormalParameters的IsSimpleParameterList
+  是false，那么是句法错误。
+. 如果FormalParameters的BoundNames有任何元素出现在FunctionBody的LexicallyDeclaredNames，
+  那么有句法错误。
+. 如果FormalParameters包含SuperProperty是true，那么有句法错误。
+. 如果FunctionBody包含SuperProperty是true，那么有句法错误。
+. 如果FormalParameters包含SuperCall是true，那么有句法错误。
+. 如果FunctionBody包含SuperCall是true，那么有句法错误。
+**** 注意 FunctionBody的LexicallyDelcaredNames不包含用var定义的IdentifierBound或者函数声明。
+FunctionBody : FunctionStatementList
+. 如果FunctionStatementList的LexicallyDelcaredNames含有重复的实体，那么是句法错误。
+. 如果FunctionStatementList的LexicallyDelcaredNames的任何元素也出现在FunctionStatementList的
+  VarDeclaredNames，那么是句法错误。
+. 如果FunctionStatementList的带<<>>参数的ContainsDuplicateLabels是true，那么是句法错误。
+. 如果FunctionStatementList的带<<>>参数的ContainsUndefinedBreakTarget是true，那么是句法错误。
+. 如果FunctionStatementList的带<<>>和<<>>参数的ContainsUndefinedContinueTarget含有重复的实体，
+  那么是句法错误。
+*** 15.2.2 Static Semantics: FunctionBodyContainsUseStrict
+FunctionBody : FuncitonStatementList
+1. 如果FunctionBody的DrectivePrologue含有UseStrictDirective，返回true。否则返回false。
+*** 15.2.3 Runtime Semantics: EvaluateFunctionBody
+带参数FunctionObject和argumentsList（List类型）
+FunctionBody : FunctionStatementList
+1. 执行 ?FunctionDeclarationInstantiation(functionObject, argumentsList)。
+2. 返回评估FuncitonStatementList的结果。
+*** 15.2.4 Runtime Semantics: InstantiateOrdinaryFunctionObject
+带参数scope
+FunctionDeclaration : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+1. 让name是BindingIdentifier的StringValue
+2. 让sourceText是FunctionDeclaration对应的源代码
+3. 让F是OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody,
+   non-lexical-this, scope)的结果
+4. 执行SetFunctionName(F, name)
+5. 执行MakeConstructor(F)
+6. 返回F
+
+FunctionDeclaration : Function (FormalParameters ) { FunctionBody }
+1. 让sourceText是FunctionDeclaration对应的源代码
+2. 让F是OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody,
+   non-lexical-this, scope)的结果
+3. 执行SetFunctionName(F, "default")
+4. 执行MakeConstructor(F)
+5. 返回F
+**** 注意 匿名的FunctionDeclaration仅会出现在export default声明的组成里，因此其函数代码也总是严格模式代码。
+*** 15.2.5 Runtime Semantics: InstantiateOrdinaryFunctionExpression
+带可选参数name
+FunctionExpression : function ( FormalParameters ) { FunctionBody }
+1. 如果name不存在，置name为“”
+2. 让scope是运行时执行背景的LexicalEnvironment
+3. 让sourceText是FunctionDeclaration对应的源代码
+4. 让closure是OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody,
+   non-lexical-this, scope)的结果
+5. 执行SetFunctionName(closure, "default")
+6. 执行MakeConstructor(closure)
+7. 返回closure
+
+FunctionExpression : function BindingIdentifier ( FormalParameters ) { FunctionBody }
+1. Assert：name不存在。
+2. 让name是BindingIdentifier的StringValue
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让funcEnv是NewDeclarativeEnvironment(scope)的结果
+5. 执行funcEnv.CreateImmutableBinding(name, false)
+6. 让sourceText是FunctionExpression对应的源代码
+7. 让closure是OrdinaryFunctionCreate(%Function.prototype%, sourceText, FormalParameters, FunctionBody,
+   non-lexical-this, funcEnv)的结果
+8. 执行SetFunctionName(closure, name)
+9. 执行MakeConstructor(closure)
+10. 执行funcEnv.InitializeBinding(name, closure)
+11. 返回closure。
+**** 注意 在FunctionExpression里的BindingIdentifier可以在FunctionExpression的FunctionBody内被
+         引用到，以便与能够递归调用自身。然后不同于在FunctionDeclaration，这个FunctionExpression里的
+         BindingIdentifier不能影响包围这个FunctionExpression的圈，也不能被其引用到。
+*** 15.2.6 Runtime Semantics: Evaluation
+FunctionDeclaration : fucntion BindingIdentifier ( FormalParameters ) { FunctionBody }
+1. 返回NormalCompletion(empty)
+**** 注意 在B.3.3中提供了被选语义
+FunctionDeclaration : function ( FormalParameters ) { FunctionBody }
+1. 返回NormalCompletion(empty)
+
+FunctionExpression : function BindingIdentifier_opt ( FormalParameters ) { FunctionBody }
+1. 返回FunctionExpression的InstantiateOrdianaryFunctionExpression
+**** 注意 "prototype"性质是在用FunctionDeclaration或FunctionExpression定义函数时自动创建的，以便与
+         将来用作构造器。
+FunctionStatementList : [empty]
+1. 返回NormalCompletion(undefined)
+** 15.3 Arrow Function Definitions
+*** Syntax
+ArrowFunction_[In, Yield, Await] :
+    ArrowParameters_[?Yield, ?Await] [no LineTerminator here] => ConciseBody_[?In]
+ArrwoFunction_[?Yield, Await] :
+    BindingIdentifier_[?Yield, ?Await]
+    CoverParenthesizedExpressionAndArrowParameterList_[?Yield, ?Await]
+ConciseBody_[In] :
+    [lookahead ≠ \{] ExpressionBody_[?In,~Await]
+    { FuncitonBody_[~Yield, ~Await] }
+ExpressionBody_[In, Await] :
+    AssignmentExpression_[?In, ~Yield, ?Await]
+*** Supplemental Syntax
+在处理产出
+ArrowParameters_[Yield, Await] : ConverParenthesizedExpressionAndArrowParameterList_[?Yield, ?Await]的
+实例时，CoverParenthesizedExpressionAndArrowParameterList的翻译行为被优化为下列语法：
+ArrowFormalParameters_[Yield, Await] :
+    ( UniqueFormalParameters_[?Yield, ?Await] )
+*** 15.3.1 Static Semantics: Early Errors
+ArrowFunction : ArrowParameters => ConciseBody
+. 如果ArrowParameters含有YieldExpression，那么有句法错误。
+. 如果ArrowParameters含有AwaitExpression，那么有句法错误。
+. 如果ConciseBody的ConciseBodyContainsUseStrict是true，且ArrowParameters的IsSimpleParameterList是false，
+  那么有句法错误。
+. 如果ArrowParameters的BoundNames的任何元素也出现在ConciseBody的LexicallyDeclaredNames里，那么有句法错误。
+
+ArrowParameters : CoverParenthesizedExpressionAndArrowParameterList
+. 如果CoverParenthesizedExpressionAndArrowParameterList不是ArrowFormalParameters，那么有句法错误
+. 所有ArrowFormalParameters和其派生产出的早期错误规则也适用于
+  CoverParenthesizedExpressionAndArrowParameterList的CoveredFormalsList
+*** 15.3.2 Static Semantics: ConciseBodyContainsUseSctrict
+ConciseBody : ExpressionBody
+1. 返回false。
+
+Concisebody : { FunctionBody }
+1. 返回FunctionBody的FunctionBodyContainsUseStrict
+*** 15.3.3 Static Semantics: CoveredFormalsList
+ArrowParameters : BindingIdentifier
+1. 返回这个ArrowParameters
+
+CoverParenthesizedExpressionAndArrowParameterList :
+    ( Expression )
+    ( Expression , )
+    ( )
+    ( ... BindingIdentifier )
+    ( ... BindingPattern )
+    ( Expression, ... BindingIdentifier )
+    ( Expression, ... BindingPattern )
+1. 返回被CoverParenthesizedExpressionAndArrowParameterList包装的ArrowPrmalParameters
+*** 15.3.4 Runtime Semantics: EvaluateConciseBody
+带参数functionObject和argumentList（List类型）
+ConciseBody : ExpressionBody
+1. 执行?FunctionDeclarationInstantiation(functionObject, argumentList)
+2. 返回评估ExpressionBody的结果。
+*** 15.3.5 Runtime Semantics: InstantiateArrowFunctionExpression
+带可选参数name
+ArrowFunction : ArrowParameters => ConciseBody
+1. 如果name不存在，置name为“”
+2. 让scope是运行时执行背景的LexicalEnvironment
+3. 让sourceText是ArrowFunction对应的源代码
+4. 让parameters是ArrowParameters的CoveredFormalList
+5. 让closure是OrdinaryFunctionCreate(%Function.prototype%, sourceText, parameters, ConciseBody,
+   lexical-this, scope)的结果。
+6. 执行SetFunctionName(closure, name)
+7. 返回closure
+**** 注意 ArrowFunction不会定义方法内的arguments、super、this和new.target。所以ArrowFunction内的
+         arguments、super、this和new.target引用都必须解释为外围的词法环境上的绑定。通常this会是包含
+         这个函数的的最近的FunctionEnvironment。即使ArrowFunction可能含有到super的引用，在步骤5创建
+         的函数对象也不会被通过执行MakeMethod来放到方法里。含有super引用的ArrowFunction总是包含在
+         非ArrowFunction里，这样实现super的必要状态可以通过被ArrowFunction的函数对象捕获的圈来访问到。
+*** 15.3.6 Runtime Semantics: Evaluation
+ArrowFunction : ArrowParameters => ConciseBody
+1. 返回Arrowfunction的InstantiateArrowFunctionExpression
+
+ExpressionBody : AssignmentExpression
+1. 让exprRef是评估AssignmentExpression的结果
+2. 让exprValue是?GetValue(exprRef)
+3. 返回Completion { \[\[Type]]:return, \[\[Value]]:exprValue, \[\[Target]]:empty }
+** 15.4 Method Definitions
+*** Syntax
+MethodDefinition_[Yield, Await] :
+    PropertyName_[?Yield, ?Await] ( UniqueFormalParamters_[~Yield, ~Await] ) {
+        FunctionBody_[~Yield, ~Await] }
+    GeneratorMethod_[?Yield, ?Await]
+    AsyncMethod_[?Yield, ?Await]
+    AsyncGeneratorMethod_[?Yield, ?Await]
+    get PropertyName_[?Yield, ?Await] ( ) { FunctionBody_[?Yield, ?Await] }
+    set PropertyName_[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody_[?Yield, ?Await] }
+PropertySetParameterList :
+    FormalParameter_[?Yield, ~Await]
+*** 15.4.1 Static Semantics: Early Errors
+MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
+. 如果FunctionBody的FunctionBodyContainsUseStrict是true，而且UniqueFormalParameters的
+  IsSimpleParameterList是false，那么是句法错误
+. 如果UniqueFormalParameters的BoundNames的元素出现在FunctionBody的LexicallyDeclaredNames中，那么
+  是句法错误
+
+MethodDefinition : set PropertyName ( PropertySetParameterList ) { FunctionBody }
+. 如果PropertySetParameterList的BoundNames含有任何重复的元素，那么是句法错误
+. 如果FunctionBody的FunctionBodyContainsUseStrict是true，而且PropertySetParameterList的
+  IsSimpleParameterList是false，那么是句法错误。
+. 如果PropertySetParameterList的BoundNames的元素出现在FunctionBody的LexicallyDeclaredNames，
+  那么是句法错误。
+*** 15.4.2 Static Semantics: HasDirectSuper
+MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
+1. 如果UniqueFormalParameters含有SuperCall是true，那么返回true。
+2. 返回FunctionBody含有SuperCall。
+
+MethodDefinition : get PropertyName ( ) { FunctionBody }
+1. 返回FunctionBody含有SuperCall。
+
+MethodDefinition : set PropertyName ( PropertySetParameterList ) { FunctionBody }
+1. 如果PropertySetParameterList含有SuperCall是true，那么返回true。
+2. 返回FunctionBody含有SuperCall。
+
+GeneratorMethod : * PropertyName ( UniqueFormalParameters ) { GeneratorBody }
+1. 如果UniqueFormalParameters含有SuperCall是true，那么返回true。
+2. 返回GeneratorBody含有SuperCall。
+
+AsyncGeneratorMethod : async * PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody }
+1. 如果UniqueFormalParameters含有SuperCall是true，那么返回true。
+2. 返回AsyncGeneratorBody含有SuperCall。
+
+AsyncMethod : async PropertyName ( UniqueFormalParameters ) { AsyncFunctionBody }
+1. 如果UniqueFormalParameters含有SuperCall是true，那么返回true。
+2. 返回AsyncFunctionBody含有SuperCall。
+*** 15.4.3 Static Semantics: SpecialMethod
+MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
+1. 返回false
+
+MethodDefinition :
+    GeneratorMethod
+    AsyncMethod
+    AsyncGeneratorMethod
+    get PropertyName ( ) { FunctionBody }
+    set PropertyName ( PropertySetParameterList ) { FunctionBody }
+1. 返回true
+*** 15.4.4 Runtime Semantics: DefineMethod
+带参数object和可选参数functionPrototype
+*** 15.4.5 Runtime Semantics: MethodDefinitionEvaluation
+** 15.5 Generator Function Definitions
+*** Syntax
+** 15.6 Async Generator Function Definitions 
+** 15.7 Class Definitions
+** 15.8 Async Function Definitions
+** 15.9 Async Arrow Function Definitions 
+** 15.10 Tail Position Calls
 * 16 ECMAScript Language: Scripts and Modules
 * 25
 ** 25.1
