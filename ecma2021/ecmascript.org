@@ -23,6 +23,7 @@
 ** 圈（juan`） 表示scope
 ** \*\*#N 表示名称为N的值的\*\*，例如绑定#N，表示名称为N的值的绑定。
 ** Target.property是some，表示Target上有性质property，且其值是some
+** 码型 表示production
 *** 根据编译原理，大小端由其他编译层处理。
 * 前言 [44,46]
 * 第一章 范围
@@ -96,14 +97,14 @@ ECMAScript的用途远超过简单的脚本，被用于广泛的不同系统和�
 * 第五章 记号约定
 ** 5.1句法与词法（语句的与词汇的语法）
 *** 5.1.1上下文无关语法（context-free grammar 可能就是通用的语法描述约定）
-"context-free grammar"由若干"productions"组成。每个产出是一个树，有两个支干
+"context-free grammar"由若干"productions"组成。每个码型是一个树，有两个支干
 left-hand side 和 right-hand side，在"left-hand side"是一个抽象标记记为
 "nonterminal", 在"right-hand side" 是一个队列，由可数个标记（"nonterminal"或
 "terminal"）构成的序列。各个语法的"terminal"用特定字母描述。形式如NXn, 
 X属于{N,T},n为非负整数，差不多类似/N[NT]*/。
 
 "chain product"是只有一个"right-side nonterminal"和可数个"terminal"
-构成的序列组成的产出。（一定还有一个left-hand side nontermial）。
+构成的序列组成的码型。（一定还有一个left-hand side nontermial）。
 
 一个语句从开始由仅一个区分出的称为"goal symbol"的"nontermimal"和一个给定
 的语法描述（context-free grammar)构成。语句具体指明一个"language"，即一组可数
@@ -113,9 +114,9 @@ X属于{N,T},n为非负整数，差不多类似/N[NT]*/。
 **** 这里其实蕴含了序的概念。这是按照输入顺序进行语法组织的。
 *** 5.1.2词汇与正则的语法
 ECMAScript的"lexical grammar"在12章详解。本语法与它的"terminal symbols"的Unicode
-编码一致，符合11.1定义的源码字符规则。定义了若干产出，从"goal symbol"开始有
+编码一致，符合11.1定义的源码字符规则。定义了若干码型，从"goal symbol"开始有
 InputElementDiv, InputElementTemplateTail, InputElementRegExp, 
-InputElementRegExpOrTemplateTail，这些产出描述了如何将输入的字符码转换为
+InputElementRegExpOrTemplateTail，这些码型描述了如何将输入的字符码转换为
 输入元素
 
 除了空白符与注释的输入元素组成了ECMAScript的句法语法的"termial symbols"，
@@ -127,19 +128,19 @@ InputElementRegExpOrTemplateTail，这些产出描述了如何将输入的字符
 语句语法输入元素流的一部分
 
 ECMAScript的RegExp语法在22.2.1中给出。该文法还将源字符定义的编码点作为
-"terminal symbols"其终结符。从"goal symbol Pattern"开始定义了若干产出描述了
+"terminal symbols"其终结符。从"goal symbol Pattern"开始定义了若干码型描述了
 如何将字符码转换为正则表达式。
 
-词汇与正则语法的产出用两个冒号"::"作为分隔符号。词汇与正则语法共享部分
-产出。
+词汇与正则语法的码型用两个冒号"::"作为分隔符号。词汇与正则语法共享部分
+码型。
 *** 5.1.3 数字语法
 还有一种语法是将字符串转换成数字值。这个语法与词汇语法中处理数字的部分
 内容相似。语法的"terminal symbol"是源码。在7.1.4.1中详细描述。
 
-数字语法的产出用三个冒号":::"作为符号来标志。
+数字语法的码型用三个冒号":::"作为符号来标志。
 *** 5.1.4 语句语法
 ECMAScript的语句语法在13至16章给出。这语法有被词汇语法定义为
-"terminal symbols"的"ECMAScript tokens"。它定义了一套产出，从两个目标符号" 
+"terminal symbols"的"ECMAScript tokens"。它定义了一套码型，从两个目标符号" 
 Script and Module"的某个开始，描述了token序列如何沟组成ECMAScript程序的
 语句的正确的独立的组件。
 
@@ -152,8 +153,8 @@ Module"，这个输入流就在语句语法上错了。
 都是"Parse Node"。每个解析节点在语法上是一个"symbol"的实例，他代表一串从
 那个"symbol"派生出的源文本。这个解析树的根节点，则代表全部的源文本，是解
 析的"goal symbol"的实例。如果某个解析节点是一个"nonterminal"的实例，他同时也
-是某个将其"nonterminal"作为"left-hand side"的产出的实例。而且他有可数的子元
-素，每个子元素对应产出的"right-hand side"的一个"symbol"，每个子元素是解析
+是某个将其"nonterminal"作为"left-hand side"的码型的实例。而且他有可数的子元
+素，每个子元素对应码型的"right-hand side"的一个"symbol"，每个子元素是解析
 节点，是相应"symbol"的实例。
 
 每次调用解析都是实例出新的解析节点，在每次解析间不重用节点，即使是同样
@@ -166,18 +167,18 @@ eval(str)
 每次调用eval将str的值转换成ECMAScript源码，然后执行具有隔离的解析树的独立的
 解析。这些树是截然不同的即使这些解析操作的源文本来自相同的字符值。
 **** 备注2 解析树是本规范的方式，实现没有必要一定用相似的数据结构
-语句语法的产出使用一个冒号":"作为符号进行区别。
+语句语法的码型使用一个冒号":"作为符号进行区别。
 
 13-16章出现的句法语法不是被"ECMAScript Script or Module"正确接受全部的内容。
 某些额外的"token"同样被正确接受，即，那些仅当分号放在特定位置（例如换行符
 前）才被语法描述的"token"。此外，某些本语法描述的"token"序列，如果换行符
 出现在某些“尴尬”位置后，就不被认为可接受的。
 
-在某些场景内，为了规避歧义，句法语法使用笼统产出，也就是说允许"token"序列
+在某些场景内，为了规避歧义，句法语法使用笼统码型，也就是说允许"token"序列
 不能组成有效的"ECMAScript Script or Module"。举例来说，这个技术被用在对象字面
 量与对象结构模式上。在相应的案例中，提供了一个更严格的补充语法，用于进一
 步限制这个可接受的"token"序列。典型的，有个"early error"规则会定义一个错误
-条件如果"P不能覆盖N"，P是解析节点（普通的产出实例），而N是从补充来的
+条件如果"P不能覆盖N"，P是解析节点（普通的码型实例），而N是从补充来的
 "nonterminal"。这样原本被P匹配的"token"序列被用N再次解析作为"goal symbol"。（
 如果N用了语法性质的参数，他们就会被设置成相同的值，如果P是起初就解析的）
 如果"token"序列不能作为一个N的实例来解析，且没有"token"剩下，会导致错误发
@@ -187,13 +188,13 @@ eval(str)
 被"early error"规则侦测到，这就总是一个解析节点（一个N实例对应一个给定P）。
 *** 5.1.5 语法符号
 terminal symbols用等宽加黑（这里我也不知道如何表示）字体表示，无论是在语法
-产出还是在文档规范里，只要文字直接表示一个terminal symbol。这会像所写的一样
+码型还是在文档规范里，只要文字直接表示一个terminal symbol。这会像所写的一样
 出现在脚本。以这种方式指明的全部终端符代码符都被认为是恰当的Unicode编码，
 包含基本的拉丁字符，而不是那些在Unicode范围内相似外形的编码。终端符不能用
 \UnicodeEscapeSequence表示
 
-nonterminal用斜体表示。一个nonterminal（其实就是产出）的定义以跟随若干冒号
-的名称开始介绍。冒号的数量表明产出属于那种语法。本产出的若干可替换的
+nonterminal用斜体表示。一个nonterminal（其实就是码型）的定义以跟随若干冒号
+的名称开始介绍。冒号的数量表明码型属于那种语法。本码型的若干可替换的
 "right-hand sides"跟随在下一行。比如一个语句定义：
 WhileStatement:
     while ( Expression ) Statement
@@ -232,9 +233,9 @@ ForStatement:
     for ( LexicalDeclaration Expression ; Expression ) Statement
 所以，在这个例子里，noterminal ForStatement有四个可替换的right-hand sides
 
-产出可以通过增加"[parameters]"形式的标注的方式参数化，这个标注后缀在一个
-产出定义的nonterminal标志上。其中"parameters"可以一个名称或者用都号分隔的
-名称列表。一个参数化的产出是一套通过在被参数化的nonterminal symbol后拼接
+码型可以通过增加"[parameters]"形式的标注的方式参数化，这个标注后缀在一个
+码型定义的nonterminal标志上。其中"parameters"可以一个名称或者用都号分隔的
+名称列表。一个参数化的码型是一套通过在被参数化的nonterminal symbol后拼接
 下划线_和参数名称的方式的所有组合的速记。例如：
 StatementList_[Return]:
     ReturnStatement
@@ -263,9 +264,9 @@ StatementList_In:
 StatementList_Return_In:
     ReturnStatement
     ExpressionStatement
-多个参数产生的产出组合，不全是完整语法定义需要的。
+多个参数产生的码型组合，不全是完整语法定义需要的。
 
-涉及到产出right-hand side的nonterminal也同样可以使用参数。例如：
+涉及到码型right-hand side的nonterminal也同样可以使用参数。例如：
 StatementList:
     ReturnStatement
     ExpressionStatement_[+In]
@@ -291,7 +292,7 @@ VariableDeclaration:
     BindingIdentifier Initializer_In
 
 在一个right-hand side nonterminal引用的参数上增加?前缀，表示这个参数是否
-出现在依赖于是否出现在当前产出的left-hand side标识上。例如：
+出现在依赖于是否出现在当前码型的left-hand side标识上。例如：
 VariableDeclaration_[In]:
     BindingIdentifier Initializer_[?In]
 是下面声明的缩写：
@@ -301,7 +302,7 @@ VariableDeclaration_In:
     BindingIdentifier Initializer_In
 
 如果right-hand分支上含有前缀"[+parameter]"，那么这个分支仅在这个参数名出现
-在其产出的nonterminal标识上时可用。与之相反"[~parameter]"，则在其产出的
+在其码型的nonterminal标识上时可用。与之相反"[~parameter]"，则在其码型的
 nonterminal标识上不含有参数名时，参数分支可用。例如：
 StatementList_[Return]:
     [+Return]ReturnStatement
@@ -324,7 +325,7 @@ StatementList_Return:
     ExpressionStatement
 
 当词汇one of跟随在语法定义的冒号":"后时，表明随后若干行的没给terminal标识
-都是一个可选定义。例如，ECMAScript的词法语法包含产出：
+都是一个可选定义。例如，ECMAScript的词法语法包含码型：
 NonZeroDigit:: one of
     1 2 3 4 5 6 7 8 9
 这仅仅是下面声明的简写：
@@ -339,19 +340,19 @@ NonZeroDigit:: one of
     8
     9
 
-如果短语"[empty]"出现在产出的right-hand side中，表明产出的right-hand side没有
+如果短语"[empty]"出现在码型的right-hand side中，表明码型的right-hand side没有
 任何terminal或者nonterminal
 
-如果短语"[lookahead=seq]"出现在产出的right-hand side，表明这个产出可能仅用在
+如果短语"[lookahead=seq]"出现在码型的right-hand side，表明这个码型可能仅用在
 这个token序列seq是随后的token序列的前置代号，也就是说随后的token序列以seq起始。
 类似的"[lookahead∈set]"，其中set是一个有限的非空的token序列的集合，表明这个
-产出仅在set中的某些元素是随后token序列的前置代号。为了方便这个集合可以被写
+码型仅在set中的某些元素是随后token序列的前置代号。为了方便这个集合可以被写
 成一个nonterminal，这表示，这个nonterminal展开为这个集合的全部token序列。如果
 这个nonterminal可以被展开成无穷的不同token序列，那他被认为是一个编者的错误。
 **** 就是写错了。
-有些情况需要反向定义。"[lookahead≠seq]"表明产出仅在seq不是随后token序列的
+有些情况需要反向定义。"[lookahead≠seq]"表明码型仅在seq不是随后token序列的
 前置代号时才可能被采用，"[lookahead∉set]"表明仅在没有set中的元素是随后的token
-序列的前置代号时产出才会被采用。
+序列的前置代号时码型才会被采用。
 
 举例说明，前置定义：
 DecimalDigit:: one of
@@ -371,21 +372,21 @@ LookaheadExample::
 出现在lookahead限制（包括作为一组序列的一部分）里，如果要用的词法goal symbol
 是不定的无论seq是否是结果token序列的前置代号。
 
-如果短语"[no LineTerminator here]"出现在语句语法的产出的right-hand side，表明
-这个产出是一个被限制的产出，他不可以被用在那些LineTerminator出现在指定位置
-的输入流。例如产出：
+如果短语"[no LineTerminator here]"出现在语句语法的码型的right-hand side，表明
+这个码型是一个被限制的码型，他不可以被用在那些LineTerminator出现在指定位置
+的输入流。例如码型：
 ThrowStatement:
     throw [no LineTerminator here] Expression;
-指明这个产出不能用在LineTerminator出现在throw token与Expression之间的输入流上。
+指明这个码型不能用在LineTerminator出现在throw token与Expression之间的输入流上。
 
-除非LineTerminator是被限制产出明确禁止的，任意个LineTerminator可以在输入元素
+除非LineTerminator是被限制码型明确禁止的，任意个LineTerminator可以在输入元素
 流里任何两个连续的token间出现，不影响这个脚本的合理性。
 
-当在词法与数字产出出现在一个多码的token中时，这表示对应的代码序列要构成
+当在词法与数字码型出现在一个多码的token中时，这表示对应的代码序列要构成
 一个对应的token。
 
-产出right-hand有可能会用短语"but not"来限制某种展开，表明不包含这种展开。例
-如产出：
+码型right-hand有可能会用短语"but not"来限制某种展开，表明不包含这种展开。例
+如码型：
 Identifier::
     IdentifierName but not ReservedWord
 意味着nonterminal Identifier可以是被那些提供的编码不能替换为ReservedWord的
@@ -442,13 +443,13 @@ SourceCharacter::
 someValue.OperationName(arg1, arg2)。
 *** 5.2.2 面向句法的操作
 面向句法的操作是一个命名的操作，包含若干算法，每个算法联系若干ECMAScript
-语法产出。产出还有多个备选定义，但是每个备选有明确的算法。当算法联结到
-语法产出后，算法可能会通过参数的方式引用产出备选的终结和非终结符。用这种
-方式时，非终结符指向一个从源文本解析出的实际的备选定义。语法产出匹配的源
+语法码型。码型还有多个备选定义，但是每个备选有明确的算法。当算法联结到
+语法码型后，算法可能会通过参数的方式引用码型备选的终结和非终结符。用这种
+方式时，非终结符指向一个从源文本解析出的实际的备选定义。语法码型匹配的源
 文本是源码的一部分，这部分源码从参与匹配的第一个终结符开始，结束到参与匹
 配的最后一个终结符结束。
 
-当算法联结到产出备选，这个备选一般不会有任何"[]"，这种语法注解。这种注解
+当算法联结到码型备选，这个备选一般不会有任何"[]"，这种语法注解。这种注解
 应该仅用于句法识别备选，而且不能对联结的备选的语义有任何作用。
 
 在下面的算法中的1、3、4约定的步骤中，带着解析节点和可选的参数，面向句法
@@ -458,14 +459,14 @@ someValue.OperationName(arg1, arg2)。
 3. 执行someParseNode的SyntaxDirectedOperation
 4. 传递value作为参数，执行someParseNode的SyntaxDirecteOperation
 
-除非显式声明，否则所有的链环产出对于每个操作都有一个隐式定义，这个会被
-当作产出的left-hand side的非终止符。如果有上述非终止符，这个隐式的定义就简
-单的重复提交相同的操作和相同的参数，给链环产出的right-hand side非终止符，然
+除非显式声明，否则所有的链环码型对于每个操作都有一个隐式定义，这个会被
+当作码型的left-hand side的非终止符。如果有上述非终止符，这个隐式的定义就简
+单的重复提交相同的操作和相同的参数，给链环码型的right-hand side非终止符，然
 后返回这个结果。比如，假设算法有一步骤是：“返回评估Block的结果”，就会有
-这样的一个产出：
+这样的一个码型：
 Block:
     { StatementList }
-但是评估操作不会联结算法与产出。这样，评估操作隐式的包含如下形式的联结：
+但是评估操作不会联结算法与码型。这样，评估操作隐式的包含如下形式的联结：
 Runtime Semantics: Evaluation
 Block: { StatementList }
     1. 返回StatementList的评估结果。
@@ -543,13 +544,13 @@ Block: { StatementList }
 *** 5.2.4 静态语义
 上下文无关语法没有足够的能力表达定义在被评估的Script或Module的输入元素流的
 所有规则。在这些情况下，需要额外的规则来表达ECMAScript算法约定或者文法要
-求。这种规则总是联结到一个语法产出，被称作产出的静态语义。
+求。这种规则总是联结到一个语法码型，被称作码型的静态语义。
 
-静态语义规则有名字，通常使用算法定义。命名的静态语义规则联结到语法产出，
-产出有多个备选定义，每个备选针对提供的命名的静态语法规则有明确的算法。
+静态语义规则有名字，通常使用算法定义。命名的静态语义规则联结到语法码型，
+码型有多个备选定义，每个备选针对提供的命名的静态语法规则有明确的算法。
 
 一类特殊的静态语法规则是前期错误规则。前期错误规则定义了前期错误条件，联
-结到特定的语法产出。大多数的前期错误的评估不是在本规范的的算法内被显示调用
+结到特定的语法码型。大多数的前期错误的评估不是在本规范的的算法内被显示调用
 的。一个一致实现必须，在首次评估Script或Module前，校验Script或者Module解析的产
 出的所有前期错误规则。任何前期错误规则被违反，这个Script或者Module就是无效的
 且不能被评估。
@@ -651,7 +652,7 @@ String元素被当作UTF-16的编码单元值。在序列中，每个元素被�
 
 函数String.prototype.normalize(见于22.1.3.13)备用显式的规范String值。
 String.prototype.localeCompare(见于22.1.3.10)内部规范String值，但是其他操作不会在
-操作内容上隐式的规范String值。只有那些显式指明是语言或者地域敏感的操作产出
+操作内容上隐式的规范String值。只有那些显式指明是语言或者地域敏感的操作码型
 语言敏感的结果。
 **** 这种设计的深层原因是让String的实现尽可能简单和高效。如果ECMAScript源文本
 是C规范的，字符串原文被确保是规范的，只要没有包含任意的Unicode。
@@ -780,7 +781,7 @@ Number值按照下列方式选中。（Number值都是有限精度的有理数�
 和-2^1024（-1*2^53*2^971），的集合。在其中选择一个数最接近x的元素。如果有两个
 与x一样，那么选择是偶数精度，因此2^1024与-2^1024被认为是偶数精度。如果选中
 2^1024，替换为\+∞_F；如果是选中-2^1024，替换为-∞_F；如果选中+0，且x<0，替换为
--0；其他选中保持不便。这个结果就是"x的Number值"。（这个产出与IEEE 754-2019的
+-0；其他选中保持不便。这个结果就是"x的Number值"。（这个码型与IEEE 754-2019的
 向偶数近似模式严格一致）。
 
 \+∞的Number值是\+∞_F，\-∞的Number值是\-∞_F。
@@ -2130,7 +2131,7 @@ MV。
 | Symbol    | 投掷TypeError异常                                                           |
 *** 7.1.14 StringToBigInt(argument)
 应用7.1.4.1的算法，并进行随后的调整
-. 替换StrUnsignedDecimalLiteral产出的DecimalDigits中禁止Infinity、小数点和指数部
+. 替换StrUnsignedDecimalLiteral码型的DecimalDigits中禁止Infinity、小数点和指数部
 . 如果NaN，返回NaN。否则返回准确表示MV的BigInt值，不需要修圆。
 *** 7.1.15 ToBigInt64(argument)
 抽象操作ToBigInt64接受参数argument。将argument转换为2^64的BigInt值，范围在
@@ -4203,7 +4204,7 @@ ClassExpression : class ClassTail
 *** 8.4.1 静态语义：Contains
 带symbol参数
 
-本规范中不是下方列出的的产出备选的Contains隐式的含有如下定义。
+本规范中不是下方列出的的码型备选的Contains隐式的含有如下定义。
 1. 遍历这个ParseNode的每个子节点child，执行
     a. 如果child是symbol的实例，返回true
     b. 如果child是非终结符，那么
@@ -5409,7 +5410,7 @@ ECMAScript代码不能直接访问或察觉执行背景。
 1. 如果env不存在，或者env是undefined，那么
     a. 设置env是运行时执行背景的LexicalEnvironment
 2. Asset：env是EnvironmentRecord
-3. 如果句法产出对应的正在评估的代码被包含在严格模式代码中，让strict是true，
+3. 如果句法码型对应的正在评估的代码被包含在严格模式代码中，让strict是true，
    否则让strict是false
 4. 返回?GetIdentifierReference(env, name, strict)
 **** 注意 ResolveBinding用于返回ReferenceRecord，其\[\[ReferencedName]]是name
@@ -7773,7 +7774,7 @@ UseStrictDirective是在指令序章中其StringLiteral确切是"use strict"或�
 
 指令序章可以包含不止一个UseStrictDirective。然而如果发生了，实现可能会发出
 警告。
-**** 注意 DirectivePrologue的ExpressionStatements通常在评估其包含的产出时进行评
+**** 注意 DirectivePrologue的ExpressionStatements通常在评估其包含的码型时进行评
            估。实现可能会为在DirectivePrologue的不是UseStrictDirective的
            ExpressionStatement定义特殊的实现方式。如果存在恰当的通知机制，如果
            实现遇到在DirectivePrologue里不是UseStrictDirective而且实现也没有定义
@@ -7791,7 +7792,7 @@ eval产生的，即评代码是严格模式代码
 GeneratorExpression、AsyncFunctionDeclaration、AsyncFunctionExpression、
 AsyncGeneratorDeclaration、AsyncGeneratorExpression、MethodDefinition、
 ArrowFunction或AsyncArrowFunction的函数代码，或者以包含UseStrictDirective的指令
-序章开始的产出函数的\[\[ECMAScriptCode]]内部占位值的代码是严格模式代码。
+序章开始的码型函数的\[\[ECMAScriptCode]]内部占位值的代码是严格模式代码。
 . 传递给内建Function、Generator、AsyncFunction和AsyncGenerator构造范的函数代码是
 严格模式代码，如果最后的参数，在函数处理时作为函数体，是以包含
 UseStrictDirective的指令序章开始的String。
@@ -7977,7 +7978,7 @@ SinelLineCommentChars ::
 SingleLineCommentChar ::
     SourceCharacter but not LineTerminate
     
-本节的许多产出在B.1.3中给出了备选定义。
+本节的许多码型在B.1.3中给出了备选定义。
 ** 12.5 Tokens 信标
 *** Syntax
 CommonToken ::
@@ -7987,7 +7988,7 @@ CommonToken ::
     StringLiteral
     Template
 *** 注意 DivPunctuator、RegularExpressionLiteral、RightBracePunctuator和
-          TemplateSubstitutionTail产出派生出额外的信标不被包含在CommonToken产出
+          TemplateSubstitutionTail码型派生出额外的信标不被包含在CommonToken码型
           中。
 ** 12.6 Names and Keywords 名称与关键词
 IdentifierName和ReservedWord是根据Identifier、PatternSyntax和在UnicodeStandardAnnex
@@ -8036,23 +8037,23 @@ UnicodeIDContinue ::
 *** 12.6.1 Identifier Names 标识名
 **** 12.6.1.1 Static Semantics: Early Errors
 IdentifierStart :: \ UnicodeEscapeSequence
-. 如果UnicodeEscapeSequence的SV不是$、_或者被UnicodeIDStart词法产出匹配的
+. 如果UnicodeEscapeSequence的SV不是$、_或者被UnicodeIDStart词法码型匹配的
   Unicode编码点cp的!UTF16EncodeCodePoint(cp)，那这是一个句法错误。
 IdentifierPart :: \ UnicodeEscapeSequence
 . 如果UnicodeEscapeSequence的SV不是$、_、!UTF16EncodeCodePoint(<ZWNJ>、
-  !UTF16EncodeCodePoint(<ZWJ>)或者被UnicodeIDContinue词法产出匹配的
+  !UTF16EncodeCodePoint(<ZWJ>)或者被UnicodeIDContinue词法码型匹配的
   Unicode编码点cp的!UTF16EncodeCodePoint(cp)，那这是一个句法错误。
 *** 12.6.2 Keywords and Reserved Words 关键词和保留词
 关键词是符合IdentifierName的信标，但是还有句法用途；它会在本文中，使用定宽
-字体，出现在某些句法产出中。ECMAScript关键词包括if、while、async、await等等。
+字体，出现在某些句法码型中。ECMAScript关键词包括if、while、async、await等等。
 
 保留词不能用作为标识的IdentifierName。很多关键词是保留词，但是有些不是，有些
 仅在某些背景下是保留词。if和while是保留词。await键在异步函数和异步模块中是
 保留词。async不是保留词，可以不被限制的用在变量名或者label语句里。
 
-本归范使用语法产出和EarlyError来规定哪些名称是有效的，哪些是保留词。除了
+本归范使用语法码型和EarlyError来规定哪些名称是有效的，哪些是保留词。除了
 await和yeild，列在下方的其他保留词的信标是无条件保留的。在13.1中规定了
-await和yield的例外行为，使用参数句法产出。最后，有几个EarlyError限制了有效
+await和yield的例外行为，使用参数句法码型。最后，有几个EarlyError限制了有效
 标识的集合。详见13.1.1、14.3.1.1、14.7.5.1和15.7.1。综述有五类标识名称：
     . Math、window、toString和_，不是关键词，总是可以当作标识
     . 下发列出的ReservedWords除了await和yield，不能作为标识。
@@ -8060,7 +8061,7 @@ await和yield的例外行为，使用参数句法产出。最后，有几个Earl
     . 某些背景下在严格模式中：let、static、implements、interface、package、
       priviate、protected和public不能作为标识
     . as、async、from、get、of、set和target这些可以作为标识符，但是在某些特定
-      句法产出中作为关键词，这些地方不允许作为标识。
+      句法码型中作为关键词，这些地方不允许作为标识。
 术语条件关键词或者特定背景关键词（ConditionalKeyword或者ContextualKeyword）是指
 在后面三种类目中的有时用作关键词的词汇，因此有些背景可以作为标识，其他背景
 下被当作关键词。
@@ -8346,7 +8347,7 @@ Hex4Digits ::
 
 非终结符HexDigit的定义在12.8.3中给出。SourceCharacter定义在11.1.
 **** 注意2 <LF>和<CR>不能出现在字符串字面量里，除非作为LineContinuation的一部分
-            来产出空编码点序列。使其包含在String值或者字符串字面量里的恰当方
+            来码型空编码点序列。使其包含在String值或者字符串字面量里的恰当方
             式是使用转义序列\n或者\u000A
 **** 12.8.4.1 Static Semantics: SV
 字符串字面量代表一个String值。字面量的String值（SV）以字符串字面量的不同部分
@@ -8405,12 +8406,12 @@ Unicdoe编码点按照12.8.3中的描述被翻译成一个数学值（MV）。
             表达式对象永远不满足===比较，即使两个字面量的内容相同。RegExp对象
             也可以在运行时由new RegExp或者像函数一样调用RegExp的构造（22.2.3）
             来创建。
-下方的产出描述了正则表达式字面量的句法，被输入元素扫描器用于找到正则表达式
+下方的码型描述了正则表达式字面量的句法，被输入元素扫描器用于找到正则表达式
 字面量的结尾。源文本组成的RegularExpressionBody和RegularExpressionFlags被随后的
 更加严格的ECMAScript正则表达式语法（22.2.1）解析出来。
 
 实现可以扩展定义在22.2.1的ECMAScript正则表达式语法，但是不能扩展下方定义的
-RegularExpressionBody和RegularExpressionFlags产出，或者使用这两个产出的产出。
+RegularExpressionBody和RegularExpressionFlags码型，或者使用这两个码型的码型。
 **** Syntax
 RegularExpressionLiteral ::
     / RegularExpressionBody / RegularExpressionFlags
@@ -8550,10 +8551,10 @@ CopePoint ::
     . NotEscapeSequence :: u { CodePoint [lookahead ∉ HexDigit] [lookahead ≠ {]的TRV是
       编码单元0x0075（LATIN SMALL LETTER U）、编码单元0x007B（LEFT CURLY BRACKET）
       和CodePoint的TRV的字符串拼接
-    . DecimalDigit :: 0 1 2 3 4 5 6 7 8 9之一 的TRV是在产出匹配到的编码点上运行
+    . DecimalDigit :: 0 1 2 3 4 5 6 7 8 9之一 的TRV是在码型匹配到的编码点上运行
       UTF16EncodeCodePoint的结果。
     . CharacterEscapeSequence :: NonEscapeCharacter的TRV是NonEscapeCharacter的SV。
-    . SingleEscapeCharacter :: ' " \ b f n r t v之一 的TRV是在产出匹配到的编码点
+    . SingleEscapeCharacter :: ' " \ b f n r t v之一 的TRV是在码型匹配到的编码点
       上运行UTF16EncodeCodePoint的结果。
     . HexEscapeSequence :: x HexDigit HexDigit的TRV是编码单元0x0078（LATIN SMALL
       LETTER U）、第一个HexDigit的TRV和第二个HexDigit的TRV的字符串拼接。
@@ -8567,7 +8568,7 @@ CopePoint ::
       接。
     . HexDigits :: HexDigits HexDigit的TRV是HexDigits的TRV和HexDigit的TRV的字符串
       拼接。
-    . HexDigit :: 0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F之一 的TRV是在产出匹配
+    . HexDigit :: 0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F之一 的TRV是在码型匹配
       到的编码点上运行UTF16EncodeCodePoint的结果。
     . LineContinuation :: \ LineTerminatorSequence 是编码单元0x005C（REVERSE SOLIDUS）
       和LineTerminatorSequence的TRV字符串拼接
@@ -8594,7 +8595,7 @@ CopePoint ::
 
 插入分号由三个基本规则：
 1. 在从左到右解析的源文本里，当遇到的信标（称为违法信标）不被任何语法
-   产出允许时，如果下方条件至少满足一条，分号会自动插入到违法的信标前。
+   码型允许时，如果下方条件至少满足一条，分号会自动插入到违法的信标前。
      。违法信标跟前一个信标被至少隔了一个LineTerminator
      。违法信标是 }
      。前一个信标是)，而且插入的分号会被解析为do-while语句（14.7.2）的
@@ -8602,15 +8603,15 @@ CopePoint ::
 2. 在从左到右解析的源文本里，当遇到输入的信标流的末端，而且解析器不能
    将这个输入的信标流解析为一个单独的目标非完结符实例，那么分号就会自动
    插入到这个输入流的末端。
-3. 在从左到右解析的源文本里，当遇到的信标是被语法某些产出允许，但是这种
-   产出是受限产出，而且信标是在这个受限产出里紧随着[no LineTerminator here]
+3. 在从左到右解析的源文本里，当遇到的信标是被语法某些码型允许，但是这种
+   码型是受限码型，而且信标是在这个受限码型里紧随着[no LineTerminator here]
    的终结符或者非终结符的第一个信标（这种信标称为受限信标），且这个受限
    信标跟前一个信标至少隔了一个LineTerminator，那么分号会被插入在这个受限
    信标的前面。
 
 然后，在前面说的规则上覆盖了一个额外的条件：如果自动插入的分号会被解析成
 空语句或者成为for语句（14.7.4）头的两个分号之一，这个插入不会执行。
-**** 注意 随后的内容是语法中仅有的受限产出
+**** 注意 随后的内容是语法中仅有的受限码型
            UpdateExpression_[Yield, Await] :
                LeftHandSideExpression_[?Yield, ?Await] [no LineTerminator here] ++
                LeftHandSideExpression_[?Yield, ?Await] [no LineTerminator here] --
@@ -8631,7 +8632,7 @@ CopePoint ::
                yield
                yield [no LineTerminator here] AssignmentExpression_[?In, +Yield, ?Await]
                yield [no LineTerminator here] * AssignmentExpression_[?In, +Yield, ?Await]
-          这些受限产出的实际效果如下所列：
+          这些受限码型的实际效果如下所列：
                . 当遇到++或--信标的时候，解析器会将其作为后缀操作，而且在前一
                  个信标与++或--信标间至少一个LineTerminator，那么分号会自动插入
                  在++或--信标前。
@@ -8682,7 +8683,7 @@ a = b;
 if (a > b)
 eles c = d
 不是有效的ECMAScript语句，也不会被修改为在else信标前自动插入分号，尽管没有
-语法产出用于这里，因为自动插入分号机制会将这里解析为空语句。
+语法码型用于这里，因为自动插入分号机制会将这里解析为空语句。
 
 源码
 a = b + c
@@ -8700,7 +8701,7 @@ a = b + c(d + e).print()
 不必每行插入，自动插入分号可以依靠经过行终结符的多个信标。
 
 当新的句法特征增加到ECMAScript中，会导致其前的行依赖自动插入分号的额外语法
-产出会被增加进来以便在解析时变更语法产出。
+码型会被增加进来以便在解析时变更语法码型。
 
 本节的目的是，如果一个地方没有分号可不可以插入，依赖于其前的源码，这就被
 认为是一个有取的自动插入分号案例。本节剩下的部分描述了一些在当前版本
@@ -8720,11 +8721,11 @@ ECMAScript中的自动插入分号案例。
 **** 12.9.3.2 Cases of Automatic Semicolon Insertion and "[no LineTerminator here]"
 本节不是标准内容。
 
-ECMAScript含有很多包含[no LineTerminator here]的语法产出。这些产出某时意味着
-在语法里有可选的操作项。在这些位置引入LineTerminator会改变源文本的语法产出
+ECMAScript含有很多包含[no LineTerminator here]的语法码型。这些码型某时意味着
+在语法里有可选的操作项。在这些位置引入LineTerminator会改变源文本的语法码型
 不使用可选的操作项。
 
-本节剩余内容描述了本版本ECMAScript使用[no LineTerminator here]的产出。
+本节剩余内容描述了本版本ECMAScript使用[no LineTerminator here]的码型。
 ***** 12.9.3.2.1 List of Grammar Productions with Optional Operands and
                 "[no LineTerminator here]"
     . UpdateExpression
@@ -8756,13 +8757,13 @@ Identifier :
            await 0
 *** 13.1.1 Static Semantics: Early Errors
 BindingIdentifier : Identifier
-. 如果本产出的代码包含在严格模式代码里，Identifier的String值是arguments或
+. 如果本码型的代码包含在严格模式代码里，Identifier的String值是arguments或
   eval，那么会是一个SyntaxError
 
 IdentifierReference : yield
 BindingIdentifier : yield
 LabelIdentifier : yield
-. 如果本产出的代码包含在严格模式代码里，那么会是一个SyntaxError
+. 如果本码型的代码包含在严格模式代码里，那么会是一个SyntaxError
 
 IdentifierReference : await
 BindingIdentifier : await
@@ -8770,21 +8771,21 @@ LabelIdentifier : await
 . 如果句法的目标符是Module，那么会是一个SyntaxError
     
 BindingIdentifier_[Yield, Await] : yield
-. 如果产出有一个[Yield]参数，那么会是一个SyntaxError
+. 如果码型有一个[Yield]参数，那么会是一个SyntaxError
 
 BindingIdentifier_[Yield, Await] : await
-. 如果产出有一个[Await]参数，那么会是一个SyntaxError
+. 如果码型有一个[Await]参数，那么会是一个SyntaxError
     
 IdentifierReference_[Yield, Await] : Identifier
 BindingIdentifier_[Yield, Await] : Identifier
 LabelIdentifier_[Yield, Await] : Identifier
-. 如果产出有一个[Yield]参数而且Identifier的String值是yield，那么会是一个
+. 如果码型有一个[Yield]参数而且Identifier的String值是yield，那么会是一个
   SyntaxError
-. 如果产出有一个[Await]参数而且Identifier的String值是await，那么会是一个
+. 如果码型有一个[Await]参数而且Identifier的String值是await，那么会是一个
   SyntaxError
       
 Identifier : 不是ReservedWord的IdentifierName
-. 如果产出在严格模式代码里，而且IdentifierName的String值是implements、
+. 如果码型在严格模式代码里，而且IdentifierName的String值是implements、
   interface、let、package、private、protected、public、static、yield，那么会是
   一个SyntaxError
 . 如果句法的目标符是Module，而且IdentifierName的String值是await，那么会是
@@ -8852,7 +8853,7 @@ CoverParenthesizedExpressionAndArrowParameterList_[Yield, Await] :
     ( Expression_[+In, ?Yield, ?Await], ... BindingIdentifier_[?Yield, ?Await] )
     ( Expression_[+In, ?Yield, ?Await], ... BindingPattern_[?Yield, ?Await] )
 *** Supplemental Syntax 辅助句法
-当处理产出
+当处理码型
 PrimaryExpression_[Yield, Await] : CoverParenthesizedExpressionAndArrowParameterList_[?Yield, ?Await]
 的实例时，CoverParenthesizedExpressionAndArrowParameterList的翻译过程使用随后的
 优化语法：
@@ -9043,21 +9044,21 @@ Initializer_[In, Yield, Await] :
     = AssignmentExpression_[?In, ?Yield, ?Await]
 **** 注意2 MethodDefinition定义在15.4
 **** 注意3 在某些背景中，ObjectLiteral用于作为更严格的二级语法的覆盖语法。
-            CoverInitializedName产出是这些二级语法的必要覆盖。然而在实际上是
-            期望ObjectLiteral的普通背景里，使用这些产出会导致早期句法错误。
+            CoverInitializedName码型是这些二级语法的必要覆盖。然而在实际上是
+            期望ObjectLiteral的普通背景里，使用这些码型会导致早期句法错误。
 **** 13.2.6.1 Static Semantics: Early Errors 静态语义：早期错误
 PropertyDefinition : MethodDefinition
 . 如果MethodDefinition的HasDirectSuper是true，这存在句法错误。
 
-除了描述实际的对象初始化，ObjectLiteral产出还被用作ObjectAssignmentPattern的覆盖
+除了描述实际的对象初始化，ObjectLiteral码型还被用作ObjectAssignmentPattern的覆盖
 语法，也可能被识别为CoverParenthesizedExpressionAndArrowParameterList的一部分。当
 ObjectLiteral出现在需要ObjectAssignmentPattern的背景中，不要使用随后的早期错误。
 此外，在初始解析CoverParenthesizedExpressionAndArrowParameterList或者
 CoverCallExpressionAndAsyncArrowHead时也不要使用。
 
 PropertyDefinition : CoverInitializedName
-. 如果代码匹配到了此产出，就投掷一个句法错误
-***** 注意 这种产出存在，所以ObjectLiteral可以作为ObjectAssignmentPattern的覆盖
+. 如果代码匹配到了此码型，就投掷一个句法错误
+***** 注意 这种码型存在，所以ObjectLiteral可以作为ObjectAssignmentPattern的覆盖
             语法。不能发生在实际的对象初始化里。
 **** 13.2.6.2 Static Semantics: IsComputedPropertyKey
 PropertyName : LiteralPropertyName
@@ -9134,7 +9135,7 @@ PropertyDefinition : PropertyName : AssignmentExpression
 5. Assert：enumerable是true
 6. Assert：object是普通的可扩展对象，没有不可设置性质
 7. 返回!CreateDataPropertyOrThrow(object, propName, propValue)
-***** 注意 在B.3.1提供了本产出的备选语义。
+***** 注意 在B.3.1提供了本码型的备选语义。
 MethodDefinition:
     PropertyName ( UniqueFormalParameters ) { FunctionBody }
     get PropertyName ( ) { FunctionBody }
@@ -9380,7 +9381,7 @@ TemplateMiddleList : TempalteMiddleList TemplateMiddle Expression
 PrimaryExpression : CoverParenthesizedExpressionAndArrowParameterList
 . 如果CoverParenthesizedExpressionAndArrowParameterList没有覆盖一个
   ParenthesizedExpression，那么有语法错误。
-. ParenthesizeExpression或其派生产出适用早期错误规则，也提供给
+. ParenthesizeExpression或其派生码型适用早期错误规则，也提供给
   CoverParenthesizedExpressionAndArrowParameterList的
   CoveredParenthesizedExpression
 **** 13.2.10.2 Runtime Semantics : Evaluation
@@ -9468,7 +9469,7 @@ LeftHandSideExpression_[Yield, Await] :
     CallExpression_[?Yield, ?Await]
     OptionalExpression_[?Yield, ?Await]
 *** Supplemental Syntax
-当处理CallExpression : CoverCallExpressionAndAsyncArrowHead产出的实例时，
+当处理CallExpression : CoverCallExpressionAndAsyncArrowHead码型的实例时，
 CoverCallExpressionAndAsyncArrowHead的翻译被精炼为下列语法：
 CallMemberExpression_[Yield, Await] :
     MemberExpression_[?Yield, ?Await] Arguments_[?Yield, ?Await]
@@ -9477,8 +9478,8 @@ CallMemberExpression_[Yield, Await] :
 OptionalChain :
     ?. TempalteLiteral
     OptionalChain TemplateLiteral
-. 任何代码匹配这个产出，那么有语法错误
-***** 注意 这个产出用于阻止自动分号插入规则（12.9）应用到下列代码：
+. 任何代码匹配这个码型，那么有语法错误
+***** 注意 这个码型用于阻止自动分号插入规则（12.9）应用到下列代码：
             a?.b
             `c`
             防止被翻译成两个有效的语句。目的是与没有可选链的代码：
@@ -10330,7 +10331,7 @@ AssignmentOperator : one of
 AssignmentExpression : LeftHandSideExpression = AssignmentExpression
 如果LeftHandSideExpression是ObjectLiteral或者ArrayLiteral，应用下列早期错误：
 . 如果LeftHandSideExpression没有覆盖AssignmentPatter，那么有句法错误
-. AssignmentPattern和其派生的产出适用的早期错误规则也应用到被
+. AssignmentPattern和其派生的码型适用的早期错误规则也应用到被
   LeftHandSideExpression覆盖的AssignmentPattern上。
 
 如果LeftHandSideExpression不是ObjectLiteral也不是ArrayLiteral，应用下列早期错误：
@@ -10480,7 +10481,7 @@ opText（Unicode编码点序列）和rightOperand（ParseNode）。被调用时�
 *** 13.15.5 Destructuring Assignment
 **** Supplemental Syntax
 在某些条件下进行AssignmentExpression : LeftHandSideExpression = AssignmentExpression
-产出的实例是，LeftHandSideExpression的翻译可以使用下列方式改善：
+码型的实例是，LeftHandSideExpression的翻译可以使用下列方式改善：
 AssignmentPattern_[Yield, Await] :
     ObjectAssignmentPattern_[?Yield, ?Await]
     ArrayAssignmentPattern_[?Yield, ?Await]
@@ -10519,7 +10520,7 @@ AssignmentRestProperty : ... DestructuringAssignmentTarget
 DestructuringAssignmentTarget : LeftHandSideExpression
 如果LeftHandSideExpression是ObjectLiteral或者ArrayLiteral，应用下列早期错误规则：
 . 如果LeftHandSideExpression没有覆盖AssignmentPattern，那么有语法错误
-. 适用于AssignmentPattern以及其派生的产出的早期错误规则，也适用被
+. 适用于AssignmentPattern以及其派生的码型的早期错误规则，也适用被
   LeftHandSideExpression覆盖的AssignmentPattern
 
 如果LeftHandSideExpression不是ObjectLiteral或ArrayLiteral，应用下列早期错误规则：
@@ -10840,7 +10841,7 @@ StatementList : StatementList StatementListItem
 2. ReturnIfAbrupt(sl)
 3. 让s是评估StatementListItem的结果
 4. 返回Completion(UpdateEmpty(s, sl))
-**** 注意2 StatementList的值是StatementList中最后的产出值的项的值。例如，随后
+**** 注意2 StatementList的值是StatementList中最后的码型值的项的值。例如，随后
             的调用eval都产生值1：
             eval("1;;;;;")
             eval("1;{}")
@@ -11327,7 +11328,7 @@ ForInOfStatement :
     for await ( LeftHandSideExpression of AssignmentExpression ) Statement
 如果LeftHandSideExpression是ObjectLiteral或者ArrayLiteral，应用下列早期错误规则：
 . 如果LeftHandSideExpression没有覆盖一个AssignmentPattern，那么有句法错误
-. 所有适用AssignmentPattern和其派生产出的规则，也适用于被LeftHandSideExpression
+. 所有适用AssignmentPattern和其派生码型的规则，也适用于被LeftHandSideExpression
   覆盖AssignmentPattern
 如果LeftHandSideExpression不是ObjectLiteral和ArrayLiteral，应用下列早期错误规则：
 . leftHandSideExpression的AssignmentTargetType不是simple，那么有句法错误。
@@ -11699,7 +11700,7 @@ WithStatement_[Yield, Await, Return]
           最后这个词法环境恢复为原来样子。
 *** 14.11.1 Static Semantics: Early Errors
 WithStatement : with ( Expression )  Statement
-. 如果匹配此产出的代码在严格模式代码里，那么有句法错误
+. 如果匹配此码型的代码在严格模式代码里，那么有句法错误
 . 如果IsLabelledFunction(Statement)是true，那么有句法错误
 **** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
 *** 14.11.2 Runtime Semantics: Evaluation
@@ -11793,7 +11794,7 @@ CaseBlock : { CaseClauses_opt DefaultClause CaseClauses_opt }
 *** 14.12.3 CaseClauseIsSelected(C, iput)
 抽象操作CaseClauseIsSelected接受参数C（CaseClause的ParseNode）和input（
 ECMAScript语言值）。明确C是否匹配input。被调用时执行下列步骤：
-1. Assert：C是CaseClause : case Expression : Statement_opt产出的实例
+1. Assert：C是CaseClause : case Expression : Statement_opt码型的实例
 2. 让exprRef是评估C的Expression
 3. 让clauseSelector是?GetValue(epxrRef)
 4. 返回执行严格相等比较input \=\=\= clauseSelector的结果
@@ -11897,7 +11898,7 @@ Statement :
     TryStatement
     DebuggerStatement
 1. 返回评估Statment的结果
-**** 注意2 为LabelledEvaluation有特定语义Statement的产出只有BreakableStatement和
+**** 注意2 为LabelledEvaluation有特定语义Statement的码型只有BreakableStatement和
             LabelledStatement
 ** 14.14 The throw Statement
 *** Syntax
@@ -11933,7 +11934,7 @@ Catch : catch ( CatchParameter ) Block
   那么有句法错误。
 . 如果CatchParameter的BoundNames的任何元素出现在Block的VarDeclaredNames中，
   那么有句法错误。
-**** 注意 在B.3.5为本产出提供了备选语义。
+**** 注意 在B.3.5为本码型提供了备选语义。
 *** 14.15.2 Runtime Sematics: CatchClauseEvaluation
 带参数thrownValue
 Catch : catch ( CatchParameter ) Block
@@ -12156,10 +12157,11 @@ FormalParameters :
 
 FormalParameters : FormalParameterList , FunctionRestParameter
 1. 返回 FormalParameterList的ExpectedArgumentCount。
+<<<<<<< Updated upstream
 **** 注意 FormalParameterList的ExprectedArgumentCount就是左侧有剩余参数或者
-         带初始化的第一个FormalParameter的FormalParameters的数量。不带初始化的
-         FromalParameter允许在带初始化的第一个参数之后，但是这些参数被认为使用了
-         undefined作为默认值。
+           带初始化的第一个FormalParameter的FormalParameters的数量。不带初
+           始化的FromalParameter允许在带初始化的第一个参数之后，但是这些
+           参数被认为使用了undefined作为默认值。
 
 FormalParameterList : FormalParameter
 1. 如果FormalParameter的HasInitializer是true, 返回0.
@@ -12305,7 +12307,7 @@ ConciseBody_[In] :
 ExpressionBody_[In, Await] :
     AssignmentExpression_[?In, ~Yield, ?Await]
 *** Supplemental Syntax
-在处理产出
+在处理码型
 ArrowParameters_[Yield, Await] : ConverParenthesizedExpressionAndArrowParameterList_[?Yield, ?Await]的
 实例时，CoverParenthesizedExpressionAndArrowParameterList的翻译行为被优化为下列语法：
 ArrowFormalParameters_[Yield, Await] :
@@ -12320,7 +12322,7 @@ ArrowFunction : ArrowParameters => ConciseBody
 
 ArrowParameters : CoverParenthesizedExpressionAndArrowParameterList
 . 如果CoverParenthesizedExpressionAndArrowParameterList不是ArrowFormalParameters，那么有句法错误
-. 所有ArrowFormalParameters和其派生产出的早期错误规则也适用于
+. 所有ArrowFormalParameters和其派生码型的早期错误规则也适用于
   CoverParenthesizedExpressionAndArrowParameterList的CoveredFormalsList
 *** 15.3.2 Static Semantics: ConciseBodyContainsUseSctrict
 ConciseBody : ExpressionBody
@@ -12431,9 +12433,239 @@ MethodDefinition :
 1. 返回true
 *** 15.4.4 Runtime Semantics: DefineMethod
 带参数object和可选参数functionPrototype
+MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
+1. 让propKey是评估PropertyName的结果
+2. ReturnIfAbrupt(propKey)
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 如果functionPrototype存在，那么
+    a. 让prototype是functionPrototype
+5. 否则
+    a. 让prototype是%Function.prototype%
+6. 让sourceText是本MethodDeifinition匹配到的源文本
+7. 让closure是OrdinaryFunctionCreate(prototype, sourceText, UniqueFormalParameters,
+   FunctionBody, non-lexical-this, scope)的结果
+8. 执行MakeMethod(closure, object)
+9. 返回Record { \[\[Key\]\]:propKey, \[\[Closure\]\]: closure }
 *** 15.4.5 Runtime Semantics: MethodDefinitionEvaluation
+待参数object和enumerable
+
+MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
+1. 让methodDef是MethodDefinition带object参数的?DefinitionMethod结果
+2. 执行SetFunctionName(methodDef.\[\[Closure\]\], methodDef.\[\[Key\]\])
+3. 让desc是PropertyDescriptor { \[\[Value\]\]:methodDef.\[\[Closure\]\],
+   \[\[Writable]]:true, \[\[Enumerable]]:enumerable, \[\[Configurable]]:true }。
+4. 返回?DefinePropertyOrThrow(object, methodDef.\[\[Key]], desc)
+
+MethodDefinition : get PropertyName ( ) { FunctionBody }
+1. 让propKey是评估PropertyName的结果
+2. ReturnIfAbrupt(propKey)
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让sourceText是本MethodDeifinition匹配到的源文本
+5. 让formalParameterList是一个FormalParameters : [empty]码型的实例。
+6. 让closure是OrdinaryFunctionCreate(%Function.prototype%, sourceText,
+   formalParameterList, FunctionBody, non-lexical-this, scope)的结果
+7. 执行MakeMethod(closure, object)
+8. 执行SetFunctionName(closure, propKey, "get")
+9. 让desc是PropertyDescriptor { \[\[Get\]\]: closure, \[\[Enumerable]]:enumerable,
+   \[\[Configurable]]:true }。
+10. 返回?DefinePropertyOrThrow(object,  propKey, desc)
+
+MethodDefinition : set PropertyName ( PropertySetParameterList ) { FunctionBody }
+1. 让propKey是评估PropertyName的结果
+2. ReturnIfAbrupt(propKey)
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让sourceText是本MethodDeifinition匹配到的源文本
+5. 让closure是OrdinaryFunctionCreate(%Function.prototype%, sourceText,
+   PropertySetParameterList, FunctionBody, non-lexical-this, scope)的结果
+6. 执行MakeMethod(closure, object)
+7. 执行SetFunctionName(closure, propKey, "set")
+8. 让desc是PropertyDescriptor { \[\[Get\]\]: closure, \[\[Enumerable]]:enumerable,
+   \[\[Configurable]]:true }。
+9. 返回?DefinePropertyOrThrow(object,  propKey, desc)
+
+GeneratorMethod : * PropertyName ( UniqueFormalParameters ) { GeneratorBody }
+1. 让propKey是评估PropertyName的结果
+2. ReturnIfAbrupt(propKey)
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让sourceText是本GeneratorMethod匹配到的源文本
+5. 让closure是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
+   UniqueFormalParameters, GeneratorBody, non-lexical-this, scope)的结果
+6. 执行MakeMethod(closure, object)
+7. 执行SetFunctionName(closure, propKey)
+8. 让prototype是!OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%)
+9. 执行DefinePropertyOrThrow(closure, "prototype", PropertDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]: false,
+   \[\[Configurable]]: false, }
+10. 让desc是PropertyDescriptor { \[\[Value]]:closure, \[\[Writable]]:true,
+    \[\[Enumerable]]:enumerable, \[\[Configurable]]: true, }
+11. 返回?DefinePropertyOrThrow(object, propKey, desc)
+
+AsyncGeneratorMethod : async * PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody }
+1. 让propKey是评估PropertyName的结果
+2. ReturnIfAbrupt(propKey)
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让sourceText是本AsyncGeneratorMethod匹配到的源文本
+5. 让closure是OrdinaryFunctionCreate(%AsyncGeneratorFunction.prototype%, sourceText,
+   UniqueFormalParameters, AsyncGeneratorBody, non-lexical-this, scope)的结果
+6. 执行MakeMethod(closure, object)
+7. 执行SetFunctionName(closure, propKey)
+8. 让prototype是!OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%)
+9. 执行DefinePropertyOrThrow(closure, "prototype", PropertDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]: false,
+   \[\[Configurable]]: false, }
+10. 让desc是PropertyDescriptor { \[\[Value]]:closure, \[\[Writable]]:true,
+    \[\[Enumerable]]:enumerable, \[\[Configurable]]: true, }
+11. 返回?DefinePropertyOrThrow(object, propKey, desc)
+
+AsyncMethod : async PropertyName ( UniqueFormalParameters ) { AsyncFunctionBody }
+1. 让propKey是评估PropertyName的结果
+2. ReturnIfAbrupt(propKey)
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让sourceText是本AsyncMethod匹配到的源文本
+5. 让closure是OrdinaryFunctionCreate(%AsyncFunction.prototype%, sourceText,
+   UniqueFormalParameters, GeneratorBody, non-lexical-this, scope)的结果
+6. 执行MakeMethod(closure, object)
+7. 执行SetFunctionName(closure, propKey)
+8. 让desc是PropertyDescriptor { \[\[Value]]:closure, \[\[Writable]]:true,
+   \[\[Enumerable]]:enumerable, \[\[Configurable]]: true, }
+9. 返回?DefinePropertyOrThrow(object, propKey, desc)
 ** 15.5 Generator Function Definitions
 *** Syntax
+GeneratorMethod_[Yield, Await] :
+    * Property_[?Yield, ?Awati] ( UniqueFormalParameters_[+Yield, ~Await] ) { GeneratorBody }
+GeneratorDeclaration_[Yield, Await, Default] :
+    function * BindingIdentifier_[?Yield, ?Awati] ( FormalParameters_[+Yield, ~Await] ) { GeneratorBody }
+    [+Default]_function * ( FormalParameters_[+Yield, ~Await] ) { GeneratorBody }
+GeneratorExpression :
+    function * BindingIdentifier_[?Yield, ?Awati]_opt ( FormalParameters_[+Yield, ~Await] ) { GeneratorBody }
+GeneratorBody :
+    FunctionBody_[+Yield, ~Await]
+YieldExpression_[In, Await]
+    yield
+    yield [no LineTerminator here] AssignmentExpression_[?In, +Yield, ?Await]
+    yield [no LineTerminator here] * AssignmentExpression_[?In, +Yield, ?Await]
+**** 注意1 紧随yield后的句法背景需要使用InputElementRegExpOrTemplateTail词法目标。
+**** 注意2 YieldExpression不能用在GeneratorFunction的FormalParameters里，因为
+            FormalParamters里的任何表达式都是在生成器对象处于可恢复状态前
+            进行评估
+**** 注意3 跟生成器对象相关的抽象操作在27.5.3里定义
+*** 15.5.1 Static Semantics: Early Errors
+GeneratorMethod : * PropertyName ( UniqueFormalParamters ) { GeneratorBody }
+. 如果GeneratorMethod的HasDirectSuper是true，那么有句法错误。
+. 如果UniqueFormalParameters包含YieldExpression，那么有句法错误
+. 如果GeneratorBody的FunctionBodyContainsUseStrict是true，而且
+  UniqueFormalParameters的IsSimpleParameterList是false，那么有句法错误
+. 如果UniqueFormalParameters的BoundNames的任何元素也出现在GeneratorBody的
+  LexicallyDeclaredNames里，那么有句法错误。
+
+GeneratorDeclaration :
+    function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
+    function * ( FormalParameters ) { GeneratorBody }
+GeneratorExpression :
+    function * BindingIdentifier_opt ( FormalParameters ) { GeneratorBody }
+. 如果FormalParameters匹配的源代码是严格模式代码，则应用
+  UniqueFormalParameters : FormalParameters的早期错误规则。
+. 如果BindingIdentifer存在，而且BindingIdentifier匹配的源代码是严格模式代码，
+  则当BindingIdentifier的String值是eval或者arguments时，就是句法错误。
+. 如果GeneratorBody的FunctionBodyContainsUseStrict是true，而且FormalParameterList
+  的IsSimpleParameterList是false，那么有句法错误。
+. 如果FormalParameters的BoundName的任何元素也出现在GeneratorBody的
+  LexicallyDeclaredNames里，那么有句法错误
+. 如果FormalParameters包含YieldExpression，那么有句法错误。
+. 如果FormalParameters包含SuperProperty，那么有句法错误。
+. 如果GeneratorBody包含SuperProperty，那么有句法错误。
+. 如果FormalParameters包含SuperCall，那么有句法错误。
+. 如果GeneratorBody包含SuperCall，那么有句法错误。
+*** 15.5.2 Runtime Semantics: EvaluateGeneratorBody
+带参数functionObject和argumentList（List值）
+GeneratorBody : FucntionBody
+1. 执行?FunctionDeclarationInstantiation(functionObject, argumentList)
+2. 让G是?OrdinaryCreateFromConstructor(functionObject,
+   "%GeneratorFunction.prototype.prototype%", <<\[\[GeneratorState]],
+   \[\[GeneratorContext]], \[\[GeneratorBand]]>>)
+3. 置G.\[\[GeneratorBrand]]是空
+4. 执行GeneratorStart(G, FunctionBody)
+5. 返回 Completion { \[\[Type]]:return, \[\[Value]]:G, \[\[Target]]:empty }
+*** 15.5.3 Runtime Semantics: InstantiateGeneratorFunctionObject
+带参数scope
+GeneratorDeclaration : function * BindingIdentifier ( FormalParamters ) { GeneratorBody }
+1. 让name是BindingIdentifer的String值
+2. 让sourceText是GeneratorDeclaration匹配的源文本
+3. 让F是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
+   FormalParameters, GeneratorBody, no-lexical-this, scope)
+4. 执行SetFunctionName(F, name)
+5. 让prototype是!OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%)
+6. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]:false,
+   \[\[Configurable]]:true, }
+7. 返回F
+
+GeneratorDeclaration : function * ( FormalParameters ) { GeneratorBody }
+1. 让sourceText是GeneratorDeclaration匹配的源文本
+2. 让F是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
+   FormalParameters, GeneratorBody, no-lexical-this, scope)
+3. 执行SetFunctionName(F, "default")
+4. 让prototype是!OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%)
+5. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]:false,
+   \[\[Configurable]]:true, }
+6. 返回F
+**** 注意 匿名的GeneratorDeclaration仅会在export default声明里出现，必然是
+          严格模式代码。
+*** 15.5.4 Runtime Semantics: InstantiateGeneratorFunctionExpression
+带可选参数name
+GeneratorExpression : funciton * ( FormalParameters ) { GeneratorBody }
+1. 如果那么不存在，置name是""
+2. 让scope是运行时执行背景的LexicalEnvironment
+3. 让sourceText是本GeneratorExpression匹配到的源文本
+4. 让closure是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
+   FormalParameters, GeneratorBody, non-lexical-this, scope)的结果
+5. 执行SetFunctionName(closure, name)
+6. 让prototype是!OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%)
+7. 执行DefinePropertyOrThrow(closure, "prototype", PropertDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]: false,
+   \[\[Configurable]]: false, }
+8. 返回closure
+
+GeneratorExpression : function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
+1. Assert：name不存在
+2. 让name是BindingIdentifer的String值
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让funcEnv是NewDeclarativeEnvironment(scope)
+5. 执行FuncEnv.CreateImmutableBinding(name, false)
+6. 让sourceText是本GeneratorExpression匹配到的源文本
+7. 让closure是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
+   FormalParameters, GeneratorBody, non-lexical-this, funcEnv)的结果
+8. 执行SetFunctionName(closure, name)
+9. 让prototype是!OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%)
+10. 执行DefinePropertyOrThrow(closure, "prototype", PropertDescriptor {
+    \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]: false,
+    \[\[Configurable]]: false, }
+11. 执行funcEnv.InitializeBinding(name, closure)
+12. 返回closure
+**** 注意 在GeneratorExpression里的BindingIdentifier能被GeneratorExpression的
+           FunctionBody引用到来允许生成器代码可以自我递归。然而不同于
+           GeneratorDeclaration，GeneratorExpression的BindingIdentifier不能干涉
+           封闭GeneratorExpression的圈。
+*** 15.5.5 Runtime Semantics: Evaluation
+GeneratorExpression : funciton * BindingIdentifier_opt ( FormalParameters ) { GeneratorBody }
+1. 返回GeneratorExpression的InstantiateGeneratorFunctionExpression
+
+YieldExpression : yield
+1. 返回 ?Yield(undefined)
+
+YieldExpression : yield AssignmentExpression
+1. 让exprRef是评估AssigmentExpression的结果
+2. 让value是?GetValue(exprRef)
+3. 返回?Yied(value)
+
+YieldExpression : yield * AssignmentExpression
+1. 让generatorKind是!GetGeneratorKind()
+2. 让exprRef是评估AssignmentExpression的结果
+3. 让value是?GetValue(exprRef)
+4. 让iteratorRecord是?GetIterator(value, generatorKind)
+5. 让iterator是iteratorRecord.\[\[Iterator]]
+
 ** 15.6 Async Generator Function Definitions 
 ** 15.7 Class Definitions
 ** 15.8 Async Function Definitions
