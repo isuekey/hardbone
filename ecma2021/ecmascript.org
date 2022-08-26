@@ -12665,8 +12665,80 @@ YieldExpression : yield * AssignmentExpression
 3. 让value是?GetValue(exprRef)
 4. 让iteratorRecord是?GetIterator(value, generatorKind)
 5. 让iterator是iteratorRecord.\[\[Iterator]]
-
+6. 让received是NormalCompletion(undefined)
+7. 重复
+    a. 如果received.\[\[Type]]是normal，那么
+        i. 让innerResult是?Call(iteratorRecord.\[\[NextMethod]],
+           iteratorRecord.\[\[Iterator]], << received.\[\[Value]] >>)
+       ii. 如果generatorKind是async，置innerResult是?Await(innerResult)
+      iii. 如果Type(innerResult)不是Object，投掷TypeError异常
+       iv. 让done是?IteratorComplete(innerResult)
+        v. 如果done是true，那么
+            1. 返回?IteratorValue(innerResult)
+       vi. 如果generatorKind是async，置received是
+           AsyncGeneratorYield(?IteratorValue(innerResult))
+      vii. 否则，置received是GeneratorYield(innerResult)
+    b. 否则如果received.\[\[Type]]是trhow，那么
+        i. 让throw是?GetMethod(iterator, "throw")
+       ii. 如果throw不是undefined，那么
+            1. 让innerResult是?Call(throw, iterator, << received.\[\[Value]] >>)
+            2. 如果generatorKind是async，置innerResult是?Await(innerResult)
+            3. 注意：从内层遍历器的throw方法来的异常是被传播的。从内层
+               throw方法来的Normal完结当作内层的next一样处理
+            4. 如果Type(innerResult)不是Object，投掷TypeError异常
+            5. 让done是?IteratorComplete(innerResult)
+            6. 如果done是true，那么
+                a. 返回?IteratorValue(innerResult)
+            7. 如果generatorKind是async，置received是
+               AsyncGeneratorYield(?IteratorValue(innerResult))
+            8. 否则，置received是GeneratorYield(innerResult)
+      iii. 否则
+            1. 注意：如果iterator没有throw方法，那么throw会结束yield*循环。但是
+               首先我们需要给iterator清理的机会。
+            2. 让closeCompletion是Completion { \[\[Type]]:normal, \[\[Value]]:empty,
+               \[\[Target]]:empty }
+            3. 如果generatorKind是async，执行?AsyncIteratorClose(iteratorRecord,
+               closeCompletion)
+            4. 否则，执行?IteratorClose(iteratorRecord, closeCompletion)
+            5. 注意：下一步会投掷一个TypeError来表明有一个违反yield*协议的
+               地方：iterator没有throw方法
+            6. 投掷TypeError异常
+    c. 否则
+        i. Assert：received.\[\[Type]]是return
+       ii. 让return是?GetMethod(iterator, "return")
+      iii. 如果return是undefined，那么
+            1. 如果generatorKind是async，置received.\[\[Value]]是
+               ?Await(received.\[\[Value]])
+            2. 返回Completion(received)
+       iv. 让innerReturnResult是?Call(return, iterator, << received.\[\[Value]] >>)
+        v. 如果generatorKind是aysnc，置innerReturnResult是?Await(innerReturnResult)
+       vi. 如果Type(innerReturnResult)不是Object， 投掷TypeError异常
+      vii. 如果done是true，那么
+            1. 让value是?IteratorValue(innerReturnResult)
+            2. 返回Completion { \[\[Type]]:return, \[\[Value]]:value,
+               \[\[Target]]:empty }
+       ix. 如果generatorKind是async，置received是
+           AsyncGeneratorYield(?IteratorValue(innerReturnResult))
+        x. 否则，置received是GeneratorYield(innerReturnResult)
 ** 15.6 Async Generator Function Definitions 
+*** Syntax
+AsyncGeneratorMethod_[Yield, Await] :
+    async [no LineTerminator here] * PropertyName_[?Yield, ?Await] (
+        UniqueFormalParameters_[+Yield, +Await] ) { AsyncGeneratorBody }
+AsyncGeneratorDeclaration_[Yield, Await, Default] :
+    async [no LineTerminator here] function * BindingIdentifier_[?Yield, ?Await] (
+        FormalParameters_[+Yield, +Await] ) { AsyncGeneratorBody }
+    [+Default]_async [no LineTerminator here] function * (
+        FormalParameters_[+Yield, +Await] ) { AsyncGeneratorBody }
+AsyncGeneratorExpression_[Yield, Await, Default] :
+    async [no LineTerminator here] function * BindingIdentifier_[?Yield, ?Await]_opt (
+        FormalParameters_[+Yield, +Await] ) { AsyncGeneratorBody }
+AsyncGeneratorBody:
+    FunctionBody_[+Yield, +Await]
+**** 注意1 YieldExpression和AwaitExpresson不能出现在异步生成器函数的
+            FormalParameters里，因为FormalParamters里的任何表达式都是在
+            异步生成器对象处于可恢复状态前进行评估。
+**** 注意2 跟异步生成器对象相关的抽象操作在27.6.3里定义
 ** 15.7 Class Definitions
 ** 15.8 Async Function Definitions
 ** 15.9 Async Arrow Function Definitions 
