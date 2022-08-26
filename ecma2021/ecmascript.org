@@ -12632,7 +12632,7 @@ GeneratorExpression : function * BindingIdentifier ( FormalParameters ) { Genera
 2. 让name是BindingIdentifer的String值
 3. 让scope是运行时执行背景的LexicalEnvironment
 4. 让funcEnv是NewDeclarativeEnvironment(scope)
-5. 执行FuncEnv.CreateImmutableBinding(name, false)
+5. 执行funcEnv.CreateImmutableBinding(name, false)
 6. 让sourceText是本GeneratorExpression匹配到的源文本
 7. 让closure是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
    FormalParameters, GeneratorBody, non-lexical-this, funcEnv)的结果
@@ -12739,7 +12739,131 @@ AsyncGeneratorBody:
             FormalParameters里，因为FormalParamters里的任何表达式都是在
             异步生成器对象处于可恢复状态前进行评估。
 **** 注意2 跟异步生成器对象相关的抽象操作在27.6.3里定义
+*** 15.6.1 Static Semantics: Early Errors
+AsyncGeneratorMethod : async * PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody }
+. 如果AsyncGeneratorMethod的HasDirectSuper是true，那么有句法错误
+. 如果UniqueFormalParameters含有YieldExpression，那么有句法错误
+. 如果UniqueFormalParameters含有AwaitExpression，那么有句法错误
+. 如果AsyncGeneratorBody的FunctionBodyContainsUseStrict是true，而且
+  UniqueFormalParameters的IsSimpleParameterList是false，那么有句法错误。
+. 如果UniqueFormalParameters的BoundNames的任何元素也出现在AsyncGeneratorBody的
+  LexicallyDeclaredNames里，那么有句法错误。
+
+AsyncGeneratorDeclaration :
+    async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+    async function * ( FormalParameters ) { AsyncGeneratorBody }
+AsyncGeneratorExpression :
+    async function * BindingIdentifier_opt ( FormalParameters ) { AsyncGeneratorBody }
+. 如果FormalParameters匹配的源代码是严格模式代码，则应用
+  UniqueFormalParameters : FormalParameters的早期错误规则。
+. 如果BindingIdentifer存在，而且BindingIdentifier匹配的源代码是严格模式代码，
+  则当BindingIdentifier的String值是eval或者arguments时，就是句法错误。
+. 如果AsyncGeneratorBody的FunctionBodyContainsUseStrict是true，而且
+  FormalParameterList的IsSimpleParameterList是false，那么有句法错误。
+. 如果FormalParameters的BoundName的任何元素也出现在AsyncGeneratorBody的
+  LexicallyDeclaredNames里，那么有句法错误
+. 如果FormalParameters包含YieldExpression，那么有句法错误。
+. 如果FormalParameters包含AwaitExpression，那么有句法错误。
+. 如果FormalParameters包含SuperProperty，那么有句法错误。
+. 如果AsyncGeneratorBody包含SuperProperty，那么有句法错误。
+. 如果FormalParameters包含SuperCall，那么有句法错误。
+. 如果AsyncGeneratorBody包含SuperCall，那么有句法错误。
+*** 15.6.2 Runtime Semantics: EvaluateAsyncGeneratorBody
+带参数functionObject和argumentList（List值）
+AsyncGeneratorBody : FucntionBody
+1. 执行?FunctionDeclarationInstantiation(functionObject, argumentList)
+2. 让generator是?OrdinaryCreateFromConstructor(functionObject,
+   "%AsyncGeneratorFunction.prototype.prototype%", <<\[\[AsyncGeneratorState]],
+   \[\[AsyncGeneratorContext]], \[\[GeneratorBand]]>>)
+3. 置generator.\[\[GeneratorBrand]]是空
+4. 执行!AsyncGeneratorStart(generator, FunctionBody)
+5. 返回 Completion { \[\[Type]]:return, \[\[Value]]:generator, \[\[Target]]:empty }
+*** 15.6.3 Runtime Semantics: InstantiateAsyncGeneratorFunctionObject
+带参数scope
+AsyncGeneratorDeclaration : async function * BindingIdentifier ( FormalParamters ) { AsyncGeneratorBody }
+1. 让name是BindingIdentifer的String值
+2. 让sourceText是AsyncGeneratorDeclaration匹配的源文本
+3. 让F是!OrdinaryFunctionCreate(%AsyncGeneratorFunction.prototype%, sourceText,
+   FormalParameters, AsyncGeneratorBody, no-lexical-this, scope)
+4. 执行!SetFunctionName(F, name)
+5. 让prototype是!OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%)
+6. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]:false,
+   \[\[Configurable]]:true, }
+7. 返回F
+
+AsyncGeneratorDeclaration : async function * ( FormalParameters ) { AsyncGeneratorBody }
+1. 让sourceText是AsyncGeneratorDeclaration匹配的源文本
+2. 让F是OrdinaryFunctionCreate(%AsyncGeneratorFunction.prototype%, sourceText,
+   FormalParameters, AsyncGeneratorBody, no-lexical-this, scope)
+3. 执行SetFunctionName(F, "default")
+4. 让prototype是!OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%)
+5. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]:false,
+   \[\[Configurable]]:true, }
+6. 返回F
+**** 注意 匿名的AsyncGeneratorDeclaration仅会在export default声明里出现，必然是
+          严格模式代码。
+*** 15.6.4 Runtime Semantics: InstantiateGeneratorFunctionExpression
+带可选参数name
+AsyncGeneratorExpression : async funciton * ( FormalParameters ) { AsyncGeneratorBody }
+1. 如果那么不存在，置name是""
+2. 让scope是运行时执行背景的LexicalEnvironment
+3. 让sourceText是本AsyncGeneratorExpression匹配到的源文本
+4. 让closure是!OrdinaryFunctionCreate(%AsyncGeneratorFunction.prototype%, sourceText,
+   FormalParameters, AsyncGeneratorBody, non-lexical-this, scope)的结果
+5. 执行SetFunctionName(closure, name)
+6. 让prototype是!OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%)
+7. 执行!DefinePropertyOrThrow(closure, "prototype", PropertDescriptor {
+   \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]: false,
+   \[\[Configurable]]: false, }
+8. 返回closure
+
+AsyncGeneratorExpression : async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
+1. Assert：name不存在
+2. 让name是BindingIdentifer的String值
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让funcEnv是NewDeclarativeEnvironment(scope)
+5. 执行!funEnv.CreateImmutableBinding(name, false)
+6. 让sourceText是本AsyncGeneratorExpression匹配到的源文本
+7. 让closure是!OrdinaryFunctionCreate(%AsyncGeneratorFunction.prototype%, sourceText,
+   FormalParameters, AsyncGeneratorBody, non-lexical-this, funcEnv)的结果
+8. 执行!SetFunctionName(closure, name)
+9. 让prototype是!OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%)
+10. 执行!DefinePropertyOrThrow(closure, "prototype", PropertDescriptor {
+    \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]: false,
+    \[\[Configurable]]: false, }
+11. 执行!funcEnv.InitializeBinding(name, closure)
+12. 返回closure
+**** 注意 在AsyncGeneratorExpression里的BindingIdentifier能被
+           AsyncGeneratorExpression的FunctionBody引用到来允许生成器代码可以
+           自我递归。然而不同于AsyncGeneratorDeclaration，AsyncGeneratorExpression
+           的BindingIdentifier不能干涉封闭AsyncGeneratorExpression的圈。
+*** 15.6.5 Runtime Semantics: Evaluation
+AsyncGeneratorExpression : async funciton * BindingIdentifier_opt ( FormalParameters ) { AsyncGeneratorBody }
+1. 返回AsyncGeneratorExpression的InstantiateAsyncGeneratorFunctionExpression
 ** 15.7 Class Definitions
+*** Syntax
+ClassDeclaration_[Yield, Await, Default]:
+    class BindingIdentifier_[?Yield, ?Awati] ClassTail_[?Yield, ?Await]
+    [+Default] class ClassTail_[?Yield, ?Await]
+Class Expression_[Yield, Await] :
+    class BindingIdentifier_[?Yield, ?Await]_opt ClassTail_[?Yield, ?Await]
+ClassTail_[Yield, Await] :
+    ClassHeritage_[?Yield, ?Await]_opt { ClassBody_[?Yield, ?Await]_opt }
+ClassHeritage_[Yield, Await] :
+    extends LeftHandSideExpression_[?Yield, ?Await]
+ClassBody_[Yield, Await] :
+    ClassElementList_[?Yield, ?Await]
+ClassElementList_[Yield, Await] :
+    ClassElement_[?Yield, ?Await]
+    ClassElementList_[?Yield, ?Await] ClassElement_[?Yield, ?Await]
+ClassElement_[Yield, Await] :
+    MethodDefinition_[?Yield, ?Await]
+    static MethodDefinition_[?Yield, ?Await]
+    ;
+**** 注意 class定义永远是严格模式代码
+*** 15.7.1 Static Semantics: Early Errors
 ** 15.8 Async Function Definitions
 ** 15.9 Async Arrow Function Definitions 
 ** 15.10 Tail Position Calls
