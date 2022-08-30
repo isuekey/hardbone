@@ -81,7 +81,7 @@ ECMAScript的用途远超过简单的脚本，被用于广泛的不同系统和�
 ** 4.1 Web Scripting 网页脚本
 *** 4.4.41 遗传性质 inherited property
 ** 4.5 本规范的组织方式
-本规范剩余的部分如下组织：
+本规范的剩余部分如下组织：
 
 条款5定义本规范的记号约定。
 
@@ -95,8 +95,8 @@ ECMAScript的用途远超过简单的脚本，被用于广泛的不同系统和�
 条款29描述了访问SharedArrayBuffer背景的内存和Atomicsd对象方法的内存一致性
 模型
 * 第五章 记号约定
-** 5.1句法与词法（语句的与词汇的语法）
-*** 5.1.1上下文无关语法（context-free grammar 可能就是通用的语法描述约定）
+** 5.1 句法与词法
+*** 5.1.1背景无关语法（context-free grammar 可能就是通用的语法描述约定）
 "context-free grammar"由若干"productions"组成。每个码型是一个树，有两个支干
 left-hand side 和 right-hand side，在"left-hand side"是一个抽象标记记为
 "nonterminal", 在"right-hand side" 是一个队列，由可数个标记（"nonterminal"或
@@ -12592,7 +12592,7 @@ GeneratorDeclaration : function * BindingIdentifier ( FormalParamters ) { Genera
 1. 让name是BindingIdentifer的String值
 2. 让sourceText是GeneratorDeclaration匹配的源文本
 3. 让F是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
-   FormalParameters, GeneratorBody, no-lexical-this, scope)
+   FormalParameters, GeneratorBody, non-lexical-this, scope)
 4. 执行SetFunctionName(F, name)
 5. 让prototype是!OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%)
 6. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
@@ -12603,7 +12603,7 @@ GeneratorDeclaration : function * BindingIdentifier ( FormalParamters ) { Genera
 GeneratorDeclaration : function * ( FormalParameters ) { GeneratorBody }
 1. 让sourceText是GeneratorDeclaration匹配的源文本
 2. 让F是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
-   FormalParameters, GeneratorBody, no-lexical-this, scope)
+   FormalParameters, GeneratorBody, non-lexical-this, scope)
 3. 执行SetFunctionName(F, "default")
 4. 让prototype是!OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%)
 5. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
@@ -12615,7 +12615,7 @@ GeneratorDeclaration : function * ( FormalParameters ) { GeneratorBody }
 *** 15.5.4 Runtime Semantics: InstantiateGeneratorFunctionExpression
 带可选参数name
 GeneratorExpression : funciton * ( FormalParameters ) { GeneratorBody }
-1. 如果那么不存在，置name是""
+1. 如果name不存在，置name是""
 2. 让scope是运行时执行背景的LexicalEnvironment
 3. 让sourceText是本GeneratorExpression匹配到的源文本
 4. 让closure是OrdinaryFunctionCreate(%GeneratorFunction.prototype%, sourceText,
@@ -12784,7 +12784,7 @@ AsyncGeneratorDeclaration : async function * BindingIdentifier ( FormalParamters
 1. 让name是BindingIdentifer的String值
 2. 让sourceText是AsyncGeneratorDeclaration匹配的源文本
 3. 让F是!OrdinaryFunctionCreate(%AsyncGeneratorFunction.prototype%, sourceText,
-   FormalParameters, AsyncGeneratorBody, no-lexical-this, scope)
+   FormalParameters, AsyncGeneratorBody, non-lexical-this, scope)
 4. 执行!SetFunctionName(F, name)
 5. 让prototype是!OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%)
 6. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
@@ -12795,7 +12795,7 @@ AsyncGeneratorDeclaration : async function * BindingIdentifier ( FormalParamters
 AsyncGeneratorDeclaration : async function * ( FormalParameters ) { AsyncGeneratorBody }
 1. 让sourceText是AsyncGeneratorDeclaration匹配的源文本
 2. 让F是OrdinaryFunctionCreate(%AsyncGeneratorFunction.prototype%, sourceText,
-   FormalParameters, AsyncGeneratorBody, no-lexical-this, scope)
+   FormalParameters, AsyncGeneratorBody, non-lexical-this, scope)
 3. 执行SetFunctionName(F, "default")
 4. 让prototype是!OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%)
 5. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
@@ -12807,7 +12807,7 @@ AsyncGeneratorDeclaration : async function * ( FormalParameters ) { AsyncGenerat
 *** 15.6.4 Runtime Semantics: InstantiateGeneratorFunctionExpression
 带可选参数name
 AsyncGeneratorExpression : async funciton * ( FormalParameters ) { AsyncGeneratorBody }
-1. 如果那么不存在，置name是""
+1. 如果name不存在，置name是""
 2. 让scope是运行时执行背景的LexicalEnvironment
 3. 让sourceText是本AsyncGeneratorExpression匹配到的源文本
 4. 让closure是!OrdinaryFunctionCreate(%AsyncGeneratorFunction.prototype%, sourceText,
@@ -12836,7 +12836,7 @@ AsyncGeneratorExpression : async function * BindingIdentifier ( FormalParameters
 11. 执行!funcEnv.InitializeBinding(name, closure)
 12. 返回closure
 **** 注意 在AsyncGeneratorExpression里的BindingIdentifier能被
-           AsyncGeneratorExpression的FunctionBody引用到来允许生成器代码可以
+           AsyncGeneratorExpression的AsyncFunctionBody引用到来允许生成器代码可以
            自我递归。然而不同于AsyncGeneratorDeclaration，AsyncGeneratorExpression
            的BindingIdentifier不能干涉封闭AsyncGeneratorExpression的圈。
 *** 15.6.5 Runtime Semantics: Evaluation
@@ -12864,10 +12864,710 @@ ClassElement_[Yield, Await] :
     ;
 **** 注意 class定义永远是严格模式代码
 *** 15.7.1 Static Semantics: Early Errors
+ClassTail : ClassHeritage_opt { ClassBody }
+. 如果ClassHeritage不存在，但是下列算法评估是true，那么有句法错误
+    1. 让constructor是ClassBody的ConstructorMethod
+    2. 如果constructor是空，返回false
+    3. 返回constructor的HasDirectSuper
+
+ClassBody : ClassElementList
+. 如果ClassElementList的PrototypePropertyNameList含有超过一个constructor，那么
+  有句法错误。
+
+ClassElement : MethodDefinition
+. 如果MethodDefinition的PropName不是constructor，而且MethodDeifnition的
+  HasDirectSuper是true，那么有句法错误。
+. 如果MethodDefinition的PropName是constructor，而且MethodDeifnition的
+  SpecialMethod是true，那么有句法错误。
+
+ClassElement : static MethodDefinition
+. 如果MethodDefinition的HasDirectSuper是true，那么有句法错误。
+. 如果MethodDefinition的PropName是prototype，那么有句法错误。
+*** 15.7.2 Static Semantics : ClassElementKind
+ClassElemnt : MethodDefinition
+1. 如果MethodDefinition的PropName是constructor，返回ConstructorMethod
+2. 返回NoConstructorMethod
+
+ClassElement : static MethodDeifnition
+1. 返回NonConstructorMethod
+
+ClassElement : ;
+1. 返回空
+*** 15.7.3 Static Semantics : ConstructorMethod
+ClassElementList : ClassElement
+1. 如果ClassElement的ClassElementKind是ConstructorMethod，返回ClassElement
+2. 返回空
+
+ClassElementList : ClassElementList ClassElement
+1. 让head是ClassElementList的ConstructorMethod。
+2. 如果head不是空，返回head
+3. 如果ClassElement的ClassElementKind是ConstructorMethod，返回ClassElement
+4. 返回empty
+**** 注意 EarlyError规则保证了只有一个方法定义叫constructor，而且它不是一个
+           访问性质或者生成器定义。
+*** 15.7.4 Static Semantics : IsStatic
+ClassElement : MethodDefinition
+1. 返回false
+
+ClassElement : static MethodDefinition
+1. 返回true
+
+ClassElement : ;
+1. 返回false
+*** 15.7.5 Static Semantics : NonConstructorMethodDefinitions
+ClassElementList : ClassElement
+1. 如果ClassElement的ClassElementKind是NonConstructorMethod，那么
+    a. 返回<< ClassElement >>
+2. 返回<< >>
+
+ClassElementList : ClassElementList ClassElement
+1. 让list是ClassElementList的NonConstructorMethodDefiniations
+2. 如果ClassElement的ClassElementKind是NonConstructorMethod，那么
+    a. 追加ClassElement到list的末端
+3. 返回list
+*** 15.7.6 Static Semantics : PrototypePropertyNameList
+ClassElementList : ClassElement
+1. 如果ClassElement的PropName是空，返回<< >>
+2. 如果ClassElement的IsStatic是true，返回 << >>
+3. 返回 << ClassElement的PropName >>
+
+ClassElementList : ClassElementList ClassElement
+1. 让list是ClassElementList的PrototypePropertyNameList
+2. 如果ClassElement的PropName是空，返回list
+3. 如果ClassElement的IsStatic是true，返回list
+4. 追加ClassElement的PropName到list的末端
+5. 返回list
+*** 15.7.7 Runtime Semantics : ClassDefinitionEvaluation
+带参数classBinding和className
+ClassTail : ClassHeritage_opt { ClassBody_opt }
+1. 让env是运行时执行背景的LexicalEnvironment
+2. 让classScope是NewDeclarativeEnvironment(env)
+3. 如果classBinding不是undefined，那么
+    a. 执行classScope.CreateImmutableBinding(classBinding, true)
+4. 如果ClassHeritage_opt不存在，那么
+    a. 让protoParent是%Object.prototype%
+    b. 让constructorParent是%Function.prototype%
+5. 否则
+    a. 置运行时背景的LexicalEnvironment是classScope
+    b. 让superclassRef是评估ClassHeritage的结果
+    c. 置运行时背景的LexicalEnvironment是env
+    d. 让superclass是?GetValue(superClassRef)
+    e. 如果superclass是null，那么
+        i. 让protoParent是null
+       ii. 让constructorParenet是%Function.prototype%
+    f. 否则，如果IsConstructor(superclass)是false，投掷TypeError异常。
+    g. 否则
+        i. 让protoParent是?Get(superclass, "prototype")
+       ii. 如果Type(protoParent)不是Object或Null，投掷TypeError异常
+      iii. 让constructorParent是superclass
+6. 让proto是!OrdinaryObjectCreate(protoParent)
+7. 如果ClassBody_opt不存在，让constructor是空
+8. 否则，让constructor是ClassBody的ConstructorMethod
+9.  置运行时背景的LexicalEnvironment是classScope
+10. 如果constructor是空，那么
+    a. 让steps是DefaultConstructorFunctions的算法步骤
+    b. 让F是!CreateBuiltinFucntion(steps, 0, className, << \[\[ConstructorKind]],
+       \[\[SourceText]] >> , empty, constructorParent)
+11. 否则
+    a. 让constructorInfo是constructor带proto和constructorParent参数的!DefineMethod
+    b. 让F是constructorInfo.\[\[Closure]]
+    c. 执行!MakeClassConstructor(F)
+    d. 执行!SetFucntionName(F, className)
+12. 执行!MakeConstructor(F, false, proto)
+13. 如果ClassHeritage_opt存在，置F.\[\[ConstructorKind]]是derived
+14. 执行!CrateMethodProperty(proto, "constructor", F)
+15. 如果ClassBody_opt不存在，让methods是<< >>
+16. 否则，让methods是ClassBody的NonConstructorMethodDefinitions
+17. 遍历methods的每个ClassElement记作m，做
+    a. 如果m的IsStatic是false，那么
+        i. 让status是m的带proto和false参数PropertyDefinitionEvaluation
+    b. 否则
+        i. 让status是m的带F和false参数PropertyDefinitionEvaluation
+    c.  如果status是意外完结，那么
+        i. 置运行时背景的LexicalEnvironment是env
+       ii. 返回Completion(status)
+18. 置运行时背景的LexicalEnvironment是env
+19. 如果classBinding不是undefined，那么
+    a. 执行classScope.InitializeBinding(classBinding, F)
+20. 返回F
+**** 15.7.7.1 Default Constructor Functions
+当DefaultConstructorFunction被调用时，前参数记作args数组，执行下列步骤：
+1. 如果NewTarget是undefined，那么投掷TypeError异常
+2. 让F是激活的函数对象
+3. 如果F.\[\[ConstructorKind]]是derived，那么
+    a. 注意：本分支的行为类似于constructor(...args) { super(...args); }
+       最显著的区别是前述的ECMAScript源文本明显调用%Array.prototype%上的
+       @@iterator方法，而DefaultConstructorFunction不会
+    b. 让func是!F.\[\[GetPrototypeOf]]()
+    c. 如果哦IsConstructor(func)是false，投掷TypeError异常
+    d. 返回?Construct(func, args, NewTarget)
+4. 否则
+    a. 注意：本分支行为类似于 constructor() { }
+    b. 返回?OrdinaryCreateFromConstructor(newTarget, %Object.prototype%)
+defaultConstructorFunction的length性质是+0_F    
+*** 15.7.8 Runtime Semantics : BindingClassDeclarationEvaluation
+ClassDeclaration : class bindingIdentifier ClassTail
+1. 让className是BindingIdentifier的StringValue
+2. 让value是ClassTail带className和className参数的?ClassDefinitionEvaluation
+3. 置value.\[\[SourceText]]是ClassDeclaration匹配的源文本
+4. 让env是运行时背景的LexicalEnvironment
+5. 执行?InitializeBoundName(className, value, env)
+6. 返回value
+
+ClassDeclaration : class ClassTail
+1. 让value是ClassTail带undefined和"default"参数的?ClassDefinitionEvaluation
+2. 置value.\[\[SourceText]]是ClassDeclaration匹配的源文本
+3. 返回value
+**** 注意 ClassDeclaration : class ClassTail只会出现在ExportDeclaration中，它的
+           绑定也是在评估其码型时处理的。见于16.2.3.7
+*** 15.7.9 Runtime Semantics : Evaluation
+ClassDeclaration : class BindingIdentifier ClassTail
+1. 执行ClassDeclaration的?BindingClassDeclarationEvaluation
+2. 返回NormalCompletion(empty)
+**** 注意 ClassDeclaration : class ClassTail只会出现在ExportDeclaration中，不会
+           被直接评估
+ClassExpression : class ClassTail
+1. 让value是ClassTails的带undefined和""参数的?ClassDefinitionEvaluation
+2. 置value.\[\[SourceText]]是ClassExpression匹配的源文本
+3. 返回value
+
+ClassExpression : class BindingIdentifier ClassTail
+1. 让className是BindingIdentifier的StringValue
+2. 让value是ClassTails的带className和className参数的?ClassDefinitionEvaluation
+3. 置value.\[\[SourceText]]是ClassExpression匹配的源文本
+4. 返回value
 ** 15.8 Async Function Definitions
+*** Syntax
+AsynctFunctionDeclaration_[Yield, Await, Default] :
+    async [no LineTerminator here] function * BindingIdentifier_[?Yield, ?Await] (
+        FormalParameters_[~Yield, +Await] ) { AsyncFunctionBody }
+    [+Default]_async [no LineTerminator here] function * (
+        FormalParameters_[~Yield, +Await] ) { AsyncFunctionBody }
+AsyncFunctionExpression :
+    async [no LineTerminator here] function * BindingIdentifier_[~Yield, ?Await]_opt (
+        FormalParameters_[~Yield, +Await] ) { AsyncFunctionBody }
+AsyncMethod_[Yield, Await] :
+    async [no LineTerminator here] * PropertyName_[?Yield, ?Await] (
+        UniqueFormalParameters_[~Yield, +Await] ) { AsyncFunctionBody }
+AsyncFunctionBody :
+    FucntionBody_[~Yield, +Awati]
+AwaitExpression_[Yield] :
+    await UnaryExpression_[?Yield, +Await]
+**** 注意1 [Await]参数存在时，await被解析成AwaitExpression。[Await]参数出现在
+            下列背景中：
+              . AsyncFucntionBody
+              . 在SyncFunctionDeclaration、AsyncFunctionExpression、
+                AsyncGeneratorDeclaration或者AsyncGeneratorExpression的
+                FormalParameters里。不过，在这个位置的AwaitExpression通过
+                静态语义定为句法错误。
+            当Module是句法的目标符，而且缺失[Await]参数，await被解析做一个
+            关键词，从而是句法错误。在Script是句法的目标符，而且缺失[Await]
+            参数时，await可以被解析成一个标识。这包含下列背景：
+              . 在AsyncFunctionBody外，或者在AsyncFunctonDeclaration、
+                AsyncFunctionExpression、AsyncGeneratorDeclaration或
+                AsyncGeneratorExpression的FormalParameters外
+              . 在FunctionExpression、GeneratorExpression或者AsyncGeneratorExpression
+                的BindingIdentifier里。
+**** 注意2 不同于YieldExpression，缺失AwaitExpression的操作项会是句法错误。
+            必须await某个东西。
+*** 15.8.1 Static Semantics: Early Errors
+AsyncMethod : async PropertyName ( UniqueFormalParameters ) { AsyncFunctionBody }
+. 如果AsyncFunctionBody的FunctionBodyContainsUseStrict是true，而且
+  UniqueFormalParameters的IsSimpleParameterList是false，那么是句法错误
+. 如果AsyncMethod的HasDirectSuper是true，那么有句法错误
+. 如果UniqueFormalParameters含有AwaitExpression，那么有句法错误
+. 如果UniqueFormalParameters的BoundNames的任何元素也出现在AsyncFunctionBody的
+  LexicallyDeclaredNames里，那么有句法错误。
+
+AsyncFunctionDeclaration :
+    async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+    async function ( FormalParameters ) { AsyncFunctionBody }
+AsyncFunctionExpression :
+    async function BindingIdentifier_opt ( FormalParameters ) { AsyncFunctionBody }
+. 如果AsyncFunctionBody的FunctionBodyContainsUseStrict是true，而且
+  FormalParameterList的IsSimpleParameterList是false，那么有句法错误。
+. 如果FormalParameters包含AwaitExpression，那么有句法错误。
+. 如果FormalParameters匹配的源代码是严格模式代码，则应用
+  UniqueFormalParameters : FormalParameters的早期错误规则。
+. 如果BindingIdentifer存在，而且BindingIdentifier匹配的源代码是严格模式代码，
+  则当BindingIdentifier的String值是eval或者arguments时，就是句法错误。
+. 如果FormalParameters的BoundName的任何元素也出现在AsyncFunctionBody的
+  LexicallyDeclaredNames里，那么有句法错误
+. 如果FormalParameters包含SuperProperty，那么有句法错误。
+. 如果AsyncFunctionBody包含SuperProperty，那么有句法错误。
+. 如果FormalParameters包含SuperCall，那么有句法错误。
+. 如果AsyncFunctionBody包含SuperCall，那么有句法错误。
+*** 15.8.2 Runtime Semantics: InstantiateAsyncFunctionObject
+带参数scope
+AsyncFunctionDeclaration : async function BindingIdentifier ( FormalParamters ) { AsyncFunctionBody }
+1. 让name是BindingIdentifer的StringValue
+2. 让sourceText是AsyncFunctionDeclaration匹配的源文本
+3. 让F是!OrdinaryFunctionCreate(%AsyncFunctionFunction.prototype%, sourceText,
+   FormalParameters, AsyncFunctionBody, non-lexical-this, scope)
+4. 执行!SetFunctionName(F, name)
+5. 返回F
+
+AsyncFunctionDeclaration : async function ( FormalParameters ) { AsyncFunctionBody }
+1. 让sourceText是AsyncFunctionDeclaration匹配的源文本
+2. 让F是OrdinaryFunctionCreate(%AsyncFunctionFunction.prototype%, sourceText,
+   FormalParameters, AsyncFunctionBody, non-lexical-this, scope)
+3. 执行SetFunctionName(F, "default")
+4. 返回F
+*** 15.8.3 Runtime Semantics: InstantiateAsyncFunctionExpression
+带可选参数name
+AsyncFunctionExpression : async funciton ( FormalParameters ) { AsyncFunctionBody }
+1. 如果name不存在，置name是""
+2. 让scope是运行时执行背景的LexicalEnvironment
+3. 让sourceText是本AsyncFunctionExpression匹配到的源文本
+4. 让closure是!OrdinaryFunctionCreate(%AsyncFunction.prototype%, sourceText,
+   FormalParameters, AsyncFunctionBody, non-lexical-this, scope)的结果
+5. 执行SetFunctionName(closure, name)
+6. 返回closure
+
+AsyncFunctionExpression : async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+1. Assert：name不存在
+2. 让name是BindingIdentifer的String值
+3. 让scope是运行时执行背景的LexicalEnvironment
+4. 让funcEnv是!NewDeclarativeEnvironment(scope)
+5. 执行!funEnv.CreateImmutableBinding(name, false)
+6. 让sourceText是本AsyncFunctionExpression匹配到的源文本
+7. 让closure是!OrdinaryFunctionCreate(%AsyncFunction.prototype%, sourceText,
+   FormalParameters, AsyncFunctionBody, non-lexical-this, funcEnv)的结果
+8. 执行!SetFunctionName(closure, name)
+9. 执行!funcEnv.InitializeBinding(name, closure)
+10. 返回closure
+**** 注意 在AsyncFuncionExpression里的BindingIdentifier能被
+           AsyncFunctionExpression的AsyncFunctionBody引用到来允许函数代码可以
+           自我递归。然而不同于FunctionDeclaration，AsyncFunctionExpression
+           的BindingIdentifier不能干涉封闭AsyncFunctionExpression的圈。
+*** 15.8.4 Runtime Semantics: EvaluateAsyncFunctionBody
+带参数functionObject和argumentList（List值）
+AsyncFunctionBody : FucntionBody
+1. 让promiseCapability是!NewPromiseCapability(%Promise%)
+2. 让declResult是FunctionDeclarationInstantiation(functionObject, argumentList)
+3. 如果declResult不是意外完结，那么
+    a. 执行!AsyncFucntionStart(promiseCapability, FunctionBody)
+4. 否则
+    a. 执行!Call(promiseCapability.\[\[Reject]], undefined,
+       << declResult.\[\[Value]] >>)
+5. 返回 Completion { \[\[Type]]:return, \[\[Value]]: promiseCapability.\[\[Promsie]]
+   , \[\[Target]]:empty }
+*** 15.8.5 Runtime Semantics: Evaluation
+AsyncFunctionDeclaration : async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
+1. 返回NormalCompletion(empty)
+
+AsyncFucntionDeclaration : async funciton ( FormalParameters ) { AsyncFucntionBody }
+1. 返回NormalCompletion(empty)
+
+AsyncFunctionExpression :
+    async function BindingIdentifier_opt ( FormalParameters ) { AsyncFunctionBody }
+1. 返回AsyncFunctionExpression的InstantiateAsyncFuncitonExpression
+
+AwaitExpression : await UnaryExpression
+1. 让exprRef是评估UnaryExpression的结果
+2. 让value是?GetValue(exprRef)
+3. 返回?Await(value)
 ** 15.9 Async Arrow Function Definitions 
+*** Syntax
+AsyncArrowFunction_[In, Yield, Await] :
+    async [no LineTerminator here] AsyncArrowBindingIdentifier_[?Yield] [no LineTerminator here] =>
+        AsyncConciseBody_[?In]
+    CoverCallExpressionAndAsyncArrowHead_[?Yield, ?Await] [no LineTerminator here] =>
+        AyncConciseBody_[?In]
+
+AsyncConciseBody_[In] :
+    [lookahead ≠ { ] ExpressionBody_[?In, +Await]
+    { AsyncFucntionBody }
+
+AsyncArrowBidningIdentifier_[Yield] :
+    BindingIdentifier_[?Yield, +Await]
+
+CoverCallExpressionAndAsyncArrowHead_[Yield, Await] :
+    MemberExpression_[?Yield, ?Await] Arguments_[?Yield, ?Await]
+*** Supplemental Syntax
+在处理AsyncArrowFunction : ConverCallExpressionAndAsyncArrowHead => AsyncConciseBody
+码型的实例时，对CoverCallExpressionAndAsyncArrowHead的解释优化为下列语法：
+    AsyncArrowHead: async [no LineTerminator here] ArrowFormalParameters_[~Yield, +Await]
+*** 15.9.1 Static Semantics: Early Errors
+AsynctArrowFunction : async AsyncArrowBindingIdentifier => AsyncConciseBody
+. 如果AsyncArrowBindingIdentifier的BoundNames的任何元素也出现在AsyncConciseBody的
+  LexicallyDeclaredNames里，那么有句法错误。
+
+AsyncArrowFunction : CoverCallExpressionAndAsyncArrowHead => AsyncConciseBody
+. 如果CoverCallExpressionAndAsyncArrowHead含有YieldExpression，那么有句法错误。
+. 如果CoverCallExpressionAndAsyncArrowHead含有AwaitExpression，那么有句法错误。
+. 如果CoverCallExpressionAndAsyncArrowHead没有覆盖AsyncArrowHead，那么有句法
+  错误。
+. 如果CoverCallExpressionAndAsyncArrowHead的BoundNames的任何元素也出现在
+  AsyncConciseBody的LexicallyDeclaredNames里，那么有句法错误。
+. 如果AsycnConciseBody的AsyncConciseBodyContainsUseStrict是true，且
+  CoverCallExpressionAndAsyncArrowHead的IsSimpleParameterList是false，那么有句法
+  错误。
+. 所有AsyncArrowHead和其派生码型的EarlyError规则也适用于
+  CoverCallExpressionAndAsyncArrowHead的CoveredAsyncArrowHead
+*** 15.9.2 Static Semantics: CoveredAsyncArrowHead
+CoverCallExpressionAndAsyncArrowHead : MemberExpression Arguments
+1. 返回被CoverCallExpressionAndAsyncArrowHead覆盖的AsyncArrowHead
+*** 15.9.3 Static Semantics: AsyncConciseBodyContainsUseStrict
+AsyncConciseBody : ExpressionBody
+1. 返回 false
+
+AsyncConciseBody : { AsyncFunctionBody }
+1. 返回AsyncFunctionBody的FunctionBodyContainsUseStrict
+*** 15.9.4 Runtime Semantics: EvaluateAsyncConciseBody
+带参数functionObject和argumentList（List值）
+AsyncConciseBody : ExpressionBody
+1. 让promiseCapability是!NewPromsieCapability(%Promise%)
+2. 让declResult是FunctionDeclarationInstantiation(functionObject, argumentList)
+3. 如果declResult不是意外完结，那么
+    a. 执行!AsyncFucntionStart(promiseCapability, ExpressionBody)
+4. 否则
+    a. 执行!Call(promiseCapability.\[\[Reject]], undefined,
+       << declResult.\[\[Value]] >>)
+5. 返回 Completion { \[\[Type]]:return, \[\[Value]]: promiseCapability.\[\[Promsie]]
+   , \[\[Target]]:empty }
+*** 15.9.5 Runtime Semantics: InstantiateAsyncArrowFunctionExpression
+带可选参数name
+AsyncArrowFunction : async AsyncArrowBindingIdentifier => AsyncConciseBody
+1. 如果name不存在，置name是""
+2. 让scope是运行时执行背景的LexicalEnvironment
+3. 让sourceText是本AsyncArrowFunction匹配到的源文本
+4. 让parameters是AsyncArrowBindingIdentifier
+5. 让closure是!OrdinaryFunctionCreate(%AsyncFunction.prototype%, sourceText,
+   parameters, AsyncConciseBody, lexical-this, scope)的结果
+6. 执行SetFunctionName(closure, name)
+7. 返回closure
+
+AsyncArrowFunction : CoverCallExpressionAndAsyncArrowHead => AsyncConciseBody
+1. 如果name不存在，置name是""
+2. 让scope是运行时执行背景的LexicalEnvironment
+3. 让sourceText是本AsyncArrowFunction匹配到的源文本
+4. 让head是CoverCallExpressionAndAsyncArrowHead的CoveredAsyncArrowHead
+5. 让parameters是head的ArrowFormalParameters
+6. 让closure是!OrdinaryFunctionCreate(%AsyncFunction.prototype%, sourceText,
+   parameters, AsyncConciseBody, lexical-this, scope)的结果
+7. 执行SetFunctionName(closure, name)
+8. 返回closure
+*** 15.9.6 Runtime Semantics: Evaluation
+AsyncArrowFunciton
+    async AsyncArrowBindingIdentifier => AsyncConciseBody
+    CoverCallExpressionAndAsyncArrowHead => AsyncConciseBody
+1. 返回AsyncArrowFunction的InstantiateAsyncArrowFunctonExpression
 ** 15.10 Tail Position Calls
+*** 15.10.1 Static Semantics: IsInTailPostion( call )
+抽象操作IsInTailPosition接受参数call。被调用时执行下列步骤：
+1. Assert：call是一个ParseNode
+2. 如果call匹配的源文本不是严格模式代码，返回false
+3. 如果call没有被包含在FucnitonBody、ConciseBody或者AsyncConciseBody，返回false。
+4. 让body是含有call的最近的FunctionBody、ConciseBody或者AsyncConciseBody。
+5. 如果body是GeneratorBody的FunctionBody，返回false。
+6. 如果body是AsyncFunctionBody的FunctionBody，返回false。
+7. 如果body是AsyncGeneratorBody的FunctionBody，返回false
+8. 如果body是AsyncConciseBody，返回false。
+9. 返回body带参数call的HasCallInTailPosition
+**** 注意 TailPositionCall只在严格模式代码里定义，因为有一个常用的非标准的
+           语言扩展（见于10.2.4）允许监测调用者背景链。
+*** 15.10.2 Static Semantics: HasCallInTailPosition
+带参数call
+**** 注意 call是一个ParseNode，标识特定范围的源文本。当随后的算法比较call与
+           其他ParseNode时，实际是比较它们是不是标识同一段源文本。
+**** 15.10.2.1 Statement Rules
+StatementLsit : StatementList StatementListItem 
+1. 让has是StatementList的带参数call的HasCallInTailPosition
+2. 如果has是true，返回true
+3. 返回StatementListItem的带参数call的HasCallInTailPosition
+
+FunctionStatementList : [empty]
+StatementLitItem : Declaration
+Statement :
+    VariableStatement
+    EmptyStatement
+    ExpressionStatement
+    ContinueStatement
+    BreakStatement
+    ThrowStatement
+    DebuggerStatement
+Block : { }
+ReturnStatement : return ;
+LabelledItem : FunctionDeclaration
+ForInOfStatement :
+    for ( LeftHandSideExpression of AssignmentExpression ) Statement
+    for ( var ForBinding of AssignmentExpression ) Statement
+    for ( ForDeclaration of AssignmentExpression ) Statement
+CaseBlock : { }
+1. 返回false
+
+IfStatement : if ( Expression ) Statement else Statement
+1. 让has是第一个Statement带参数call的HasCallInTailPosition
+2. 如果has是true，返回true
+3. 返回第二个Statement带参数call的HasCallInTailPosition
+
+IfStatement : if ( Expression ) Statement
+DoWhileStatement : do Statement while ( Expression )
+WhileStatement : while ( Expression ) Statement
+ForStatement :
+    for ( Expression_opt ; Expression_opt ; Expression_opt ) Statement
+    for ( var VariableDeclarationList ; Expression_opt ; Expression_opt ) Statement
+    for ( LexicalDeclaration Expression_opt ; Expression_opt ) Statement
+ForInOfStatement
+    for ( LeftHandSideExpression in Expression ) Statement
+    for ( var ForBinding in Expression ) Statement
+    for ( ForDeclaration in Expression ) Statement
+    for await ( LeftHandSideExpression of AssignmentExpression ) Statement
+    for await ( var FroBinding of AssignmentExpression ) Statement
+    for await ( ForDeclaration of AssignmentExpression ) Statement
+WithStatement : with ( Expression ) Statement
+1. 返回Statement带参数call的HasCallInTailPosition
+
+LabelledStatement :
+    LabelIdentifier : LabelledItem
+1. 返回LabelledItem带参数call的HasCallInTailPosition
+
+ReturnStatement : return Expression ;
+1. 返回Expression带参数call的HasCallInTailPosition
+
+SwitchStatement : switch ( Expression ) CaseBlock ;
+1. 返回CaseBlock带参数call的HasCallInTailPosition
+
+CaseBlock : { CaseClauses_opt DefaultClause CaseClauses_opt }
+1. 让has是false
+2. 如果第一个CaseClauses存在，让has是第一个CaseClauses带参数call
+   的HasCallInTailPosition
+3. 如果has是true，那么返回true
+4. 让has是DefaultClause带参数call的HasCallInTailPosition
+5. 如果has是true，那么返回true
+6. 如果第二个CaseClauses存在，让has是第二个CaseClauses带参数call
+   的HasCallInTailPosition
+7. 返回has
+
+CaseClauses : CaseClauses CaseClause
+1. 让has是CaseClauses带参数call的HasCallInTailPosition
+2. 如果has是true，那么返回true
+3. 返回CaseClause带参数call的HasCallInTailPosition
+
+CaseClause : case Expression : StatementList_opt
+DefaultClause : default : StatementList_opt
+1. 如果StatementList存在，返回StatementList带参数call的HasCallInTailPosition
+2. 返回false
+
+TryStatement : try Block Catch
+1. 返回Catch带参数call的HasCallInTailPosition
+
+TryStatement : try Block Finally
+TryStatement : try Blcok Catch Finally
+1. 返回Finally带参数call的HasCallInTailPosition
+
+Catch : catch ( CatchParameter ) Block
+1. 返回Block带参数call的HasCallInTailPosition
+**** 15.10.2.2 Expression Rules
+***** 注意 紧随其调用后就返回调用结果的GetValue的潜在的尾部调用也有可能是
+            尾部调用。函数调用不能返回ReferenceRecord，因此GetValue操作总是
+            返回相同的值作为函数调用的实际结果。
+AssignmentExpression :
+    YieldExpression
+    ArrowFunction
+    AsyncArrowFunction
+    LeftHandSideExpression = AssignmentExpression
+    LeftHandSideExpression AssignmentOperator AssignmentExpression
+    LeftHandSideExpression &&= AssignmentExpression
+    LeftHandSideExpression ||= AssignmentExpression
+    LeftHandSideExpression ??= AssignmentExpression
+BitwiseANDExpression : BitwiseANDExpression & EqualityExpression
+BitwiseXORExpression : BitwiseXORExpression ^ BitwiseANDExpression
+BitwiseORExpression : BitwiseORExpression | BitwiseXORExpression
+EqualityExpression :
+    EqualityExpression \=\= RelationalExpression
+    EqualityExpression !\= RelationalExpression
+    EqualityExpression \=\=\= RelationalExpression
+    EqualityExpression !\=\= RelationalExpression
+RelationalExpression :
+    RelationalExpression < ShiftExpression
+    RelationalExpression > ShiftExpression
+    RelationalExpression <= ShiftExpression
+    RelationalExpression >= ShiftExpression
+    RelationalExpression instanceof ShiftExpression
+RelationalExpression in ShiftExpression
+ShiftExpression :
+    ShiftExpression << AdditiveExpression
+    ShiftExpression >> AdditiveExpression
+    ShiftExpression >>> AdditiveExpression
+AdditiveExpression :
+    AdditiveExpression + MultiplicativeExpression
+    AdditiveExpression - MultiplicativeExpression
+MultiplicativeExpression :
+    MultiplicativeExpression MultiplicativeOperator ExponentiationExpression
+ExponentiationExpression :
+    UpdateExpression ** ExponentiationExpression
+UpdateExpression :
+    LeftHandSideExpression ++
+    LeftHandSideExpression --
+    ++ UnaryExpression
+    -- UnaryExpression
+UnaryExpression :
+    delete UnaryExpression
+    void UnaryExpression
+    typeof UnaryExpression
+    + UnaryExpression
+    - UnaryExpression
+    ~ UnaryExpression
+    ! UnaryExpression
+    AwaitExpression
+CallExpression :
+    SuperCall
+    CallExpression [ Expression ]
+    CallExpression . IdentifierName
+NewExpression : new NewExpression
+MemberExpression :
+    MemberExpression [ Expression]
+    MemberExpression . IdentifierName
+    SuperProperty
+    MetaProperty
+    new MemberExpression Arguments
+PrimaryExpression :
+    this
+    IdentifierReference
+    Literal
+    ArrayLiteral
+    ObjectLiteral
+    FunctionExpression
+    ClassExpression
+    GeneratorExpression
+    AsyncFunctionExpression
+    AsyncGeneratorExpression
+    RegularExpressionLiteral
+    TemplateLiteral
+1. 返回false
+
+Expression :
+    AssignmentExpression
+    Expression , AssignmentExpression
+1. 返回AssignmentExpression带参数call的HasCallInTailPosition
+
+ConditionalExpression : ShortCircuitExpression ? AssignmentExpression : AssignmentExpression
+1. 让has是第一个AssignmentExpression带参数call的HasCallInTailPosition
+2. 如果has是true，返回true
+3. 返回第二个AssignmentExpression带参数call的HasCallInTailPosition
+
+LogicalANDExpression : LogicalANDExpression && BitwiseORExpression
+1. 返回BitwiseORExpression带参数call的HasCallInTailPosition
+
+LogicalORExpression : LogicalORExpression || LogicalANDExpression
+1. 返回LogicalANDExpression带参数call的HasCallInTailPosition
+
+CoalesceExpression : CoalesceExpressionHead ?? BitwiseORExpression
+1. 返回BitwiseORExpression带参数call的HasCallInTailPosition
+
+CallExpression :
+    CoverCallExpressionAndAsyncArrowHead
+    CallExpression Arguments
+    CallExpression TemplateLiteral
+1. 如果本CallExpression是call，返回true
+2. 返回false
+
+OptionalExpression :
+    MemberExpression OptionalChain
+    CallExpression OptionalChain
+    OptionalExpression OptionalChain
+1. 返回OptionalChain带参数call的HasCallInTailPosition
+
+OptionalChain :
+    ?. \[ Expression ]
+    ?. IdentifierName
+    OptionalChain \[ Expression ]
+    OptionalChain . IdentifierName
+1. 返回false
+
+OptionalChain:
+    ?. Arguments
+    OptionalChain Arguments
+1. 如果本OptionalChain是call，返回true
+2. 返回false
+
+MemberExpression :
+    MemberExpression TemplateLiteral
+1. 如果本MemberExpression是call，返回true
+2. 返回false
+
+PrimaryExpression : CoverParenthesizedExpressionAndArrowParameterList
+1. 让expr是CoverParenthesizedExpressionAndArrowParameterList的
+   CoveredParenthesizedExpression
+2. 返回expr带参数call的HasCallInTailPosition
+
+ParenthesizedExpression :
+    ( Expression )
+1. 返回Expression带参数call的HasCallInTailPosition
+*** 15.10.3 PrepareForTailCall( )
+抽象操作PrepareForTailCall不接受参数，被调用时执行下列步骤：
+1. 让leafContext是运行时执行背景
+2. 挂起leafContext
+3. 将leafContext从执行背景栈中弹出。栈中的顶层执行背景成为运行时执行背景。
+4. Assert：leafContext不再使用。再也不会成为运行时执行背景。
+
+一个TailPositionCall要么在调用目标函数前释放跟执行中函数的执行背景相关的
+任何临时内部资源，要么重用这些资源到目标函数的支持里。
+**** 注意 例如，一个TailPositionCall应该只根据目标函数的激活记录超出执行
+           函数的激活记录的数量增长一个实现上的激活记录。如果目标函数的
+           激活记录更小，那么这个栈会萎缩。 
 * 16 ECMAScript Language: Scripts and Modules
+** 16.1 Scripts
+*** Syntax
+Script :
+    ScriptBody_opt
+ScriptBody :
+    StatementList_[~Yield, ~Await, ~Return]
+*** 16.1.1 Static Semantics: Early Errors
+Script : ScriptBody
+. 如果ScriptBody的LexicallyDeclaredNames含有重复的实体，那么有句法错误
+. 如果ScriptBody的LexicallyDeclaredNames的元素也出现ScriptBody的VarDeclaredNames，
+  那么有句法错误。
+
+ScriptBody : StatementList
+. 如果StatementList含有super，而且含有super的源代码不是被directEval处理的eval
+  代码，那么有句法错误。另外关于directEval中super的earlyError规则在
+  19.2.1.1中定义。
+. 如果StatementList含有NewTarget，而且含有NewTarget的源代码不是被directEval处理
+  的eval代码，那么有句法错误。另外关于directEval中NewTarget的earlyError规则在
+  19.2.1.1中定义
+. 如果StatementList带参数<< >>的ContainsDuplicateLabels是true，那么有句法错误。
+. 如果StatementList带参数<< >>的ContainsUndefinedBreakTarget是true，那么有句法
+  错误。
+. 如果StatementList带参数<< >>和<< >>的ContainsUndefinedContinueTarget是true，那么
+  有句法错误。
+*** 16.1.2 Static Semantics: IsStrict
+Script : ScriptBody_opt
+1. 如果ScriptBody存在而且ScriptBody的DirectivePrologue含有UseStrictDirective，
+   返回true，否则返回false。
+*** 16.1.3 Runtime Semantics: Evaluation
+Script : [empty]
+1. 返回NormalCompletion(undefined)
+*** 16.1.4 Script Records
+ScriptRecord封存着被评估的脚本信息。每个scriptRecord含有列在表39的字段。
+
+| 字段名               | 值类型                           | 含义                                                            |
+| \[\[Realm]]          | RealmRecord 或者 undefined       | 创建本脚本的圈。没有被指定时是undefined                         |
+| \[\[Environment]]    | EnvironmentRecord 或者 undefined | EnvironmentRecord持有此脚本顶层绑定。本字段在脚本被初始时设置。 |
+| \[\[ECMAScriptCode]] | ParseNode                        | 用Script作为全局目标解析此脚本的结果                            |
+| \[\[HostDefined]]    | 任何值，默认是空                 | host环境保留的字段，方便其联结附加的信息                        |
+*** 16.1.5 ParseScript(sourceText, realm, hostDefined)
+抽象操作ParseScript结束参数sourceText、realm和hostDefined。在解析sourceText成为
+Script的基础上创建ScriptRecord。被调用时执行下列步骤：
+1. Assert：sourceText是ECMAScript源文本（见于11）
+2. 让body是ParseText(sourceText, Script)
+3. 如果body是错误列表，返回body
+4. 返回ScriptRecord { \[\[Realm]]:realm, \[\[Environment]]:undefined,
+   \[\[ECMAScriptCode]]:body, \[\[HostDefined]]:hostDefined }
+**** 注意 实现可能会在评估ParseScript之前就解析其源文本并分析早期错误条件。
+           然而这些错误报告必须延后到本规范实际执行到此源文本的ParseScript
+           处。
+*** 16.1.6 ScriptEvaluation( scriptRecord )
+抽象操作ScriptEvaluation接受参数scriptRecord。被调用时执行下列步骤：
+1. 让globalEnv时scriptRecord.\[\[Realm]].\[\[GlobalEnv]]
+*** 16.1.7 GlobalDecalarationInstantiation( script, env )
+** 16.2 Modules
+* 17 Error Handling and Language Extensions
+* 18 ECMAScript STandard Built-in Objects
+* 19 The Global Object
+* 20 Fundamental Objects
 * 25
 ** 25.1
 
