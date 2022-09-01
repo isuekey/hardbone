@@ -28,7 +28,8 @@
    instantiate表示建立变量（实例化）。initialize表示建立变量并赋值，或者给
    未赋值的变量赋值（初始化）。后期需要校订。
 *** 根据编译原理，大小端由其他编译层处理。
-* 前言 [44,46]
+* 前言 
+** TODO [44,46] 
 * 第一章 范围
 本标准定义了ECMAScript2021多用途编程语言。
 * 第二章 一致
@@ -58,7 +59,8 @@ ECMAScript实现支持的程序句法使用了在本规范12.6.2中标明的未�
 ** 2.1 Example Clause Heading ：：可选规范
 示例条款内容
 * 第三章 标准参考
-* 第四章 概述 [47-58]
+** TODO [47,47]
+* 第四章 概述
 本章节包含了非正式的ECMAScript语言的概述。
 
 ECMAScript是一个面向对象的编程语言，用于在主机环境中计算和操作可计算对
@@ -82,6 +84,7 @@ ECMAScript的用途远超过简单的脚本，被用于广泛的不同系统和�
 因为ECMAScript用途的膨胀，其功能和特色也膨胀了。ECMAScript已经是一个完整多
 用途特征的编程语言。
 ** 4.1 Web Scripting 网页脚本
+*** TODO [48,57]
 *** 4.4.41 遗传性质 inherited property
 ** 4.5 本规范的组织方式
 本规范的剩余部分如下组织：
@@ -753,9 +756,10 @@ Number类型有18,437,736,874,454,810,627（就是2^64 - 2^53 + 3）个值，表
 这些"Not-a-Number"值在ECMAScript中被用一个特殊NaN值表示。（注意NaN值是被程序
 表达式NaN产生的）。在某些实现中，扩展编码可能侦测到不同Not-a-Number值的差
 异，但是这种行为是实现定义的。ECMAScript代码所有的NaN是不区分。
-***** 注意在ArrayBuffer（见于[[25.1]]）或者SharedArrayBuffer（监狱[[25.2]]）中，一个
-Number值被存储到其中后，可能侦测到这种位模式值（能够区分的NaN），这种
-位模式没有必要与ECMAScript实现使用内部表示Number值的行为一致。
+***** 注意 在ArrayBuffer（见于\[\[25.1]]）或者SharedArrayBuffer（见于\[\[25.2]]）
+            中，一个Number值被存储到其中后，可能侦测到这种位模式值（能够区
+            分的NaN），这种位模式没有必要与ECMAScript实现使用内部表示Number值
+            的行为一致。
 
 有两个特殊的值：正无穷与负无穷。为了方便，这些值依次用说明性更好的符号
 \+∞_F和\-∞_F表示（这两种Number值用+Infinity或者简单的Infinity和-Infinity产生）。
@@ -7719,7 +7723,7 @@ ECMAScript语法中的非终结符）。被调用时执行下列步骤：
 3. 否则含有一个或者多个表示解释错误或者EarlyError的SyntaxError对象的List。如果
    有多个错误出现，List中错误的数量和顺序由实现自行定义，但是至少要有一个。
 **** 注意1 考虑到有文本在某个位置有EarlyError，在后面的位置有句法错误。有的
-            实现先执行parse段，再执行earlyError端，可能就只报告句法错误，而不
+            实现先执行Parse段，再执行EarlyError段，可能就只报告句法错误，而不
             报告earlyErrors。有的实现是交替两种活动，可能就会报告EarlyError，而
             部报告句法错误。还有的实现可能会两者都报告。所有这些行为都是相合
             的
@@ -13544,10 +13548,10 @@ Script : ScriptBody_opt
 Script : [empty]
 1. 返回NormalCompletion(undefined)
 *** 16.1.4 Script Records
-ScriptRecord封存着被评估的脚本信息。每个scriptRecord含有列在表39的字段。
+ScriptRecord封装着被评估的脚本信息。每个scriptRecord含有列在表39的字段。
 
 | 字段名               | 值类型                           | 含义                                                            |
-| \[\[Realm]]          | RealmRecord 或者 undefined       | 创建本脚本的圈。没有被指定时是undefined                         |
+| \[\[Realm]]          | RealmRecord 或者 undefined       | 创建本脚本的领。没有被指定时是undefined                         |
 | \[\[Environment]]    | EnvironmentRecord 或者 undefined | EnvironmentRecord持有此脚本顶层绑定。本字段在脚本被初始时设置。 |
 | \[\[ECMAScriptCode]] | ParseNode                        | 用Script作为全局目标解析此脚本的结果                            |
 | \[\[HostDefined]]    | 任何值，默认是空                 | host环境保留的字段，方便其联结附加的信息                        |
@@ -13694,18 +13698,450 @@ ImportEntryRecord在表45里描述）。创建一个由importEntries定义的本
     a. 附加a.\[\[LocalName]]到localNames
 3. 返回localNames
 **** 16.2.1.3 Static Semantics: ModuleRequests
+Module : [empty]
+1. 返回新的空列表
+
+ModuleItemList : ModuleItem
+1. 返回ModuleItem的ModuleRequests
+
+ModuleItemList : ModuleItemList ModuleItem
+1. 让moduleNames是ModuleItemList的ModuleRequests
+2. 让additionalNames是ModuleItem的ModuelRequests
+3. 依次的将在additionalNames中，且不在moduleNames中的元素，附加到moduleNames中
+4. 返回moduleNames
+
+ModuleItem : StatementListItem
+1. 返回新的空列表
+
+ImportDeclaration : import ImportClause FromClause ;
+1. 返回fromClause的ModuleRequests
+
+ModuleSpecifier : StringLiteral
+1. 返回只有<< StringLiteral的SV >>
+
+ExportDeclaration : export ExportFromClause FromClause ;
+1. 返回FromClause的ModuleRequest
+
+ExportDeclaration :
+    export NamedExports ;
+    export VariableStatement
+    export Declaration
+    export default HoistableDeclaration
+    export default ClassDeclaration
+    export default AssignmentExpression ;
+1. 返回新的空列表
 **** 16.2.1.4 Abstract Module Records
+ModuleRequest封装着单个模块的引入与导出的构造信息。用于在联通的模块集合里
+链接引入与导出。ModuleRecord包含四个只用在评估模块的字段
+
+为了规范，ModuleRecord的值是Record规范类型的，可以看作是简单的面向对象
+继承，其中ModuleRecord是同时由抽象子类和具体子类的抽象类。规范定义了名为
+CyclicModuleRecord的抽象子类，以及其具体子类SourceTextModuleRecord。其他规范
+和实现可以定义额外的ModuleRecord的子类以符合它们定义的备选模型定义特性。
+
+ModuleRecord定义了列在表40的字段。所有模型定义的子类至少要包含这些字段。
+ModuleRecord在表41定义了抽象方法。所有模型定义的字列必须提供这些抽象方法的
+具体实现。
+表40
+| 字段名               | 值类型                           | 含义                                                            |
+| \[\[Realm]]          | RealmRecord 或者 undefined       | 创建本模块的领。没有被指定时是undefined                         |
+| \[\[Environment]]    | EnvironmentRecord 或者 undefined | EnvironmentRecord持有此模块的顶层绑定。本字段在模块被链接时设置。 |
+| \[\[NameSpace]] | Object或者undefined       | ModuleNamespaceObject（28.3），如果由创建的，否则是undefined |
+| \[\[HostDefined]]    | 任何值，默认是undefined         | host环境保留的字段，方便其联结附加的信息                        |
+表41
+| 方法                                    | 目的                                                                                                                                                                                                                                                                                                                                                                                                      |
+| GetExportedNames([exportStarSet])       | 返回含有从本模块直接或者间接导出全部名称的列表                                                                                                                                                                                                                                                                                                                                                            |
+| ResolveExport(exportName[, resolveSet]) | 返回本模块导出的名称对应的绑定。绑定被表示为ResolvedBindingRecord，形式为 { \[\[Module]]: ModuleRecord, \[\[BindingName]]: String }。 如果这个导出是一个在任何模块中都没直接绑定的ModuleNamespaceObject，\[\[BindingName]]被置成"*namespace*"。如果名称无法解决，返回null。如果名称找到多个绑定，返回"ambiguous"。 本操作在给定exportName和resolveSet对上的每次调用，如果是普通完结，必须返回相同的结果。 |
+| Link()                                  | 通过传递式的解决模块依赖和创建moduleEnvironmentRecord来为评估准备模块。                                                                                                                                                                                                                                                                                                                                   |
+| Evaluate()                              | 如果模块曾被成功的评估，那么返回undefined。如果评估不成功，投掷已经产出的异常。否则传递式评估本模块依赖的模块，然后评估本模块。在调用此方法前必须已经成功Link完                                                                                                                                                                                                                                           |
 **** 16.2.1.5 Cyclic Module Records
+CyclickModuleRecord用于表示和其他也是CyclicModuleRecord子类的模块形成循环依赖的
+模块的信息。不是CyclicModuleRecord子类的ModuleRecords不能与SourceTextModuleRecords
+形成依赖循环。
+
+除了表40列出的字段之外，CyclicModuleRecord需要表42列出的额外字段。
+表42
+| 字段名                 | 值类型                                                               | 含义                                                                                                                                                                  |
+| \[\[Status]]           | unlinked \vert linking \vert linked \vert evaluating \vert evaluated | 初始是unlinked。按顺序经历linking、linked、evaluating和evaluated，表示在其生命周期的处理内容                                                                          |
+| \[\[EvaluationError]]  | 意外完结 或者 undefined                                              | 类型是throw的完结记录，表示在评估过程中发生的异常。如果\[\[Statu]]不是evaluated，或者没有异常发生，就是undefined                                                      |
+| \[\[DFSIndex]]         | Integer或者undefined                                                 | 仅用在Link和Evaluate的辅助字段。如果\[\[Status]]是linking或者evaluating，这个非负数字记录了在进行深度优先遍历依赖图时，第一次访问到本模块的点。                       |
+| \[\[DFSAncesotrIndex]] | Integer或者undefined                                                 | 仅用在Link和Evaluate的辅助字段。如果\[\[Status]]是linking或者evaluating，它是本模块自己的\[\[DFSIndex]]，或者是与本模块在同一个强联通组件中靠前的模块的\[\[DFSIndex]] |
+| \[\[RequestModules]]   | String的List                                                         | 被本记录表示的模块用来引入模块的所有ModuleSpecifier字符串组成的列表。按照源代码出现顺序进行排序。                                                                     |
+
+除了表41列出的方法外，CyclicModuleRecord需要表43列出的额外方法。
+表43
+| 方法                    | 目的                                                                                                                                                                                                                                                                                                                                                                                                      |
+| InitializeEnvironment() | 初始化模块的EnvironmentRecord，包括解决所有的引入绑定，创建模块的执行背景                                                                                                                                                                                                                                                                                                                                 |
+| ExecuteModule()         | 在其执行背景里评估模块代码。                                                                                                                                                                                                                                                                                                                                                                                            |
 ***** 16.2.1.5.1 Link() Concrete Method
+CyclicModuleRecord型module的Link具体方法不接受参数。当成功时，Link将本模块的
+\[\[Status]]从unlinked迁移到linked。在失败时，投掷异常，并且本模块的
+\[\[Status]]保持unlinked。（大多数工作由辅助函数InnerMeduleLinking处理）被调用
+时执行下列步骤：
+1. Assert：module.\[\[Status]]不是linking，也不是evaluating
+2. 让stack是新的空列表
+3. 让result是InnerModuleLinking(module, stack, 0)
+4. 如果result是意外完结，那么
+    a. 遍历stack的每个CyclicModuleRecord记作m，做
+        i. Assert：m.\[\[Status]]是linking
+       ii. 置m.\[\[Status]]是unlinked
+      iii. 置m.\[\[Environment]]是undefined
+       iv. 置m.\[\[DFSIndex]]是undefined
+        v. 置m.\[\[DFSAncestorIndex]]是undefined
+    b. Assert：module.\[\[Status]]是unlinked
+    c. 返回result
+5. Assert：module.\[\[Status]]是linked或者evaluated
+6. Assert：stack是空的
+7. 返回undefined
 ****** 16.2.1.5.1.1 InnerModuleLinking(module, stack, index)
+抽象操作InnerModuleLinking接受参数module（ModuleRecord）、stack和index（
+非负整数）。被Link用来实际执行module的链接处理，也递归处理在其依赖图上的
+其他全部模块。stack和index参数，以及module的\[\[DFSIndex]]和\[\[DFSAncestorIndex]]
+字段，保持深度优先遍历的轨迹。尤其是，\[\[DFSAncestorIndex]]用于发现强联通
+组件（SCCs，Strongly Connected Components），因此全部模块由SCC经历链接到一起。
+被调用时执行下列步骤：
+1. 如果module不是CyclicModuleRecord，那么
+    a. 执行?module.Link()
+    b. 返回index
+2. 如果module.\[\[Status]]是linking、linked或者evaluated，那么
+    a. 返回index
+3. Assert：module.\[\[Status]]是unlinked。
+4. 置module.\[\[Status]]是linking
+5. 置module.\[\[DFSIndex]]是index
+6. 置module.\[\[DFSAncestorIndex]]是index
+7. 置index是index+1
+8. 附加module到stack
+9. 遍历module.\[\[RequestedModules]]的字符串记作required，做
+    a. 让requiredModule是?HostResolveImportedModule(module, required)
+    b. 置index是?InnerModuleLinking(requiredModule, stack, index)
+    c. 如果requiredModule是CyclicModuleRecord，那么
+        i. Assert：requiredModule.\[\[Status]]是linking、linked或者evaluated
+       ii. Assert：当且仅当requiredModule在stack中时，requiredModule.\[\[Status]]
+           是linking。
+      iii. 如果requiredModule.\[\[Status]]是linking，那么
+            1. 置module.\[\[DFSAncestorIndex]]是min(module.\[\[DFSAncestorIndex]],
+               requiredModule.\[\[DFSAncestorIndex]])
+10. 执行?module.InitializeEnvironment()
+11. Assert：module在stack中只出现一次。
+12. Assert：module.\[\[DFSAncestorIndex]] <= module.\[\[DFSIndex]]
+13. 如果module.\[\[DFSAncestorIndex]] == module.\[\[DFSIndex]]，那么
+    a. 让done是false
+    b. 当done是false时，重复
+        i. 让requiredModule是stack的最后一个元素
+       ii. 移除stack的最后一个元素
+      iii. Assert：requiredModule是CyclicModuleRecord
+       iv. 置requiredModule.\[\[Status]]是linked
+        v. 如果requiredModule和module是相同的ModuleRecord，置done是true
+14. 返回index
 ***** 16.2.1.5.2 Evaluate() Concrete Method
+CyclicModuleRecord型module的具体方法Evaluate不接受参数。Evaluate将本模块的
+\[\[Status]]从linked迁移到evaluated。如果执行结果异常，这个异常记录在
+\[\[EvaluationError]]字段里，被以后调用的Evaluate重新投掷。（大多数工作由
+辅助函数InnerModuleEvaluation处理）被调用时执行下列步骤：
+1. Assert：在环境媒介中，当其他Evaluate调用时，当前Evaluate调用不会发生。
+2. Assert：module.\[\[Status]]是linked或者evaluated
+3. 让stack是新的空列表
+4. 让result是InnerModuleEvaluation(module, stack, 0)
+5. 如果result是意外完结，那么
+    a. 遍历stack的每个CyclicModuleRecord记作m，做
+        i. Assert：m.\[\[Status]]是evaluating
+       ii. 置m.\[\[Status]]是evaluated
+      iii. 置m.\[\[EvaluationError]]是result
+    b. Assert：module.\[\[Status]]是evaluated，而且module.\[\[EvaluationError]]是
+       result
+    c. 返回result
+6. Assert：module.\[\[Status]]是evaluated，而且module.\[\[EvaluationError]]是
+   undefined
+7. Assert：stack是空的
+8. 返回undefined
 ****** 16.2.1.5.2.1 InnerModuleEvaluation(moudle, stack, index)
+抽象操作InnerModuleEvaluation接受参数module(ModuleRecord)、stack和index（非负
+整数）。被Evaluate用来实际执行module的评估处理，也递归处理其依赖图上的其他
+全部模块。stack和index参数，以及module的\[\[DFSIndex]]和\[\[DFSAncestorIndex]]
+字段，用途与InnerModuleLinking中相同。被调用时执行下列步骤：
+1. 如果module不是CyclicModuleRecord，那么
+    a. 执行?module.Evaluate()
+    b. 返回index
+2. 如果module.\[\[Status]]是evaluated，那么
+    a. 如果module.\[\[EvaluationError]]是undefined，返回index
+    b. 否则，返回module.\[\[EvaluationError]]
+3. 如果module.\[\[Status]]是evaluating，返回index
+4. Assert：module.\[\[Status]]是linked。
+5. 置module.\[\[Status]]是evaluating
+6. 置module.\[\[DFSIndex]]是index
+7. 置module.\[\[DFSAncestorIndex]]是index
+8. 置index是index+1
+9. 附加module到stack
+10. 遍历module.\[\[RequestedModules]]的字符串记作required，做
+     a. 让requiredModule是!HostResolveImportedModule(module, required)
+     b. 注意：在调用此方法前，Link已经成功结束了，所以每个请求的模块都是
+        可以保证成功的。
+     c. 置index是?InnerModuleEvaluation(requiredModule, stack, index)
+     d. 如果requiredModule是CyclicModuleRecord，那么
+         i. Assert：requiredModule.\[\[Status]]是evaluating或者evaluated
+        ii. Assert：当且仅当requiredModule在stack中时，requiredModule.\[\[Status]]
+            是evaluating。
+       iii. 如果requiredModule.\[\[Status]]是evaluating，那么
+             1. 置module.\[\[DFSAncestorIndex]]是min(module.\[\[DFSAncestorIndex]],
+                requiredModule.\[\[DFSAncestorIndex]])
+11. 执行?module.ExecuteModule()
+12. Assert：module在stack中只出现一次。
+13. Assert：module.\[\[DFSAncestorIndex]] <= module.\[\[DFSIndex]]
+14. 如果module.\[\[DFSAncestorIndex]] == module.\[\[DFSIndex]]，那么
+    a. 让done是false
+    b. 当done是false时，重复
+        i. 让requiredModule是stack的最后一个元素
+       ii. 移除stack的最后一个元素
+      iii. Assert：requiredModule是CyclicModuleRecord
+       iv. 置requiredModule.\[\[Status]]是evaluated
+        v. 如果requiredModule和module是相同的ModuleRecord，置done是true
+15. 返回index
 ***** 16.2.1.5.3 Example Cyclic Module Record Graphs
+此辅助章节给出了一系列在常见模块图上链接和评估的例子，了解会发生哪些错
+误。
+
+首先考虑如下的简单模块图：
+A -> B -> C
+
+我们先假设没有错误条件。在主机第一次调用A.Link()时，假设这会成功完
+成，而且递归的链接模块B和C，因此A.\[\[Status]] \=\= B.\[\[Status]] \=\=
+C.\[\[Status]] == linked。这个准备可以在任何时间执行。随后当主机准备好引发
+这些模块上可能的负作用时，它可以调用A.Evaluate()，这也会成功完成（再次
+假设），递归的完成C，然后B。在此刻，每个模块的\[\[Status]]都是evaluated。
+
+随后考虑涉及链接错误的案例。如果C的InnerModuleLinking成功了，但是之后的B失败了，
+比如B引入了C没有提供的东西，那么源初的A.Link()也会失败，这样A和B的
+\[\[Status]]保持unlinked，而C的\[\[Status]]变成linked。
+
+最后考虑涉及评估错误的案例。
+****** TODO [440,441]
 **** 16.2.1.6 Source Text Module Records
+SourceTextModuleRecord用于表示由使用Module做全局符号解析的ECMAScript源文
+本（条款11）定义的模型。其字段包含被模块引入的名称的已理解信息，让其
+具体方法能够使用这种理解去链接和评估本模块。
+
+SourceTextModuleRecord能与抽象ModuleRecord型的其他子类共存于一个模块图中，
+也能与CyclicModuleRecord型的其他子类形成环。
+
+除表42之外，SourceTextModuleRecord还有列在表44中字段。这些字段在ParseModule时
+被初始化值。
+表44
+| 字段名                      | 值类型                      | 含义                                                                                                     |
+| \[\[ECMAScript]]            | ParseNode                   | 本模块匹配的源文本使用Module作为全局符号解析的结果                                                       |
+| \[\[Context]]               | ECMAScript执行背景          | 联结到本模块的执行背景                                                                                   |
+| \[\[ImportMeta]]            | Object                      | 通过import.meta方式暴露出来的对象。它是空的，直到被ECMAScript代码访问。                                  |
+| \[\[ImportEntries]]         | ImportEntryRecord组成的List | 本模块代码派生的ImportEntryRecord组成的List                                                              |
+| \[\[LocalExportEntries]]    | ExportEntryRecord组成的List | 本模块代码内声明，从而派生的ExportEntryRecord组成的List。                                                |
+| \[\[IndirectExportEntries]] | ExportEntryRecord组成的List | 本模块代码重新导出引入的内容，或者通过export * as namespect声明的导出，派生的ExportEntryRecord构成的List |
+| \[\[StarExportEntries]]     | ExportEntryRecord组成的List | 本模块代码用export *声明，不包含export * as namespace声明，派生的ExportEntryRecord构成的List                                  |
+ImportEntryRecord是关于单一声明引入的信息的理解记录。每个ImportEntryRecord有
+表45列出的字段。
+表45
+| 字段名              | 值类型 | 含义                                                                                               |
+| \[\[ModuleRequest]] | String | ImportDeclaration的ModuleSpecifier的String值                                                       |
+| \[\[ImportName]]    | String | \[\[ModuleRequest]]标识的模块暴露出的预期绑定的名称。"*"表明这个引入请求是要目标模块的命名空间对象 |
+| \[\[LocalName]]     | String | 在模块本地访问从引入模块引入的值时的名称。                                                               |
+***** 注意1  表46给出了用ImportEntryRecord字段表示import句法形式的例子
+表46
+| import语句形式                | \[\[ModuleRequest]]     | \[\[ImportName]] | \[\[LocalName]] |
+| import v from "mod";          | "mod"                   | "default"        | "v"             |
+| import * as ns from "mod";    | "mod"                   | "*"              | "ns"            |
+| import { x } from "mod";      | "mod"                   | "x"              | "x"             |
+| import { x as v } from "mod"; | "mod"                   | "x"              | "v"             |
+| import "mod"                  | 不创建ImportEntryRecord                                    |
+
+ExportEntryRecord是关于单一声明导出的信息的理解记录。每个ExportEntryRecord有
+表47列出的字段
+表47
+| 字段名              | 值类型       | 含义                                                                                                                                             |
+| \[\[ExportName]]    | String或null | 本模块用于导出其绑定的名称。                                                                                                                     |
+| \[\[ModuleRequest]] | String或null | ExportDeclaration中ModuleSpecifier的字符串值。如果ExportDeclaration没有ModuleSpecifier，则是null                                                 |
+| \[\[ImportName]]    | String或null | \[\[ModuleRequest]]标识的模块暴露出的预期绑定的名称。如果ExportDeclaration没有ModuleSpecifier，则是null。"*"标识这个导出要请求全部的导出的绑定。 |
+| \[\[LocalName]]     | String或null | 在模块本地访问从引入模块导出的值时的名称。如果在这个模块中无法访问导出的值，则是null                                                                                                     |
+***** 注意2 表48给出了用ExportEntryRecord字段表示export句法形式的例子
+表48
+| epxort语句形式                 | \[\[ExportName]] | \[\[ModuleRequest]] | \[\[ImportName]] | \[\[LocalName]] |
+| export var v;                  | "v"              | null                | null             | "v"             |
+| export default function f() {} | "default"        | null                | null             | "f"             |
+| export default function() {}   | "default"        | null                | null             | "default"       |
+| export default 42;             | "default"        | null                | null             | "default"       |
+| export { x };                  | "x"              | null                | null             | "x"             |
+| export { v as x };             | "x"              | null                | null             | "v"             |
+| export { x } from "mod";       | "x"              | "mod"               | "x"              | null            |
+| export { v as x } from "mod";  | "x"              | "mod"               | "v"              | null            |
+| export * from "mod";           | null             | "mod"               | "*"              | null            |
+| export * as ns from "mod";     | "ns"             | "mod"               | "*"              | null            |
+后续的定义规定了SourceTextModuleRecord要求的具体方法和其他抽象操作。
 ***** 16.2.1.6.1 ParseModule(sourceText, realm, hostDefined)
-***** 16.2.1.6.2 GetExportedNames(\[exportStartSet]) Concrete Method
+抽象操作ParseModule接受参数sourceText（ECMAScript源文本），realm和hostDefined。
+基于解析sourceText成Module的结果创建SourceTextModuleRecord。被调用时执行下列
+步骤：
+1. Assert：sourceText是ECMAScript的源文本（见于11章）
+2. 让body是ParseText(sourceText, Module)
+3. 如果body是错误列表，返回body
+4. 让requestedModules是body的ModuleRequests
+5. 让importEntries是body的ImportEntries
+6. 让importedBoundNames是ImportedLocalNames(importEntries)
+7. 让indirectExportEntries是新的空列表
+8. 让localExportEntries是新的空列表
+9. 让starExportEntries是新的空列表
+10. 让exportEntries是body的ExportEntries
+11. 遍历exportEntries的ExportEntryRecord记作ee，做
+    a. 如果ee.\[\[ModuleRequest]]是null，那么
+        i. 如果e.\[\[LocalName]]不是importBoundNames的名称，那么
+            1. 附加ee到localExportEntries
+       ii. 否则
+            1. 让ie是importEntries中其\[\[LocalName]]与ee.\[\[LocalName]]相同的元素
+            2. 如果ie.\[\[ImportName]]是"*"，那么
+                a. 注意：这是将引入模块的命名空间对象重新导出。
+                b. 附加ee到localExportEntries
+            3. 否则
+                a. 注意：这是重新导出单独名称。
+                b. 附加ExportEntryRecord { \[\[ModuleRequest]]:ie.\[\[ModuelRequest]],
+                   \[\[ImportName]]:ie.\[\[ImportName]], \[\[LocalName]]:null,
+                   \[\[ExportName]]:ee.\[\[ExportName]] }到indirectExportEntries。
+    b. 否则如果ee.\[\[ImprotName]]是"*"而且ee.\[\[ExportName]]是null，那么
+        i. 附加ee到startExportEntries
+    c. 否则
+        i. 附加ee到indirectExportEntries
+12. 返回SourceTextModuleRecord { \[\[Realm]]:realm, \[\[Environment]]:undefined,
+    \[\[Namespace]]:undefined, \[\[Status]]:unlinked, \[\[EvaluationError]]:undefined,
+    \[\[HostDefined]]:hostDefined, \[\[ECMAScriptCode]]:body, \[\[Context]]:empty,
+    \[\[ImportMeta]]:empty, \[\[RequestedModules]]:requestedModules,
+    \[\[ImportEntries]]:importEntries, \[\[LocalExportEntries]]:localExportEntries,
+    \[\[IndirectExportEntries]]:indirectExportEntries,
+    \[\[StarExportEntries]]:starExportEntries, \[\[DFSIndex]]:undefined,
+    \[\[DFSAncestorIndex]]:undefined, }
+***** 16.2.1.6.2 GetExportedNames(\[exportStarSet]) Concrete Method
+SourceTextModuleRecord型module的GetExportedNames具体方法接受可选参数
+exportStarSet。被调用时执行步骤：
+1. 如果exportStarSet不存在，置exportStarSet为新的空列表
+2. Assert：exportStarSet是SourceTextModuleRecords的列表
+3. 如果exportStarSet含有module，那么
+    a. Assert：我们到达环形export *的起始点
+    b. 返回新的空列表
+4. 附加module到exportStarSet中
+5. 让exportedNames是新的空列表
+6. 遍历module.\[\[LocalExportEntries]]的ExportEntryRecord记作e，做
+    a. Assert：module为本导出提供了直接绑定
+    b. 附加e.\[\[ExportName]]到exportedNames
+7. 遍历module.\[\[IndirectExportEntries]]的ExportEntryRecord记作e，做
+    a. Assert：module为本导出引入了特定的绑定
+    b. 附加e.\[\[ExportName]]到exportedNames
+8. 遍历module.\[\[StarExportEntries]]的ExportEntryRecord记作e，做
+    a. 让requestedModule是?HostResolveImportedModule(module, e.\[\[ModuleRequest]])
+    b. 让starNames是?requestedModule.GetExportedNames(exportStarSet)
+    c. 遍历startNames的元素记作n，做
+        i. 如果SameValue(n, "default")是false，那么
+            1. 如果n不是exportedNames的元素，那么
+                a. 附加n到exportedNames
+9. 返回exprotedNames
+****** 注意 GetExportedNames不会过滤或者投掷异常由星号导出产生的名称混淆。
 ***** 16.2.1.6.3 ResolveExport(exportName\[, resovleSet]) Concrete Method
+SourceTextModuleRecord型module的ResolveExport具体方法接受参数exportName（String）
+和可选参数resolveSet。
+
+ResolveExport试图将引入的绑定解释为实际定义在其模块上的本地绑定。定义所在
+模块可以是在其上调用此方法用ModuleRecord表示的模块，或者那个模块引入的其他
+模块。参数resolveSet用于侦测未解释的import/export环路。如果由特定ModuleRecord
+和exportName构成的对被放到resolveSet并被到达（什么鬼，不知道怎么翻译。估计
+是eportName和对应ModuleRecord，放到resolveSet中，并被用到），记作一个引入
+环。在调用ResolveExport进行递归解释前，由module和exportName构成的对会放到
+resolveSet中。
+
+如果定义所在模型被找到，返回ResolveBindingRecord { \[\[Module]],
+\[\[BindingName]] }。本记录标识解释处的源初导出，除非这是一个没有本地绑定的
+命名空间的导出。此时，\[\[BindingName]]被置成"*namespace*"。如果没有找到定义，
+或者请求是环形请求，返回null。如果请求是混淆的，返回"ambiguous"。
+
+本具体函数被调用时执行下列步骤：
+1. 如果resolveSet不存在，置resolveSet是新的空列表
+2. Assert：resovleSet是Record { \[\[Module]], \[\[ExportName]] }的列表
+3. 遍历resolveSet的Record { \[\[Module]], \[\[ExportName]] }，记作r，做
+    a. 如果module和r.\[\[Module]]是相同的ModuelRecord，而且SameValue(exportName,
+       r.\[\[ExportName]]是true，那么
+        i. Assert：这是一个循环引入
+       ii. 返回null
+4. 附加 Record { \[\[Module]]: module, \[\[ExportName]]:exportName } 到resovleSet
+5. 遍历module.\[\[LocalExportEntries]]的ExportEntryRecord记作e，做
+    a. 如果SameValue(exportName, e.\[\[ExportName]])是true，那么
+        i. Assert：module提供了本导出的直接绑定。
+       ii. 返回ResolveBindingRecord { \[\[Module]]:module,
+           \[\[BindingName]]:e.\[\[LocalName]] }
+6. 遍历module.\[\[IndirectExportEntries]]的ExportEntryRecord记作e，做
+    a. 如果SameValue(exportName, e.\[\[ExportName]])是true，那么
+        i. 让importedModule是?HostResolveImportedModule(module, e.\[\[ModuleRequest]])
+       ii. 如果e.\[\[ImportName]]是"*"，那么
+            1. Assert：module没有为此导出提供直接绑定
+            2. 返回ResolveBindingRecord { \[\[Module]]: importedModule,
+               \[\[BindingName]]: "*namespace*", }
+      iii. 否则
+            1. Assert：module为此导出引入了特定绑定
+            2. 返回importedMoudle.ResolveExport(e.\[\[ImportName]], resolveSet)
+7. 如果SameValue(exportName, "default")是true，那么
+    a. Assert：本模块没有显示定义一个default导出
+    b. 返回null
+    c. 注意：export * 或者 export * from "mod"不会提供default导出。
+8. 让starResolution是null
+9. 遍历module.\[\[StartExportEntries]]的ExportEntryRecord记作e，做
+    a. 让importedModule是?HostResolveImportedModule(module, e.\[\[ModuleRequest]])
+    b. 让resolution是?importedModule.ResolveExport(exportName, resolveSet)
+    c. 如果resolution是"ambiguous"，返回"ambiguous"
+    d. 如果resolution不是null，那么
+        i. Assert：resolution是ResolvedBindingRecord
+       ii. 如果starResolution是null，置starResolution是resolution
+      iii. 否则
+            1. Assert：多个*引入包含了请求的名称。
+            2. 如果resolution.\[\[Module]]和starResolution.\[\[Module]]是不同的
+               ModuleRecord，或者SameValue(resolution.\[\[BindingName]],
+               starResolution.\[\[BindingName]])是false，返回"ambiguous"
+10. 返回starResolution
 ***** 16.2.1.6.4 InitializeEnvironment() Concrete Method
+SourceTextModuleRecord型module的InitializeEnvironment具体方法不接受参数。被调用时
+执行下列步骤：
+1. 遍历module.\[\[IndirectExportEntries]]的ExportEntryRecord记作e，做
+    a. 让resolution是?module.ResolveExport(e.\[\[ExportName]])
+    b. 如果resolution是null或者"ambiguous"，投掷SyntaxError异常
+    c. Assert：resolution是ResolvedBindingRecord
+2. Assert：module所有导出都已经解释。
+3. 让realm是module.\[\[Realm]]
+4. Assert：realm不是undefined
+5. 让env是NewModuleEnvironment(realm.\[\[GlobalEnv]])
+6. 置module.\[\[Environment]]是env
+7. 遍历module.\[\[ImportEntries]]的ImportEntryRecord记作in，做
+    a. 让importedModule是!HostResolveImportedModule(module, in.\[\[ModuleRequest]])
+    b. 注意：上面的调用不会失败，因为这些模块引入请求是
+       module.\[\[RequestedModule]]的子集，在本算法之前就应解释了。
+    c. 如果in.\[\[ImportName]]是"*"，那么
+        i. 让namespace是?GetModuleNamespace(importedModule)
+       ii. 执行!env.CreateImmutableBinding(in.\[\[LocalName]], true)
+      iii. 调用env.InitializeBinding(in.\[\[LocalName]], namespace)
+    d.
+        i.
+       ii.
+      iii.
+            1.
+            2.
+            3.
+       iv.
+            1.
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
 ***** 16.2.1.6.5 ExecuteModule() Concrete Method
 **** 16.2.1.7 HostResolveImportedModule(referencingScriptOrModule, specifier)
 **** 16.2.1.8 HostImportModuleDynamically(referencingScriptOrModule, specifier, promiseCapability)
