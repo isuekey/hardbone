@@ -14116,51 +14116,556 @@ SourceTextModuleRecord型module的InitializeEnvironment具体方法不接受参�
         i. 让namespace是?GetModuleNamespace(importedModule)
        ii. 执行!env.CreateImmutableBinding(in.\[\[LocalName]], true)
       iii. 调用env.InitializeBinding(in.\[\[LocalName]], namespace)
-    d.
-        i.
-       ii.
-      iii.
-            1.
-            2.
-            3.
-       iv.
-            1.
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
+    d. 否则
+        i. 让resolution是?importedModule.ResolveExport(in.\[\[ExportName]])
+       ii. 如果resolution是null或者"ambiguous"，投掷SyntaxError异常
+      iii. 如果resolution.\[\[BindingName]]是"*namespace*"，那么
+            1. 让namespace是?GetModuleNamespace(resolution.\[\[Module]])
+            2. 执行!env.CreateImmutableBinding(in.\[\[LocalName]], true)
+            3. 调用env.InitializeBinding(in.\[\[LocalName]], namespace)
+       iv. 否则
+            1. 调用env.CreateImportBinding(in.\[\[LocalName]], resolution.\[\[Module]],
+               resolution.\[\[BindingName]])
+8. 让moduleContext是新的ECMAScript代码的执行背景
+9. 置moduleContext的Funtion是null
+10. Assert：module.\[\[Realm]]不是undefined
+11. 置moduleContext的Realm是module.\[\[Realm]]
+12. 置ScriptOrModule的Realm是module
+13. 置VariableEnvironment的Realm是module.\[\[Environment]]
+14. 置LexicalEnvironment的Realm是module.\[\[Environment]]
+15. 置module.\[\[Context]]是moduleContext
+16. 推送moduleContext到执行背景栈，moduleContext目前是运行时执行背景
+17. 让code是module.\[\[ECMAScriptCode]]
+18. 让varDeclarations是code的VarScopedDeclarations
+19. 让declaredVarNames是新的空列表
+20. 遍历varDeclarations的元素记作d，做
+    a. 遍历d的BoundNaems的元素记作dn，做
+        i. 如果dn不是declaredVarNames的元素，那么
+            1. 执行!env.CreateMutableBinding(dn, false)
+            2. 调用env.InitializeBinding(dn, undefined)
+            3. 附加dn到declaredVarNames
+21. 让lexDeclarations是code的LexicallyScopedDeclarations
+22. 遍历lexDeclarations的元素就做d，做
+    a. 遍历d的BoundNaems的元素记作dn，做
+        i. 如果d的IsConstantDeclaration是true，那么
+            1. 执行!env.CreateImmutableBinding(dn, true)
+        i. 否则
+            1. 执行!env.CreateMutableBinding(dn, false)
+        i. 如果d是FunctionDeclaration、GeneratorDeclaration、AsyncFunctionDeclaration
+           或者AsyncGeneratorDeclaration，那么
+            1. 让fo是d带参数env的InstantiateFunctionObject
+            2. 调用env.InitializeBinding(dn, fo)
+23. 从执行背景栈移除moduleContext
+24. 返回NormalCompletion(empty)
 ***** 16.2.1.6.5 ExecuteModule() Concrete Method
+SourceTextModuleRecord型module的ExecuteModule具体方法不接受参数。被调用时执行
+下列步骤：
+1. 挂起运行时执行背景
+2. 让moduleContext是module.\[\[Context]]
+3. 推送moduleContext到执行背景栈，moduleContext目前是运行时执行背景
+4. 让result是评估module.\[\[ECMAScriptCode]]的结果
+5. 挂起moduleContext并从执行背景栈移除moduleContext
+6. 重新启用执行背景栈的顶层背景，作为运行时执行背景
+7. 返回Completion(result)
 **** 16.2.1.7 HostResolveImportedModule(referencingScriptOrModule, specifier)
+主机定义的抽象操作HostResolveImportedModule接受参数referencingScriptOrModule（
+ScriptRecord、ModuleRecord或者null）和specifier（ModuleSpecifier字符串）。它根据
+出现在referencingScriptOrModule表示的脚本或模块的背景里的specifier提供具体的
+ModuleRecord子类。referencingScriptOrModule可能是null，如果这个解释行为发生在
+import()表达式的背景里，在那时也没有活跃脚本或者模块。
+***** 注意 在浏览器主机发生的一个referencingScriptOrMoudle是null的例子。当点击
+            下方代码表示的按钮
+            <button type="button" onlick="import('./foo.js')">Click Import</button>
+            ，在运行import()表达式时，没有活跃脚本或者模块。更广泛的说，在
+            将带有null ScriptOrModule组件的执行背景推送到执行背景栈处，就可能
+            发生上述情况（referencingScriptOrModule是null）。
+HostResolveImportedModule的实现必须遵循随后的要求：
+. 正常返回必须是ModuleRecord的具体类的实例
+. 如果与referencingScriptOrModule和specifier一致的ModuleRecord不存在或者无法创建，
+  必须投掷异常
+. 带着给定referencingScriptOrModule和sepcifier调用本操作，如果能够正常完结，返回
+  的必须是同一个ModuleRecord实例
+
+多个不同的referencingScriptOrModule和specifier对可以映射到相同ModuleRecord实例
+上。实际的映射语法是主机定义的，但是通常在映射过程里会有一部分是正规化
+specifier的过程。常见的正规化过程会包含例如字母大小写折叠和相对路径与路径
+缩写的展开等动作。
 **** 16.2.1.8 HostImportModuleDynamically(referencingScriptOrModule, specifier, promiseCapability)
+主机定义的抽象操作HostImportModuleDynamically接受参数referencingScriptOrModule（
+ScriptRecord、ModuleRecord或者null）、specifier（ModuleSpecifier字符串）和
+promiseCapability（PromiseCapabilityRecord）。它根据出现在referencingScriptOrModule
+表示的脚本或模块的背景里的specifier执行任何必要的安装工作，以使模块可用。
+referencingScriptOrModule可能是null，如果这个解释行为发生在import()表达式的背
+景里。本操作随后执行FinishDynamicImport来完成动态导入过程。
+
+HostImportModuleDynamically实现必须遵循如下要求：
+. 此抽象操作总是以undefined正常完结。成功或者失败必须使用下方的方式标记。
+. 主机环境必须遵循随后其要求
+  成功路径
+    。其后，主机环境必须执行FinishDynmaicImport(referencingScriptOrModule,
+      specifier, promiseCapability, NormalCompletion(undefined))
+    。给定的referencingScriptOrModule和specifier，完成过FinisDynamicImport，
+      再调用HostResolveImportedModule，必须返回正常完结。
+    。给定的referencingScriptOrModule和specifier，完成过FinisDynamicImport，
+      再调用HostResolveImportedModule，返回值必须是已经评估过的模块，也就是说
+      其Evaluated具体方法已经被调用过，且返回了正常完结
+  失败路径
+    。其后，主机环境必须执行FinishDynmaicImport(referencingScriptOrModule,
+      specifier, promiseCapability, AbruptCompletion)，AbruptCompletion表示失败的
+      原因。
+. 如果主机环境从给定的referencingScriptOrModule和specifier给出了成功路径，随后
+  必须总是相同的结果。
+. 本操作不能调用promiseCapability.\[\[Resolve]]或者promiseCapability.\[\[Reject]]，
+  只是将promiseCapability作为可见的标识传递给FinishDynamicImport
+
+实际的过程是主机定义执行的，但是通常会执行必要的I/O操作，让
+HostResolveImportedModule同步接受恰当的ModueRecord，然后调用他的Evaluate具体方
+法。在进行HostResolveImportedModule时，可能需要执行编码正规化。
 **** 16.2.1.9 FinishDynamicImport(referencingScriptOrModule, specifier, promiseCapability, completion)
+抽象操作FinishDynamicImport接受参数referencingScriptOrModule、sepcififer、
+promiseCapabiltiy（PromiseCapabilityRecord）和completion。FinishDynamicImport完成由
+调用import()引起的动态引入过程，本承诺根据completion返回合适的解释或者拒绝。
+它作为HostImportModuleDynamically的一部分被主机环境执行。被调用时执行下列步
+骤：
+1. 如果completion是意外完结，执行!Call(promiseCapability.\[\[Reject]], undefined, <<
+   completion.\[\[Value]] >>)
+2. 否则
+    a. Assert：completion是正常完结，而且completion.\[\[Value]]是undefined
+    b. 让moduleRecord是!HostResolveImportedModule(referencingScriptOrModule, specifier)
+    c. Assert：Evaluate已经在moduleRecord上唤起过，并且成功完结
+    d. 让namespace是GetModuleNamepspace(moduleRecord)
+    e. 如果namespace是意外完结，执行!Call(promiseCapability.\[\[Reject]], undefined,
+       << namespace.\[\[Value]] >> )
+    f. 否则，执行!Call(promiseCapability.\[\[Resolve]], undefined, <<
+       namespace.\[\[Value]] >> )
 **** 16.2.1.10 GetModuleNamespace(module)
+抽象操作GetModuleNamespace接受参数module。查找表示module导出信息的ModuleNamespace
+对象，在第一次请求它时，才创建它，并存储在module.\[\[Namespace]]上，方便以后
+的查找。被调用时执行下列步骤：
+1. Assert：module时ModuleRecord的具体子类的实例
+2. Assert：如果module是CyclicModuleRecord，那么module.\[\[Status]]不是unlinked
+3. 让namespace是module.\[\[Namespace]]
+4. 如果namespace是undefined，那么
+    a. 让exportedNames是?module.GetExportedNames()
+    b. 让unambiguousNames是新的空列表
+    c. 遍历exportedNames的元素记作name，做
+        i. 让resolution是?module.ResolveExport(name)
+       ii. 如果resolution是ResolvedBindingRecord，附加name到unambiguousNames。
+    d. 置namespace是ModuleNamespaceCreate(module, unambiguousNames)
+5. 返回namespace。
+***** 注意 只有在GetModuleNamespace里通过触发HostResolveImportedModule调用，才可能
+            会投掷异常。此处无法解释的名称就简单排除在命名空间之外。它们会在
+            以后导致实际链接错误，除非它们都是星号导出的混淆，而且任何地方
+            都没有显式请求。
 **** 16.2.1.11 Runtime Semantics: Evaluation
+Module : [empty]
+1. 返回NormalCompleion(undefined)
+
+ModuleBody : ModuleItemList
+1. 让resul是评估ModuleItemList的结果
+2. 如果result.\[\[Type]]是normal，而且result.\[\[Value]]是空，那么
+    a. 返回NormalCompletion(undefined)
+3. 返回Completion(result)
+
+ModuleItemList : ModuleItemLit ModuleItem
+1. 让st是评估ModuleItemList的结果
+2. ReturnIfAbrupt(st)
+3. 让s是评估ModuleItem的结果
+4. 返回Completion(UpdateEmpty(s, sl))
+***** 注意 ModuleItemList的值是ModuleItemList最有一个有值码型的值
+ModuleItem : ImportDeclaration
+1. 返回NormalCompletion(empty)
 *** 16.2.2 Imports
+**** Synax
+ImportDeclaration:
+    import ImportClause FromClause ;
+    import ModuleSpecifier ;
+
+ImportClause :
+    ImportedDefaultBinding
+    NameSpaceImport
+    NamedImports
+    ImportedDefaultBinding , NameSpaceImport
+    ImportedDefaultBinding , NamedImports
+
+ImportedDefalutBinding :
+    ImportedBinding
+
+NameSpaceImport : 
+    * as ImportedBinding
+
+NamedImports :
+    { }
+    { ImportsList }
+    { ImportsList , }
+
+FromClause :
+    from ModuleSpecifier
+
+ImportsList :
+    ImportSpecifier
+    ImportsList , ImportSpecifier
+
+ImportSpecifier :
+    ImportedBinding
+    IdentifierName as ImportedBinding
+
+ModuleSpecifier :
+    StringLiteral
+
+ImportedBinding :
+    BindingIdentifier_[~Yield, ~Await]
 **** 16.2.2.1 Static Semantics: Early Errors
+ModuleItem : ImportDeclaration
+. 如果ImportDeclaration的BoundNames里包含任何重复实体，那么有句法错误。
 **** 16.2.2.2 Static Semantics: ImportEntries
+Module : [empty]
+1. 返回新的空列表
+
+ModuleItemList : ModuleItemList ModuleItem
+1. 让entries是ModuleItemList的ImportEntries
+2. 将ModuleItem的ImportEntries的元素依次附加到entries
+3. 返回entries
+
+ModuleItem
+    ExportDeclaration
+    StatementListItem
+1. 返回新的空列表
+
+ImportDeclaration : import ImportClause FromClause ;
+1. 让module是FromClause的ModuleRequests里的唯一元素
+2. 返回ImportClauses带参数module的ImportEntriesFromModule
+
+ImportDeclaration : import ModuleSepcifier ;
+1. 返回新的空列表
 **** 16.2.2.3 Static Semantics: ImportEntriesForModule
+带参数module
+ImportClause : ImportedDefaultBinding , NameSapceImport
+1. 让entries是ImportedDefaultBinding带参数module的ImportEntriesFromModule
+2. 将NameSpaceImport带参数module的ImportEntriesForModule的元素符加到entries
+3. 返回entries
+
+ImportClause : ImportedDefaultBinding , NamedImports
+1. 让entries是ImportedDefaultBinding带参数module的ImportEntriesFromModule
+2. 将NamedImports带参数module的ImportEntriesForModule的元素符加到entries
+3. 返回entries
+
+ImportedDefaultBinding : ImportedBinding
+1. 让localName是ImportedBinding的BoundNames的唯一元素
+2. 让defaultEntry是ImportEntryRecord { \[\[ModuleRequest]]:module,
+   \[\[ImportName]]:"default", \[\[LocalName]]: localName }
+3. 返回 << defaultEntry >>
+
+NameSapceImport : * as ImportedBinding
+1. 让localName是ImportedBinding的字符串值
+2. 让entry是ImportEntryRecord { \[\[ModuleRequest]]:module,
+   \[\[ImportName]]:"*", \[\[LocalName]]: localName }
+3. 返回 << entry >>
+
+NamedImports : { }
+1. 返回新的空列表
+
+ImportsList : ImportsList , ImportSpecifier
+1. 让specs是ImportsList带参数module的ImportEntriesForModule
+2. 将ImportSpecifier带参数module的ImportEntriesForModule的元素符加到entries
+3. 返回specs
+
+ImportSpecifier : ImportedBinding
+1. 让localName是ImportedBinding的BoundNames的唯一元素
+2. 让entry是ImportEntryRecord { \[\[ModuleRequest]]:module,
+   \[\[ImportName]]: localName, \[\[LocalName]]: localName }
+3. 返回 << entry >>
+
+ImportSpecifier : IdentifierName as ImportedBinding
+1. 让importName是IdentifierName的字符串值
+2. 让localName是ImportedBinding的字符串值
+3. 让entry是ImportEntryRecord { \[\[ModuleRequest]]:module,
+   \[\[ImportName]]: importName, \[\[LocalName]]: localName }
+4. 返回 << entry >>
 *** 16.2.3 Exports
+**** Syntax
+ExportDeclaration :
+    export ExportFromClause FromClause ;
+    export NamedExports ;
+    export VariableStatement_[~Yield, ~Await]
+    export Declaration_[~Yield, ~Await]
+    export default HoistableDeclaration_[~Yield, ~Await, +Default]
+    export default ClassDeclaration_[~Yield, ~Await, +Default]
+    export default [lookahead ∉ { function , async [no LineTerminator here]
+        function , class }] AssignmentExpression_[+In, ~Yield, ~Await] ;
+ExportFromClause :
+    *
+    * as IdentifierName
+    NamedExports
+NamedExports :
+    { }
+    { ExportsList }
+    { ExportsList , }
+ExportsList :
+    ExportSpecifier
+    ExportsList , ExportSpecifier
+ExportSepcifier
+    IdentifierName
+    IdentifierName as IdentifierName
 **** 16.2.3.1 Static Semantics: Early Errors
+ExportDeclaration : export NamedExports ;
+. 遍历NamedExports的ReferencedBindings里IdentifierName记作n：如果n的字符串值是
+  某个ReservedWord，或者是"implements"、"interface"、"let"、"package"、"private"、
+  "protected"、"public"或"static"，那么有句法错误。
+***** 注意 上述规则意味着NamedExports的ReferencedBindings的每个元素都被看作是
+            IdentifierReference
 **** 16.2.3.2 Static Semantics: ExportedBindings
+***** 注意 ExportedBindings是与Module的ExprotedNames显示联结的本地绑定的名称。
+ModuleItemList : ModuleItemList ModuleItem
+1. 让names是ModuleItemList的ExportedBindings
+2. 将ModuleItem的ExportedBindings的元素符加到names
+3. 返回names
+
+ModuleItem :
+    ImportDeclaration
+    StatementListItem
+1. 返回新的空列表
+
+ExportDeclaration :
+    export ExportFromClause FromClause ;
+1. 返回新的空列表
+
+ExportDeclaration : export NamedExpors ;
+1. 返回NamedExports的ExportedBindings
+
+ExportDeclaration : export VariableStatement
+1. 返回VariableStatement的BoundNames
+
+ExportDeclaration : export Declaration
+1. 返回Declaration的BoundNames
+
+ExportDeclaration :
+    export default HoistableDeclaration
+    export default ClassDeclaration
+    export default AssignmentExpression ;
+1. 返回本ExportDeclaration的BoundNames
+
+NamedExports : { }
+1. 返回新的空列表
+
+ExportsList : ExportsList , ExportSepecifier
+1. 让names是ExportList的ExportedBindings
+2. 将ExportSpecifier的ExportedBindings的元素符加到names
+3. 返回names
+
+ExportSpecifier : IdentifierName
+1. 返回<< IdentifierName的String值 >>
+
+ExportSpecifier : IdentifierName as IdentifierName
+1. 返回<< 第一个IdentifierName的String值 >>
 **** 16.2.3.3 Static Semantics: ExportedNames
+***** 注意 ExportedNames是Module显式地将本地绑定暴露给外部的名字。
+ModuleItemList : ModuleItemList ModuleItem
+1. 让names是ModuleItemList的ExportedNames
+2. 将ModuleItem的ExportedNames的元素符加到names
+3. 返回names
+
+ModuleItem : ExportDeclaration
+1. 返回ExportDeclaration的ExportedNames
+
+ModuleItem :
+    ImportDeclaration
+    StatementListItem
+1. 返回新的空列表
+
+ExportDeclaration : export ExportFromClause FromClause ;
+1. 返回ExportFromClause的ExportedNames
+
+ExportFromClause : *
+1. 返回新的空列表
+
+ExportFromClause : * as IdentifierName
+1. 返回 << IdentifierName字符串值 >>
+
+ExportFromClause : NamedExports
+1. 返回NamedExports的ExportedNames
+
+ExportDeclaration : export VariableStatement
+1. 返回VariableStatement的BoundNames
+
+ExportDeclaration : export Declaration
+1. 返回Declaration的BoundNames
+
+ExportDeclaration :
+    export default HoistableDeclaration
+    export default ClassDeclaration
+    export default AssignmentExpression ;
+1. 返回 << "default" >>
+
+NamedExports : { }
+1. 返回新的空列表
+
+ExportsList : ExportsList , ExportSepecifier
+1. 让names是ExportList的ExportedNames
+2. 将ExportSpecifier的ExportedNames的元素符加到names
+3. 返回names
+
+ExportSpecifier : IdentifierName
+1. 返回<< IdentifierName的String值 >>
+
+ExportSpecifier : IdentifierName as IdentifierName
+1. 返回<< 第二个IdentifierName的String值 >>
 **** 16.2.3.4 Static Semantics: ExportEntries
+Module : [empty]
+1. 返回新的空列表
+
+ModuleItemList : ModuleItemList ModuleItem
+1. 让entries是ModuleItemList的ExportEntries
+2. 将ModuleItem的ExportEntries的元素依次附加到entries
+3. 返回entries
+
+ModuleItem
+    ExportDeclaration
+    StatementListItem
+1. 返回新的空列表
+
+ExportDeclaration : export ExportFromClause FromClause ;
+1. 让moudle是FromClause的ModuleRequests的唯一元素
+2. 返回ExportFromClause带参数module的ExportEntriesForModule
+
+ExportDeclaratin : epxort NamedExports ;
+1. 返回NamedExports带参数module的ExportEntriesForModule
+
+ExportDeclaratin : epxort VariableStatement
+1. 让entries是新的空列表
+2. 让names是VariableStatement的BoundNames
+3. 遍历names元素记作name,做
+    a. 附加ExportEntryRecord { \[\[ModuleRequest]]:null, \[\[ImportName]]: null,
+       \[\[LocalName]]:name, \[\[ExportName]]:name }到entries
+4. 返回entries
+
+ExportDeclaration : export Declaration
+1. 让entries是新的空列表
+2. 让names是Declaration的BoundNames
+3. 遍历names元素记作name,做
+    a. 附加ExportEntryRecord { \[\[ModuleRequest]]:null, \[\[ImportName]]: null,
+       \[\[LocalName]]:name, \[\[ExportName]]:name }到entries
+4. 返回entries
+
+ExportDeclaration : export default HoistableDeclaration
+1. 让names是HoistableDeclaration的BoundNames
+2. 让localName是names中的唯一元素
+3. 返回<< ExportEntryRecord { \[\[ModuleRequest]]:null, \[\[ImportName]]: null,
+       \[\[LocalName]]: localName, \[\[ExportName]]:"default" } >>
+
+ExportDeclaration : export default ClassDeclaration
+1. 让names是ClassDeclaration的BoundNames
+2. 让localName是names中的唯一元素
+3. 返回<< ExportEntryRecord { \[\[ModuleRequest]]:null, \[\[ImportName]]: null,
+       \[\[LocalName]]: localName, \[\[ExportName]]:"default" } >>
+
+ExportDeclaration : export default AssignmentExpression
+1. 让entry是 ExportEntryRecord { \[\[ModuleRequest]]:null, \[\[ImportName]]: null,
+       \[\[LocalName]]: "*default*", \[\[ExportName]]:"default" } 
+2. << entry >>
+***** 注意 "*default*"是本规范用于识别匿名导出值的合成名称。
 **** 16.2.3.5 Static Semantics: ExportEntriesForModule
+带参数module
+ExportFromClause : *
+1. 让entry是ExportEntryRecord  { \[\[ModuleRequest]]:module, \[\[ImportName]]: "*",
+       \[\[LocalName]]: null, \[\[ExportName]]:null }
+2. 返回 << entry >>
+
+ExportFromClause : * as IdentifierName
+1. 让exportName是IdentifierName的字符串值
+2. 让entry是ExportEntryRecord { \[\[ModuleRequest]]:module, \[\[ImportName]]: "*",
+       \[\[LocalName]]: null, \[\[ExportName]]: exportName }
+3. 返回 << entry >>
+
+NamedExports :  { }
+1. 返回新的空列表
+
+ExportsList : ExportsList , ExportSepcifier
+1. 让specs是ExportList带参数module的ExportEntriesForModule
+2. 将ExportSpecifier带参数module的ExportEntriesForModule的元素依次附加到entries
+3. 返回specs
+
+ExportSpecifier : IdentifierName
+1. 让sourceName是IdentifierName的字符串值
+2. 如果module是null，那么
+    a. 让localName是sourceName
+    b. 让importName是null
+3. 否则
+    a. 让localName是null
+    b. 让importName是sourceName
+4. 返回 << ExportEntryRecord { \[\[ModuleRequest]]:module, \[\[ImportName]]: importName,
+       \[\[LocalName]]: localName, \[\[ExportName]]: sourceName } >>
+
+ExportSpecifier : IdentifierName as IdentifierName
+1. 让sourceName是第一个IdentifierName的字符串值
+2. 让exportName是第二个IdentifierName的字符串值
+3. 如果module是null，那么
+    a. 让localName是sourceName
+    b. 让importName是null
+4. 否则
+    a. 让localName是null
+    b. 让importName是sourceName
+5. 返回 << ExportEntryRecord { \[\[ModuleRequest]]:module, \[\[ImportName]]: importName,
+       \[\[LocalName]]: localName, \[\[ExportName]]: exportName } >>
 **** 16.2.3.6 Static Semantics: ReferencedBindings
+NamedExports : { }
+1. 返回新的空列表
+
+ExportsList : ExportsList , ExportSpecifier
+1. 让names是ExportList的ReferencedBindings
+2. 将ExportSpecifier的ReferencedBindings的元素符加到names
+3. 返回names
+
+ExportSpecifier : IdentifierName
+1. 返回 << IdentifierName >>
+
+ExportSpecifier : IdentifierName as IdentifierName
+1. 返回 << 第一个IdentifierName >>
 **** 16.2.3.7 Runtime Semantics: Evaluation
+ExportDeclaration :
+    export ExportNameClause FromClause ;
+    export NamedExports ;
+1. 返回NormalCompletion(empty)
+
+ExportDeclaration : export VariableStatement
+1. 返回评估VariableStatement的结果
+
+ExportDeclaration : export Declaration
+1. 返回评估Declaration的结果
+
+ExportDeclaration : export default HoistableDeclaration
+1. 返回评估HoistableDeclaration的结果
+    
+ExportDeclaration : export default ClassDeclaration
+1. 让value是ClassDeclaration的?BindingClassDeclarationEvaluation
+2. 让className是ClassDeclaration的BoundNames里的唯一元素
+3. 如果className是default，那么
+    a. 让env是运行时执行背景的LexicalEnvironment
+    b. 执行?InitializeBoundName("*default*", value, env)
+4. 返回NormalCompletion(emtpy)
+
+ExportDeclaration : export default AssignmentExpression ;
+1. 如果IsAnonymousFunctionDefinition(AssignmentExpression)是true，那么
+    a. 让value是AssignmentExpression上带参数"default"的?NamedEvaluation
+2. 否则
+    a. 让rhs是评估AssignmentExpression的结果
+    b. 让value是?GetValue(rhs)
+3. 让env是运行时执行背景的LexicalEnvironment
+4. 执行?InitializeBoundName("*default*", value, env)
+5. 返回NormalCompletion(emtpy)
 * 17 Error Handling and Language Extensions
+实现在ECMAScript语言结构被评估的是后，必须报告最多的错误信息。EarlyError是
+那些包含在Script结构里，在评估前，能够侦测和报告的错误。存在EarlyError，
+将会阻止结构的评估。实现必须将报告EarlyError作为以ParseScript解析Script的环
+节。在Module中的EarlyError是在Module将被评估时报告，若有则Module不会被初始
+化。在eval代码中的EarlyError是在被调用eval时才报告，并阻止评估eval代码。其他
+不是EarlyError的错误都是运行时错误。
+
+实现必须报告在本规范值中" Static Semantics : Early Errors "子条目里指出的早期
+错误。
+
+实现不能像早期错误一样的对待其他错误。
+
 * 18 ECMAScript STandard Built-in Objects
 * 19 The Global Object
 * 20 Fundamental Objects
