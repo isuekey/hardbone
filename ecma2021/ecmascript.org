@@ -14664,9 +14664,51 @@ ExportDeclaration : export default AssignmentExpression ;
 实现必须报告在本规范值中" Static Semantics : Early Errors "子条目里指出的早期
 错误。
 
-实现不能像早期错误一样的对待其他错误。
+实现不能像早期错误一样的对待其他错误，即使编译器能证明某个结构无法在某个
+情况下无错的执行。实现可以在这种情况下发出警告，除非相应结构真的被执行了，
+不然不能报告错误。
 
-* 18 ECMAScript STandard Built-in Objects
+除了随后的内容，实现应该报告规定内的全部错误：
+. 除在17.1限制的，主机或者实现可以扩展Script、Module或者正则表达式的语句。
+  因此，所有应投掷SyntaxError错误的操作（包括eval，使用正则文法，
+  或者是Funciton或RegExp构造范），在遇到是主机定义的脚本语句或者正则表达式
+  语句时，可以替换为展示主机定义的行为，而不是投掷SyntaxError异常。
+. 除在17.1限制的，主机或者实现可以提供额外的超出本规范描述的类型、值、
+  对象、性质和函数。这会导致结构（比如在全局圈查找某个变量）拥有主机定义
+  的行为，而不是投掷错误（比如ReferenceError）
+** 17.1 Forbidden Extensions
+任何实现不能随后列出的方式扩展本规范
+. 在严格模式代下，使用构造句法定义的ECMAScript函数对象，不能被创建caller和
+  arguments自有性质。无论是否在严格模式代码，这两个自有性质也不能在被
+  ArrowFunction、MethodDefinition、GeneratorDeclaration、GeneratorExpression、
+  AsyncGeneratorDeclaration、AsyncGeneratorExpression、ClassDeclaration、
+  ClassExpression、AsyncFunctionDeclaration、AsyncFunctionExpression或者
+  AsyncArrowFunction定义的函数对象上创建。内建函数、使用Function构造范创建
+  的严格函数、用Generator构造范创建的生成器函数、使用AysncFunction构造范创建
+  的异步函数和使用bind方法创建的函数也同样不可以创建这两个自有性质。
+. 如果实现扩展函数对象，使其有caller自有性质，而且使用\[\[Get]]或者
+  \[\[GetOwnProperty]]能观察到，绝对不能是严格函数对象。如果它是访问性质，
+  此性质\[\[Get]]属性值对应的函数在被调用时，绝对不能返回严格函数。
+. 无论是映射的还是非映射的参数对象都可以被创建caller自有性质。
+. 在ECMA-402中规定的内建方法的行为，比如toLocaleString，只能按照ECMA-402规定
+  的进行扩展
+. 22.2.1和B.1.4中的正则表达式语法不能扩展为：存在_[U]语法参数时将A-Za-Z字符
+  识别为IdentityEscape_[+U]
+. SyntacticGrammer不能以任何方式扩展为：允许符号:紧随在BindingIdentifier非终结符
+  匹配的源文本后
+. 在处理严格模式代码时，NumericLiteral语句绝对不能被扩展为包含
+  LagacyOctalIntegerLiteral，DecimalIntegerLiteral语句绝对不能被扩展为包含在
+  B.1.1中定义的NonOctalDecimalIntegerLiteral
+. TemplateCharacter决定不能被扩展为包含在B.1.2中定义的LegacyOctalEscapeSequence
+  或者NonOctalDecimalEscapeSequence
+. 在处理严格模式时，定义在B.3.2、B.3.3、B.3.4或者B.3.6的扩展内容，绝对不能
+  被支持。
+. 在以Module为目标符进行解析时，定义在B.1.3中的扩展词法绝对不能被支持。
+. ImportCall绝对不能被扩展。
+* 18 ECMAScript Standard Built-in Objects
+在ECMAScript的Script或者Module开始执行时，有些特定内建对象是可用的。其一是
+全局对象，是执行程序的全局环境的一部分。其二是作为全局对象上可访问的初始
+性质或者间接的作为可访问内建对象的性质。
 * 19 The Global Object
 * 20 Fundamental Objects
 * 25
