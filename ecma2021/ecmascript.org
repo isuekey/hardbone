@@ -14709,7 +14709,79 @@ ExportDeclaration : export default AssignmentExpression ;
 在ECMAScript的Script或者Module开始执行时，有些特定内建对象是可用的。其一是
 全局对象，是执行程序的全局环境的一部分。其二是作为全局对象上可访问的初始
 性质或者间接的作为可访问内建对象的性质。
+
+除非另有规定，一个内建对象像函数一样可调用，就是一个带有10.3描述的特质的
+内建函数对象。除非另有规定，内建对象的\[\[Extensible]]内部占位初始化为true。
+每个内建对象都有一个\[\[Realm]]内部占位，其值是对象最初创建时所在领的
+RealmRecord。
+
+很多内建对象是函数，可以被带参数调用。有些更是构造范：它们是可以用new操作
+符的函数。针对每个内建函数，本规范描述了函数需要的参数和函数带有的性质。
+针对每个构造范，本规范还描述了构造范原型的性质和用new表达式调用构造范时
+返回的对象的性质。
+
+除非本规范针对特定函数另有说明，如果内建函数或者构造范拿到的参数个数少于
+规定需要的数量，函数或者构造范应该认为给足了剩余参数，只是这些参数的值是
+undefined。这些缺失的参数被描述为不存在，并用规范算法进行标识。在特定函数的
+描述里，术语"this value"和"NewTarget"按照10.3中规定的含义。
+
+除非本规范针对特定函数另有说明，如果内建函数或者构造范拿到的参数个数多于
+规定需要的数量，额外的参数会被评估然后被函数忽略。然而，实现会有独特的行为
+来处理这些额外参数，比如不回投掷发生在这些额外参数上的TypeError。
+** 注意1 实现在添加额外能力到内建函数集时，一般是鼓励增加新函数，而不是
+          在已有函数上增加参数。
+除非另有规定每个内建函数或构造范都有Function原型对象（20.2.3描述的
+Function.prototype表达式的初始值）作为\[\[Porotype]]内部占位的值。
+
+除非另有规定，每个内建原型对象都用Object原型对象，即20.1.3描述的
+Object.prototype表达式的初始值，做为\[\[Prototype]]内部占位的值，除了Object原型
+对象自身。
+
+没有实现\[\[Constructor]]内部占位的内建函数不被认作构造范，除非在特定函数的
+描述里有特殊规定。
+
+本规范内建函数通过调用CreateBuiltinFunction抽象操作（10.3.3）来创建。参数
+length和name是后面讨论的"length"和"name"性质的初始值。
+
+每个内建函数对象，包括构造范，有"length"性质，其值是一个非负数字。除非另有
+规定，这个值与函数子条款描述的参数数量一致。可选参数和剩余参数不参与计数。
+** 注意2 比如Array原型对象上的"map"性质的初始化值的函数对象，使用子条款
+          \<\<Array.prototype.map(callbackFn[,thisArg])>>描述，表明其接受两个名称化
+          参数callbackFn和thisArg，后一个是可选的。因此这个函数的"length"性质
+          的值是1_F。
+除非另有规定，内建函数对象的"length"的属性是{ \[\[Writable]]:false,
+\[\[Enumerable]]:false, \[\[Configurable]]:true }
+
+每个内建函数，包括构造范，有"name"性质，其值是字符串。除非另有规定，其值
+是本规范给此函数的名称。被标识为匿名函数的函数其"name"性质的值是空字符串。
+作为对象性质值的函数，其值是访问此函数的字符串性质键的字符串值。被规定为
+内建性质的get或set访问函数的函数在调用CreateBuiltinFunction对应有"get"或"set"
+传递给prefix参数。
+
+对于性质键是Symbol值的内建函数，"name"性质值是显示规定的。如果这个函数显示
+规定以"get"或"set"为前缀，而且被规定为某内建性质的get或set访问函数，在调用
+CreateBuiltinFunction时，其不带前缀的值传递给name参数，"get"或"set"对应作为
+prefix参数值。
+
+除非另有规定，内建函数对象的"name"性质有属性是 { \[\[Writable]]: false,
+\[\[Enumerable]]:false, \[\[Configurable]]: true }
+
+除非另有规定，在章节19到章节28和符录B.2中描述的数据性质有属性
+{ \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]: true }。
+
+除非另有规定，在章节19到章节28和符录B.2中描述的访问性质有属性
+{ \[\[Enumerable]]:false, \[\[Configurable]]: true }。如果只描述了get访问函数，那么
+set访问函数是默认值undefined。如果只描述了set访问函数，那么get访问函数是默认
+值undefined。
 * 19 The Global Object
+全局对象：
+. 在进入任何执行背景前创建。
+. 没有\[\[Constructor]]内部方法，不能当作构造范使用new操作符。
+. 没有\[\[Call]]内部方法，不能当函数调用。
+. 有\[\[Prototype]]内部占位，有主机定义其值。
+. 可以在本规范定义的性质外由主机定义性质。可以让全局对象的某个性质的值
+  是全局对象自身。
+** 19.1 Value Properties of the Global Object
 * 20 Fundamental Objects
 * 25
 ** 25.1
