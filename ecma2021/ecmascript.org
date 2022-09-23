@@ -14778,11 +14778,334 @@ set访问函数是默认值undefined。如果只描述了set访问函数，那�
 . 在进入任何执行背景前创建。
 . 没有\[\[Constructor]]内部方法，不能当作构造范使用new操作符。
 . 没有\[\[Call]]内部方法，不能当函数调用。
-. 有\[\[Prototype]]内部占位，有主机定义其值。
+. 有\[\[Prototype]]内部占位，由主机定义其值。
 . 可以在本规范定义的性质外由主机定义性质。可以让全局对象的某个性质的值
   是全局对象自身。
 ** 19.1 Value Properties of the Global Object
+*** 19.1.1 globalThis
+在RealmRecord型realm里的globalObject的globalThis性质的初始值是
+realm.\[\[GlobalEnv]].\[\[GlobalThisValue]]
+
+这个性质有属性 { \[\[Writable]]:true, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
+*** 19.1.2 Infinity
+Infinity的值是+∞_F（见于6.1.6.1）。这个性质有数项 { \[\[Writable]]:false,
+\[\[Enumerable]]:false, \[\[Configurable]]:false }
+*** 19.1.3 NaN
+NaN的值是NaN（见于6.1.6.1）。这个性质有数项 { \[\[Writable]]:false,
+\[\[Enumerable]]:false, \[\[Configurable]]:false }
+*** 19.1.4 undefined
+undefined的值是undefined（见于6.1.1）。这个性质有数项 { \[\[Writable]]:false,
+\[\[Enumerable]]:false, \[\[Configurable]]:false }
+** 19.2 Function Properties of the Global Object
+*** 19.2.1 eval(x)
+eval函数就是%eval%内在对象。当带参数x调用eval函数时，执行下列步骤：
+1. Assert：执行背景栈至少有两个元素。
+2. 让callerContext是执行背景栈的第二顶部元素
+3. 让callerRealm是callerContext的RealmRecord
+4. 返回?PerformEval(x, callerRealm, false, false)
+**** 19.2.1.1 PerformEval(x, callerRealm, strictCaller, direct)
+抽象操作PerformEval接受参数x、callerRealm、strictCaller和direct。被调用时执行
+下列步骤：
+1. Assert：如果direct是false，那么strictCaller也一定是false。
+2. 如果Type(x)不是String，返回x
+3. 让evalRealm是当前RealmRecord
+4. 执行?HostEnsureCanCompileStrings(callerRealm, evalRealm)
+5. 让inFunction是false
+6. 让inMethod是false
+7. 让inDerivedConstructor是false
+8. 如果direct是true，那么
+    a. 让thisEnvRec是!GetThisEnvironment()
+    b. 如果thisEnvRec是函数环境记录，那么
+        i. 让F是thisEnvRec.\[\[FunctionObject]]
+       ii. 置inFunction是true
+      iii. 置inMethod是thisEnvRec.HasSuperBinding()
+       iv. 如果F.\[\[ContructorKind]]是derived，置inDerivedConstructor是true
+9. 按照主机定义的顺序执行子步骤，可以是解析源码和检测错误交替进行
+    a. 让script是ParseText(!StringToCodePoint(x), Script)
+    b. 如果script是错误列表，投掷SyntaxError异常
+    c. 如果script含有ScriptBody是false，返回undefined
+    d. 让body是script的ScriptBody
+    e. 如果inFucntion是false，而且body含有NewTarget，投掷SyntaxError异常
+    f. 如果inMethod是false，而且body含有SuperProperty，投掷SyntaxError异常
+    g. 如果inDerivedConstructor是false，而且body含有SuperCall，投掷SyntaxError异常
+10. 如果strictCaller是true，让strictEval是true
+11. 否则让strictEval是script的IsStrict
+12. 让runningContext是运行时执行背景
+13. 注意：如果direct是true，runningContext是运行diretEval的执行背景。如果direct
+    是false，runningContext会是调用eval函数时的执行背景。
+14. 如果direct是true，
+    a. 让lexEnv是NewDeclarativeEnvironment(runningContext的LexicalEnvironment)
+    b. 让varEnv是runningContext的VariableEnvironment
+15. 否则
+    a. 让lexEnv是NewDeclarativeEnvironment(evalRealm.\[\[GlobalEnv]])
+    b. 让varEnv是evalRealm.\[\[GlobalEnv]]
+16. 如果strictEval是true，置varEnv是lexEnv
+17. 如果runningContext没有被挂起，挂起runningContext
+18. 让evalContext是新的ECMAScript执行背景
+19. 置evalContext的Function是null
+20. 置evalContext的Realm是evalRealm
+21. 置evalContext的ScriptOrModule是runningContext的ScriptOrModule
+22. 置evalContext的VariableEnvironment是varEnv
+23. 置evalContext的LexicalEnvironment是lexEnv
+24. 将evalContext推送到执行背景栈。evalContext现在是运行时执行背景
+25. 让result是EvalDeclarationInstantiation(body, varEnv, lexEnv, strictEval)
+26. 如果reuslt.\[\[Type]]是normal，那么
+    a. 置result是评估body的结果
+27. 如果result.\[\[Type]]是normal，而且result.\[\[Value]]是空，那么
+    a. 置result是NormalCompletion(undefined)
+28. 挂起evalContext，将其从执行背景栈中移除
+29. 恢复执行背景栈中的顶部元素做为运行时执行背景
+30. 返回Completion(result)
+***** 注意 如果调用背景是在评估形式参数初始化，或者调用背景的代码是严格
+            模式，或者eval代码是严格模式，那么eval代码无法在调用eval的
+            调用背景里变量环境里实例化变量和函数绑定。那些绑定会在新的
+            VariableEnvironment里实例化，而且只能被eval代码访问。用lex、const
+            和class声明的绑定总是在新的LexicalEnvironment里实例化。
+**** 19.2.1.2 HostEnsureCanCompileStrings(callerRealm, calleeRealm)
+主机定义的抽象操作HostEnsureCanCompileStrings接受参数callerRealm（RealmRecord）
+和calleeRealm（RealmRecord）。允许主机环境阻塞某些让开发者编译ECMAScript代码
+的ECMAScript函数。
+
+HostEnsureCanCompileStrings实现可以常规完结或者意外完结。任何意外完结会被
+传播给它的调用者。HostEnsureCanCompileStrings的默认实现是无条件返回一个空
+的常规完结。
+**** 19.2.1.3 EvalDeclaratinInstantiation(body, varEnv, lexEnv, strict)
+抽象操作EvalDeclarationInstantiation接受参数body、varEnv、lexEnv和strict。被调用时
+执行下列步骤：
+1. 让varNames是body的VarDelcaredNames
+2. 让varDeclarations是body的VarScopedDeclarations
+3. 如果strict是false，那么
+    a. 如果varEnv是全局环境记录，那么
+        i. 遍历varNames的元素记作name，做
+            1. 如果varEnv.HasLexicalDeclaration(name)是true，投掷SyntaxError异常
+            2. 注意：eval不会创建被全局词法声明覆盖的全局var声明
+    b. 让thisEnv是lexEnv
+    c. Assert：随后的循环必定能结束
+    d. 当thisEnv与varEnv不相同时，重复
+        i. 如果thisEnv不是对象环境记录，那么
+            1. 注意：with语句的环境不能含有任何词法声明，所以不需要检查
+               var/let混淆。
+            2. 遍历varNames的元素记作name，做
+                a. 如果thisEnv.HasBinding(name)是true，那么
+                    i. 投掷SyntaxError异常
+                   ii. 注意符录B.3.5对上述步骤备选语义
+                b. 注意：直接eval不会提升var声明到同名词法声明之上。
+       ii. 置thisEnv是thisEnv.\[\[OuterEnv]]
+4. 让functionsToInitialize是新的空列表
+5. 让declaredFunctionNames是新的空列表
+6. 按照逆序遍历varDeclaraions的元素记作d
+    a. 如果d不是VariableDeclaration、ForBinding或者BindingIdentifier，那么
+        i. Assert：d是FunctionDeclaration、GeneratorDeclaration、
+           AsyncFunctionDeclaration或者AsyncGeneratorDeclaration
+       ii. 注意：如果有多个相同名称的函数声明，最后一个生效
+      iii. 让fn是d的BoundNames里的那个唯一元素
+       iv. 如果fn不是declaredFunctionNames的元素，那么
+            1. 如果varEnv是全局环境记录那么
+                a. 让fnDefinable是?varEnv.CanDeclareGlobalFunction(fn)
+                b. 如果fnDefinable是false，投掷TypeError异常
+            2. 附加fn到declaredFunctionNames的末端
+            3. 将d插入functionsToInitialize的首端
+7. 注意：符录B.3.33在此处增加了算法步骤
+8. 让declaredVarNames是新的空列表
+9. 遍历varDeclarations的元素，做
+    a. 如果d是VariableDeclaration、ForBinding或者BindingIdentifier，那么
+        i. 遍历d的BoundNames的字符串值vn，做
+            1. 如果vn不是declaredFunctionNames的元素，那么
+                a. 如果varEnv是全局环境，那么
+                    i. 让vnDefinable是?varEnv.CanDeclareGlobal(vn)
+                   ii. 如果vnDefinable是false，投掷TypeError异常
+                b. 如果vn不是declaredVarNames的元素，那么
+                    i. 附加vn大量declaredVarNames
+10. 除非varEnv是全局环境记录，而且全局对象是代理奇异对象，否则后续算法不会
+    意外完结。
+11. 让lexDeclaration是body的LexicallyScopedDeclarations
+12. 遍历lexDeclaration的元素记作d，做
+    a. 注意：词法声明的名称只是实例化，并不初始化。
+    b. 遍历d的BoundNames的元素记作dn，做
+        i. 如果d的IsConstantDeclaration是true，那么
+            1. 执行?lexEnv.CreateImmutableBinding(dn, true)
+       ii. 否则
+            1. 执行?lexEnv.CreateMutableBinding(dn, false)
+13. 遍历functionsToInitialized的ParseNode记作f，做
+    a. 让fn是f的BoundNames中的唯一元素
+    b. 让fo是f上带参数lexEnv的InstantiageFunctionObject
+    c. 如果varEnv是全局环境记录，那么
+        i. 执行?varEnv.CreateGlobalFunctionBinding(fn, fo, true)
+    d. 否则
+        i. 让bindingExists是varEnv.HasBinding(fn)
+       ii. 如果bindingExists是false，那么
+            1. 让status是!varEnv.CreateMutableBinding(fn, true)
+            2. Assert：因为步骤10之前的校验，status不会是意外完结。
+            3. 执行!varEnv.InitializeBinding(fn, fo, false)
+      iii. 否则
+            1. 执行!varEnv.SetMutableBinding(fn, fo, false)
+14. 遍历declaredVarNames中的字符串记作vn，做
+    a. 如果varEnv是全局环境记录，那么
+        i. 执行?varEnv.CreateGlobalVarBinding(vn, true)
+    b. 否则
+        i. 让bindingExists是varEnv.HasBinding(vn)
+       ii. 如果bindingExists是false，那么
+            1. 让status是!varEnv.CreateMutableBinding(vn, true)
+            2. Assert：因为步骤10之前的校验，status不会是意外完结。
+            3. 执行!varEnv.InitializeBinding(vn, undefined)
+15. 返回NormalCompletion(empty)
+***** 注意 在符录B.3.5中有备选版本的算法。
+*** 19.2.2 isFinite( number )
+isFinite函数是%isFinite%内在对象。当isFinite函数被带参数number调用时，执行
+下列步骤：
+1. 让num是?ToNumber(number)
+2. 如果num是NaN、+∞_F或者-∞_F，返回false。
+3. 其他情况返回true
+*** 19.2.3 isNaN( number )
+isNaN函数是%isNaN%内在对象。当isNaN函数被带参数number调用时，执行
+下列步骤：
+1. 让num是?ToNumber(number)
+2. 如果num是NaN，返回true
+3. 其他情况返回false
+**** 注意 ECMAScript代码有可靠的表达式 X !== X 检查X是否是NaN。有且只有X是
+           NaN，表达式结果才是true
+*** 19.2.4 parseFloat(string)
+*** 19.2.5 parseInt(string, radix)
+*** 19.2.6
+**** 19.2.6.1
+**** 19.2.6.2
+**** 19.2.6.3
+**** 19.2.6.4
+**** 19.2.6.5
+** 19.3 Constructor Properties of the Global Object
+*** 19.3.1 Array(...)
+见于23.1.1
+*** 19.3.2 ArrayBuffer(...)
+见于25.1.3
+*** 19.3.3 BigInt(...)
+见于23.2.1
+*** 19.3.4 BigIntArray(...)
+见于23.2.5
+*** 19.3.5 BigUint64Array(...)
+见于23.2.5
+*** 19.3.6 Boolean(...)
+见于20.3.1
+*** 19.3.7 DataView(...)
+见于25.3.2
+*** 19.3.8 Date(...)
+见于21.4.2
+*** 19.3.9 Error(...)
+见于20.5.1
+*** 19.3.10 EvalError(...)
+见于20.5.5.1
+*** 19.3.11 FinalizationRegistry(...)
+见于26.2.1
+*** 19.3.12 Float32Array(...)
+见于23.2.5
+*** 19.3.13 Float64Array(...)
+见于23.2.5
+*** 19.3.14 Function(...)
+见于20.2.1
+*** 19.3.15 Int8Array(...)
+见于23.2.5
+*** 19.3.16 Int16Array(...)
+见于23.2.5
+*** 19.3.17 Int32Array(...)
+见于23.2.5
+*** 19.3.18 Map(...)
+见于24.1.1
+*** 19.3.19 Number(...)
+见于21.1.1
+*** 19.3.20 Object(...)
+见于20.1.1
+*** 19.3.21 Promise(...)
+见于27.2.3
+*** 19.3.22 Proxy(...)
+见于28.2.1
+*** 19.3.23 RangeError(...)
+见于20.5.5.3
+*** 19.3.24 ReferenceError(...)
+见于20.5.5.4
+*** 19.3.25 RegExp(...)
+见于22.2.3
+*** 19.3.26 Set(...)
+见于24.2.1
+*** 19.3.27 SharedArrayBuffer(...)
+见于25.2.2
+*** 19.3.28 String(...)
+见于22.1.1
+*** 19.3.29 Symbol(...)
+见于20.4.1
+*** 19.3.30 SyntaxError(...)
+见于20.5.5.4
+*** 19.3.31 TypeError(...)
+见于20.5.5.5
+*** 19.3.32 Uint8Array(...)
+见于23.2.5
+*** 19.3.33 Uint8ClampedArray(...)
+见于23.2.5
+*** 19.3.34 Uint16Array(...)
+见于23.2.5
+*** 19.3.35 Uint32 Array(...)
+见于23.2.5
+*** 19.3.36 URIError(...)
+见于20.5.5.6
+*** 19.3.37 WeakMap(...)
+见于24.3.1
+*** 19.3.38 WeakRef(...)
+见于26.1.1
+*** 19.3.39 WeakSet(...)
+见于24.4
+*** 19.3.3 Array(...)
+见于2
+** 19.4 Other Properties of the Global Object
+*** 19.4.1 Atomics
+见于25.4
+*** 19.4.2 JSON
+见于25.5
+*** 19.4.3 Math
+见于21.3
+*** 19.4.4 Reflect
+见于28.1
 * 20 Fundamental Objects
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
+** 20.1 Value
 * 25
 ** 25.1
-
+* 26 Managing Memory
+* 27 Control Abstraction Objects
+* 28 Reflection
+* 29 Memory Model
+* A Grammer Summary
+* B Additional ECMAScript Features for Web Browsers
+* C The Strict Mode of ECMAScript
+* D Host Layering Points
+* E Corrections and Clarifications in ECMAScript 2015 with Possible Compatibility Impact
+* F Additions and Changes That Introduce Incompatibility with Prior Editions
+* G Colophon
+* H Bibliography
+* I CopyRight & Software License
