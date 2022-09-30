@@ -1965,26 +1965,26 @@ ToNumber处理String值时将String解释成UTF-16编码点序列后使用后续
       NaN。
 
 Syntax
-    StringNumericLiteral :::
-      StrWhiteSpace_opt
-      StrWhiteSpace_opt StrNumericLiteral StrWhiteSpace_opt
-    StrWhiteSpace :::
-      StrWhiteSpaceChar StrWhiteSapce_opt
-    StrWhiteSpaceChar :::
-      WhiteSpace
-      LineTerminator
-    StrNumericLiteral :::
-      StrDecimalLiteral
-      NonDecimalIntegerLiteral_[~Sep]
-    StrDecimalLiteral :::
-      StrUnsignedDecimalLiteral
-      + StrUnsignedDecimalLiteral
-      - StrUnsignedDecimalLiteral
-    StrUnsignedDecimalLiteral :::
-      Infinity
-      DecimalDigits_[~Sep] . DecimalDigits_[~Sep]_opt ExponentPart_[~Sep]_opt
-      . DecimalDigits_[~Sep]_opt ExponentPart_[~Sep]_opt
-      DecimalDigits_[~Sep] ExponentPart_[~Sep]_opt
+StringNumericLiteral :::
+    StrWhiteSpace_opt
+    StrWhiteSpace_opt StrNumericLiteral StrWhiteSpace_opt
+StrWhiteSpace :::
+    StrWhiteSpaceChar StrWhiteSapce_opt
+StrWhiteSpaceChar :::
+    WhiteSpace
+    LineTerminator
+StrNumericLiteral :::
+    StrDecimalLiteral
+    NonDecimalIntegerLiteral_[~Sep]
+StrDecimalLiteral :::
+    StrUnsignedDecimalLiteral
+    + StrUnsignedDecimalLiteral
+    - StrUnsignedDecimalLiteral
+StrUnsignedDecimalLiteral :::
+    Infinity
+    DecimalDigits_[~Sep] . DecimalDigits_[~Sep]_opt ExponentPart_[~Sep]_opt
+    . DecimalDigits_[~Sep]_opt ExponentPart_[~Sep]_opt
+    DecimalDigits_[~Sep] ExponentPart_[~Sep]_opt
 
 上面用到的没有明确定义的语法符号在字面数字的词法语法（12.8.3）中定义。
 ***** 注意2 StringNumericLiteral和NumericLiteral语义有些不同，需要注意
@@ -14966,10 +14966,171 @@ isNaN函数是%isNaN%内在对象。当isNaN函数被带参数number调用时，
 **** 注意 ECMAScript代码有可靠的表达式 X !== X 检查X是否是NaN。有且只有X是
            NaN，表达式结果才是true
 *** 19.2.4 parseFloat(string)
+parseFloat函数根据参数string内容表示的数值产生一个Nubmer值。
+
+parseFloat函数是%parseFloat%内在对象。当parseFloat函数被带参数string调用时，执行
+下列步骤：
+1. 让inputString是?ToString(string)
+2. 让trimmedString是!TrimString(inputString, start)
+3. 如果trimmedString或者trimmedString的前缀都不满足StrDecimalLiteral（7.1.4.1)的语
+   法，返回NaN
+4. 让numberString是trimmedString里符合StrDecimalLiteral语法的最长前缀，有可能是
+   trimmedString自身。
+5. 让mathFloat是numberString的MV
+6. 如果mathFloat是0，那么
+    a. 如果trimmedString第一个编码单元是0x002D（HYPHEN-MINUS），返回-0_F
+    b. 否则返回 +0_F
+7. 返回F(mathFloat)
+**** 注意 parseFloat只能将string头部解释为Number值；它会忽略所有不能解释成
+           数值的编码单元，而且不会给出已经忽略了哪些编码单元的指示。
 *** 19.2.5 parseInt(string, radix)
-*** 19.2.6
-**** 19.2.6.1
-**** 19.2.6.2
+parseInt函数根据指定的radix将string的内容解释成整数数值。会忽略string起始部位
+的空白。如果radix是undefined或者0，会被当作10来处理，除非string以0x或者0X开始，
+这时radix会被认为是16。如果radix是16，string也可以选择用0x或者0X开始。
+
+parseInt函数是%parseInt%内在对象。当parseInt被调用时，执行下列步骤：
+1. 让inputString是?ToString(string)
+2. 让S是!TrimString(inputString, start)
+3. 让sign是1
+4. 如果S不空，而且S的第一个编码单元是0x002D（HYPHEN-MINUS），置sign是-1
+5. 如果S不空，而且S的第一个编码单元是0x002B（PLUS SIGN）或者是
+   0x002D（HYPHEN-MINUS），移除S上的第一个编码单元
+6. 让R是R(?ToInt32(radix))
+7. 让stripPrefix是true
+8. 如果R ≠ 0,那么
+    a. 如果 R < 2或者 R > 36，返回NaN
+    b. 如果R ≠ 16，置stripPrefix是false
+9. 否则
+    a. 置R是10
+10. 如果stripPrefix是true，那么
+    a. 如果S的长度大于等于2，而且前两个编码单元是'0x'或者'0X'，那么
+        i. 移除S的前两个编码单元
+       ii. 置R是16
+11. 如果S含有编码单元不是radix进制允许的，让end是S中第一个这种编码的位置。
+    否则让end是S的长度
+12. 让Z是S从0到end的子字符串
+13. 如果Z是空，返回NaN
+14. 让mathInt是字符串Z按照radix进制表示的整数。使用A—Z和a-z表示10到35的值
+    （然而如果R是10，而Z含有超过20个有效数字，第20个数字之后的有效数字都会
+    被替换成0，这个要看实现的选择。如果R不是2、4、6、8、10、16或者32，那么
+    mathInt会是字符串Z按照radix进制表示的数按照实现近似的整数）。
+15. 如果mathInt=0，那么
+    a. 如果sign=-1，那么-0_F
+    b. 否则返回+0_F
+16. 返回F(sign * mathInt)
+**** 注意 parseInt只会将string头部解释成整数值；它会忽略所有不能解释成
+           数值的编码单元，而且不会给出已经忽略了哪些编码单元的指示。
+
+*** 19.2.6 URI Handling Functions
+Uniform Resources Identifiers或者URIs，是标识资源（如网页或者文件）和其被网络访
+问时传输协议的字符串。ECMAScript语言本身只提供了URIs的编码与解码，在
+19.2.6.2、19.2.6.3、19.2.6.4和19.2.6.5中进行了描述，不提供其他使用URIs的支持。
+**** 注意 很多ECMAScript实现提供了额外的函数和方法用于操作网页，这些函数都
+           在本规范的圈外。
+**** 19.2.6.1 URI Syntax and Semantics
+URI是由一系列组件分隔符分隔的组件组成。一般形式
+Scheme : First / Second ; Third ? Fourth
+其中名称表示组件，而":"、"/"、";"和"?"是用于分隔的保留符。encodeURI和decodeURI
+函数用于完整URI，它们会假设任何出现在URI里的保留编码单元有特殊含义，也就
+不会对其编码。encodeURIComponent和decodeURIComponent函数用于URI的组件部分，它们
+会假设任何保留编码单元表示文本，也就必然对其编码，而不是当作URI组件上的
+保留编码单元不对其解释。
+
+随后的词法语法规定了编码后URIs的形式。
+***** Syntax
+uri :::
+    uriCharacters_opt
+uriCharacters :::
+    uriCharacter uriCharacters_opt
+uriCharacter :::
+    uriReserved
+    uriUnescaped
+    uriEscaped
+uriReserved ::: one of
+    ; / ? : @ & = + $ ,
+uriUnescaped :::
+    uriAlpha
+    DecimalDigit
+    uriMark
+uriEscaped :::
+    % HexDigit HexDigit
+uriAlpha ::: one of
+    a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N
+        O P Q R S T U V W X Y Z 
+uriMark :: one of
+    - _ . ! ~ * ' ( ) 
+***** 注意 上与句法是在RFC2396上的，但是不受RFC2396最近变化的影响。
+***** Runtime Semantics
+当URI里的编码单元不在上述所列范围，或者有时不是用于规定含义的保留编码单元，
+都必须被编码。编码单元被转换成UTF-8编码，而替代对先从UFF—16转换成编码点值
+（注意在[0,127]范围内的编码单元只有一个相同的八进制值）。这个八进制值序列
+随后被转换成字符串，每个八进制数用转义序列'%xx'的形式表示。
+***** 19.2.6.1.1 Encode(string, unescapedSet)
+抽象操作Encode接受参数string（String）和unescapedSet（String）。用于URI编码和
+转义。被调用时执行下列步骤：
+1. 让strLen是string中编码单元的数量
+2. 让R是空字符串
+3. 让k是0
+4. 重复
+    a. 如果k=strLen，返回R
+    b. 让C是string上k处的编码单元
+    c. 如果C在unescapedSet里，那么
+        i. 置k为k+1
+       ii. 置R为R和C的字符串拼接
+    d. 否则
+        i. 让cp是!CodePointAt(string, k)
+       ii. 如果cp.\[\[IsUnpairedSurrogate]]是true，投掷URIError异常
+      iii. 置k为k+cp.\[\[CodeUnitCount]]
+       iv. 让Octets是在cp.\[\[CodePoint]]上使用UTF-8转换八进制结果列表
+        v. 遍历Octets的元素记作octet，做
+            1. 置R是如下的字符串拼接
+                . R
+                . "%"
+                . octet数值以左侧补零规则用两位16进制数格式表示的字符串
+***** 19.2.6.1.2 Decode(string, reservedSet)
+抽象操作Decode接受参数string（String）和reservedSet（String）。用于URI解码和
+还原。被调用时执行下列步骤：
+1. 让strLen是string的长度
+2. 让R是空字符串
+3. 让k是0
+4. 重复
+    a. 如果k=strLen，返回R
+    b. 让C是string上k处的编码单元
+    c. 如果C不是编码单元0x0025（PERCENT SIGN），那么
+        i. 让S是只含有编码单元C的字符串值
+    d. 否则
+        i. 让start是k
+       ii. 如果k+2 ≥ strLen，投掷URIError异常
+      iii. 如果string上k+1和k+2处的编码单元不是16进制数字，投掷URIError异常
+       iv. 让B是string上k+1和k+2处16进制数的8位二进制数
+        v. 置k是k+2
+       vi. 让n是B的第一个位的值
+      vii. 如n=0，那么
+            1. 让C是B值的编码单元
+            2. 如果C不在reservedSet，那么
+                a. 让S是只含有编码单元C的字符串
+            3.
+                a. 让S是string从start到k+1位置的字符串。
+     viii.
+            1.
+            2.
+            3.
+            4.
+            5.
+                a.
+                b.
+                c.
+                d.
+                e.
+                f.
+                g.
+            6.
+            7.
+            8.
+            9.
+    e. 置R是R和S的字符串拼接
+    f. 置k是k+1
+**** 19.2.6.2 
 **** 19.2.6.3
 **** 19.2.6.4
 **** 19.2.6.5
