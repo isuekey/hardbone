@@ -15102,21 +15102,21 @@ uriMark :: one of
         i. 让start是k
        ii. 如果k+2 ≥ strLen，投掷URIError异常
       iii. 如果string上k+1和k+2处的编码单元不是16进制数字，投掷URIError异常
-       iv. 让B是string上k+1和k+2处16进制数的8位二进制数
+       iv. 让B是string上k+1和k+2处16进制数的八制数
         v. 置k是k+2
        vi. 让n是B的第一个位的值
-      vii. 如n=0，那么
+      vii. 如果n=0，那么
             1. 让C是B值的编码单元
             2. 如果C不在reservedSet，那么
                 a. 让S是只含有编码单元C的字符串
-            3.
-                a. 让S是string从start到k+1位置的字符串。
-     viii.
-            1.
-            2.
-            3.
-            4.
-            5.
+            3. 否则
+                a. 让S是string从start到k+1位置的子字符串。
+     viii. 否则
+            1. 如果n=1或者n>4，投掷URIError异常
+            2. 如果k+(3*(n-1))≥ strLen，投掷URIError异常
+            3. 让Octets是<< B >>
+            4. 让j是1
+            5. 
                 a.
                 b.
                 c.
