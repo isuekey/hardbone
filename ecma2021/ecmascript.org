@@ -17,7 +17,7 @@
 ** 合集 表示collection
 ** R域 表示R适用的所有值的集合
 ** 字位 一个二进制位
-** 字节 8个连续的二进制位。至于大小端，如果没有明确说明，就不考虑。
+** 字节 octect 8个连续的二进制位。至于大小端，如果没有明确说明，就不考虑。
 ** 修圆 指用有限精度数字描述准确数字的处理过程。
 ** 活 artefact，人工造物
 ** 圈（juan`） 表示scope
@@ -15059,12 +15059,12 @@ uriAlpha ::: one of
         O P Q R S T U V W X Y Z 
 uriMark :: one of
     - _ . ! ~ * ' ( ) 
-***** 注意 上与句法是在RFC2396上的，但是不受RFC2396最近变化的影响。
+***** 注意 上述句法是在RFC2396上的，而且不受最近RFC3986变化的影响。
 ***** Runtime Semantics
 当URI里的编码单元不在上述所列范围，或者有时不是用于规定含义的保留编码单元，
 都必须被编码。编码单元被转换成UTF-8编码，而替代对先从UFF—16转换成编码点值
-（注意在[0,127]范围内的编码单元只有一个相同的八进制值）。这个八进制值序列
-随后被转换成字符串，每个八进制数用转义序列'%xx'的形式表示。
+（注意在[0,127]范围内的编码单元只需一个相同的值的字节）。这个字节序列
+随后被转换成字符串，每个字节用转义序列'%xx'的形式表示。
 ***** 19.2.6.1.1 Encode(string, unescapedSet)
 抽象操作Encode接受参数string（String）和unescapedSet（String）。用于URI编码和
 转义。被调用时执行下列步骤：
@@ -15081,7 +15081,7 @@ uriMark :: one of
         i. 让cp是!CodePointAt(string, k)
        ii. 如果cp.\[\[IsUnpairedSurrogate]]是true，投掷URIError异常
       iii. 置k为k+cp.\[\[CodeUnitCount]]
-       iv. 让Octets是在cp.\[\[CodePoint]]上使用UTF-8转换八进制结果列表
+       iv. 让Octets是在cp.\[\[CodePoint]]上使用UTF-8转换的字节结果列表
         v. 遍历Octets的元素记作octet，做
             1. 置R是如下的字符串拼接
                 . R
@@ -15101,10 +15101,10 @@ uriMark :: one of
     d. 否则
         i. 让start是k
        ii. 如果k+2 ≥ strLen，投掷URIError异常
-      iii. 如果string上k+1和k+2处的编码单元不是16进制数字，投掷URIError异常
-       iv. 让B是string上k+1和k+2处16进制数的八制数
+      iii. 如果string上(k+1)和(k+2)处的编码单元不是16进制数字，投掷URIError异常
+       iv. 让B是string上(k+1)和(k+2)处16进制数的8位二进制值
         v. 置k是k+2
-       vi. 让n是B的第一个位的值
+       vi. 让n是B中1启头的数量
       vii. 如果n=0，那么
             1. 让C是B值的编码单元
             2. 如果C不在reservedSet，那么
@@ -15116,23 +15116,69 @@ uriMark :: one of
             2. 如果k+(3*(n-1))≥ strLen，投掷URIError异常
             3. 让Octets是<< B >>
             4. 让j是1
-            5. 
-                a.
-                b.
-                c.
-                d.
-                e.
-                f.
-                g.
-            6.
-            7.
-            8.
-            9.
+            5. 重复，当j<n是
+                a. 置k是k+1
+                b. 如果string上k处的编码单元不是0x0025（PERCENT SIGN），投掷
+                   URIError异常
+                c. 如果string上(k+1)和(k+2)处的编码单元不是16进制数字，投掷
+                   URIError异常
+                d. 让B是string上(k+1)和(k+2)处16进制数的8位二进制值
+                e. 置k是k+2
+                f. 附加B到Octets
+                g. 置j是j+1
+            6. Assert：Octets的长度是n
+            7. 如果Octets没有包含有效的UTF-8编码点，投掷URIError异常
+            8. 让V是Octets按照UTF-8转换出的编码点，也就是说，从字节列表转换
+               成21-位值。
+            9. 让S是UTF16EncodeCodePoint(V)
     e. 置R是R和S的字符串拼接
     f. 置k是k+1
-**** 19.2.6.2 
-**** 19.2.6.3
-**** 19.2.6.4
+****** 注意 这里的统一资源标识是基于RFC2396的，而且不受最近替换了RFC2396的
+             RFC3986上的变化影响。在RFC3629中给出了正式的UTF-8描述和实现。
+
+             在UTF-8里字符使用1到6个字节进行编码。一个只有一个字节的序列，
+             其最高位是0，剩下的7位用于编码字符值。在有n个字节的序列里，其
+             中n>1，起始字节高位有n个位是1，且随后的位是0。此字节剩余的字位
+             用于编码字符值。随后的字节高位都是1，然后是0，剩下的6个字位用于
+             编码字赋值。可能存在的UTF-8编码ECMAScript字符在表49中规定。
+             | Code Unit Value                        | Representation                          | 1st Octect | 2nd Octect | 3rd Octect | 4th Octect |
+             | 编码单元值                             | 表示                                    | 第一字节   | 第二字节   | 第三字节   | 第四字节   |
+             | 0x0000 - 0x007f                        | 00000000 0zzzzzzz                       | 0zzzzzzz   |            |            |            |
+             | 0x0080 - 0x07ff                        | 00000yyy yyzzzzzz                       | 110yyyyy   | 10zzzzzz   |            |            |
+             | 0x0800 - 0xD7ff                        | xxxxyyyy yyzzzzzz                       | 1110xxxx   | 10yyyyyy   | 10zzzzzz   |            |
+             | 0xD800 - 0xDBFF 跟随 0xDC00-0xDFFF     | 110110vv vvwwwxx 跟随 110111yy yyzzzzzz | 11110uuu   | 10uuwwww   | 10xxyyyy   | 10zzzzzz   |
+             | 0xD800 - 0xDBFF 没有跟随 0xDC00-0xDFFF | 导致URIError                            |            |            |            |            |
+             | 0xDC00 - 0xDFFF                        | 导致URIError                            |            |            |            |            |
+             | 0xE000 - 0xFFFF                        | xxxxyyyy yyzzzzzz                       | 1110xxxx   | 10yyyyyy   | 10zzzzzz   |            |
+             这里 uuuuu = vvvv + 1用于解释Unicode标准（替代）3.8接种中对
+             0x10000的附加说明。
+
+             上述的转换将每个替代对（从0xD800到0xDFFF的编码单元值会被保留）组
+             合成UTF-32的表示，并将21位二进制值编码成UTF-8。解码是组装替代对。
+
+             RFC3629阻止解析无效的UTF-8字节序列。例如，无效的序列C0 80绝对不能
+             解析位编码单元0x0000。解码算法的实现被要求在遇到这种无效序列时
+             投掷URIError异常。（这里C0 80是UTF-8序列，C0表示第一个字节全是0，
+             那么就被省略掉，应该只有80表示的内容。但是80应该用00表示）。
+**** 19.2.6.2 decodeURI(encodedURI)
+decodeURI函数将可能是被encodeURI函数引入的转义序列和UTF-8编码，按照顺序替换为
+其表示的UTF-16编码点，从而计算出新版本的URI。不会被encodeURI引入的转义序列也
+不会被替换。decodeURI函数是%decodeURI%内在对象。当decodeURI被带参数encodedURI调
+用时，执行下列步骤：
+1. 让uriString是?ToString(encodedURI)
+2. 让reservedURISet是包含uriReserved元素和"#"的字符串。（即";/?:@&=+$,#"）
+3. 返回?Decode(uriString, reservedURISet)
+***** 注意 #是不会被从转义序列里解码的，尽管它不是URI保留编码点。
+**** 19.2.6.3 decodeURIComponent(encodedURIComponent)
+decodeURIComponent函数将可能是被encodeURIComponent函数引入的转义序列和UTF-8
+编码，按照顺序替换为其表示的UTF-16编码点，从而计算出新版本的URI。
+
+decodeURIComponent函数是%decodeURIComponent%内在对象。当decodeURIComponent被带参
+数encodedURIComponent调用时，执行下列步骤：
+1. 让componentString是?ToString(encodedURIComponent)
+2. 让reservedURIComponentSet空字符串
+3. 返回?Decode(componentString, reservedURIComponentSet)
+**** 19.2.6.4 
 **** 19.2.6.5
 ** 19.3 Constructor Properties of the Global Object
 *** 19.3.1 Array(...)
