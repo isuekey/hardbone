@@ -15150,8 +15150,8 @@ uriMark :: one of
              | 0xD800 - 0xDBFF 没有跟随 0xDC00-0xDFFF | 导致URIError                            |            |            |            |            |
              | 0xDC00 - 0xDFFF                        | 导致URIError                            |            |            |            |            |
              | 0xE000 - 0xFFFF                        | xxxxyyyy yyzzzzzz                       | 1110xxxx   | 10yyyyyy   | 10zzzzzz   |            |
-             这里 uuuuu = vvvv + 1用于解释Unicode标准（替代）3.8接种中对
-             0x10000的附加说明。
+             Unicode标准（替代）3.8节中对0x10000的附加说明可以解释为啥
+             uuuuu = vvvv + 1（u比v多了1个）。
 
              上述的转换将每个替代对（从0xD800到0xDFFF的编码单元值会被保留）组
              合成UTF-32的表示，并将21位二进制值编码成UTF-8。解码是组装替代对。
@@ -15166,7 +15166,7 @@ decodeURI函数将可能是被encodeURI函数引入的转义序列和UTF-8编码
 不会被替换。decodeURI函数是%decodeURI%内在对象。当decodeURI被带参数encodedURI调
 用时，执行下列步骤：
 1. 让uriString是?ToString(encodedURI)
-2. 让reservedURISet是包含uriReserved元素和"#"的字符串。（即";/?:@&=+$,#"）
+2. 让reservedURISet是包含uriReserved元素和"#"的字符串（即";/?:@&=+$,#"）。
 3. 返回?Decode(uriString, reservedURISet)
 ***** 注意 #是不会被从转义序列里解码的，尽管它不是URI保留编码点。
 **** 19.2.6.3 decodeURIComponent(encodedURIComponent)
@@ -15178,8 +15178,28 @@ decodeURIComponent函数是%decodeURIComponent%内在对象。当decodeURICompon
 1. 让componentString是?ToString(encodedURIComponent)
 2. 让reservedURIComponentSet空字符串
 3. 返回?Decode(componentString, reservedURIComponentSet)
-**** 19.2.6.4 
-**** 19.2.6.5
+**** 19.2.6.4 encodeURI(uri)
+encodeURI函数计算出一个新版的按照UTF-16（6.1.4）编码后的URI，其中每个编码点
+再按照UTF-8编码替换为对应的1/2/3或4个转义序列。
+
+ecodeURI函数是%encodeURI%内在对象。当encodeURI被带参数uri调用时，执行下列步骤：
+1. 让uriString是?ToString(uri)
+2. 让unescapedURISet是包含uriReserved和uriUnescaped的元素和"#"的字符串（即
+   ";/?:@&=+$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_
+   .!~*'()#"）。
+3. 返回?Encode(uriString, unescapedURISet)
+***** 注意 编码点#尽管不是保留字符，也不是非转义字符，就是不进行转义
+**** 19.2.6.5 encodeURIComponent(uriComponent)
+encodeURIComponent函数计算出一个新版的按照UTF-16（6.1.4）编码后的URI，其中每个
+编码点再按照UTF-8编码替换为对应的1/2/3或4个转义序列。
+
+ecodeURIComponent函数是%encodeURIComponent%内在对象。当encodeURIComponent被带参数
+uriComponent调用时，执行下列步骤：
+1. 让componentString是?ToString(uriComponent)
+2. 让unescapedURIComponentSet是包含uriUnescaped元素的字符串（即
+   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_
+   .!~*'()"）。
+3. 返回?Encode(componentString, unescapedURIComponentSet)
 ** 19.3 Constructor Properties of the Global Object
 *** 19.3.1 Array(...)
 见于23.1.1
@@ -15271,7 +15291,7 @@ decodeURIComponent函数是%decodeURIComponent%内在对象。当decodeURICompon
 *** 19.4.4 Reflect
 见于28.1
 * 20 Fundamental Objects
-** 20.1 Value
+** 20.1 Object Objects
 ** 20.1 Value
 ** 20.1 Value
 ** 20.1 Value
