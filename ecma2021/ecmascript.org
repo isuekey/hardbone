@@ -747,8 +747,8 @@ ECMAScript语言的语义规范。其他抽象操作通过本规范定义。
 间不提供隐式的转换。程序员必须显式调用Number和BigInt函数来转换类型，如果调
 用的函数需要不同的类型时。
 **** 注意 从第一版ECMAScript开始，针对某些操作，已经提供了隐式的会丢失精度
-的数值转换。这些合法的转换被保留在后续的兼容里，但是支持BigInt，以便减少
-程序错误的几率，和在未来版本保留通用值类型的选项。
+           的数值转换。这些合法的转换被保留在后续的兼容里，但是支持BigInt，
+           以便减少程序错误的几率，和在未来版本保留通用值类型的选项。
 **** 6.1.6.1 Number类型
 Number类型有18,437,736,874,454,810,627（就是2^64 - 2^53 + 3）个值，表示IEEE 
 754-2019的双精度64位格式值，在IEEE标准中为二进制浮点数代数而规定的，除了
@@ -841,9 +841,9 @@ Number::unit的值是1_F
 12. 如果 base < +0_F，而且exponent不是整数Number，返回NaN。
 13. 返回表示R(base)幂乘R(exponent)结果的实现近似值。
 ****** 注意 base ** exponent的结果在 base 是1_F或者-1_F且exponent是+∞_F或者-∞_F
-，和base是1_F且exponent是NaN时与IEEE 754-2019不同。在最早ECMAScript版本中规定为
-NaN，而在最新的IEEE 754-2019中规定为1_F。为了兼容，历史ECMAScript行为被保留了
-下来。
+             ，和base是1_F且exponent是NaN时与IEEE 754-2019不同。在最早ECMAScript
+             版本中规定为NaN，而在最新的IEEE 754-2019中规定为1_F。为了兼容，
+             历史ECMAScript行为被保留了下来。
 ***** 6.1.6.1.4 Number::multiply(x, y)
 抽象操作Number::multiply接受Number值参数：x, y。依据IEEE 754-2019中二进制双精
 度算术规则执行乘法，产生x和y的乘积。被调用时，执行下列步骤：
@@ -1030,14 +1030,16 @@ NaN，而在最新的IEEE 754-2019中规定为1_F。为了兼容，历史ECMAScr
     。0x002B（+）或者0x002D（-）与n-1的正负号相同
     。n-1绝对值的十进制数字（非0开始）
 ****** 注意 如下推论可能对实现有帮助，但不是本标准的规范要求。
-。如果x是Number值，且大于-0_F，那么ToNumber(ToString(x))与x的Number值相同
-。本规范的第五步决定了，s的最低位非唯一
+             。如果x是Number值，且大于-0_F，那么ToNumber(ToString(x))与x的Number
+               值相同
+             。本规范的第五步决定了，s的最低位非唯一
 ****** 注意 如果实现提供了更精确的转换，推荐第5步符合如下指导
-5. 让n、k和s是整数，且满足k>=1，10^(k-1)<= s < 10^k, s* 10^(n-k)是R(x)，而且
-k尽可能小。如果由多个s，选择s*10^(n-k)最接近R(x)的。如果由两个可选的s，那么
-选择偶数。k是十进制s的位数，s不能被10整除。
+             5. 让n、k和s是整数，且满足k>=1，10^(k-1)<= s < 10^k, s* 10^(n-k)是
+                R(x)，而且k尽可能小。如果由多个s，选择s*10^(n-k)最接近R(x)的。
+                如果由两个可选的s，那么选择偶数。k是十进制s的位数，s不能被
+                10整除。
 ****** 注意 ECMAScript的实现可以在David M. Gay关于二进制浮点数转换的相关论文
-中找到有用的内容和代码。
+             中找到有用的内容和代码。
 http://ampl.com/REFS/abstracts.html#rounding 近似展示数字。
 http://netlib.sandia.gov/fp/dtoa.c 这是部分代码
 http://netlib.sandia.gov/fp/g_fmt.c 这是其他部分代码。
@@ -1509,9 +1511,8 @@ a R B是R的成员有序对(a,b)的简写。Relation至少要表示某些条件�
     . 没有 a R a， 且
     . 如果a R b 和b R c，那么a R c
 **** 上述三个性质分别是完全性、非反身性和传递性。
-**** 注意 
-上面关系内容其实与抽象代数中关系的描述是一致的，相关的名词以数学名词为准。
-这里就是随意翻译了一下。
+**** 注意 上面关系内容其实与抽象代数中关系的描述是一致的，相关的名词以
+           数学名词为准。这里就是随意翻译了一下。
 *** 6.2.3 Completion Record规范类型
 Completion类型是一个Record，用于解释运行时值的传播和流程控制，比如语句（
 break, continue, return 和 throw）的行为，会产生控制本地外的传递。
@@ -1550,8 +1551,8 @@ Record
 可见。
 ***** 注意 Await可以组合?和!前缀，例如： 1. 让result是?Await(value)
       意味着下面行为：
-1. 让result是Await(value)
-2. ReturnIfAbrupt(result)
+      1. 让result是Await(value)
+      2. ReturnIfAbrupt(result)
 ***** 6.2.3.1.1 Await Fulfilled Functions
 Await fulfilled函数是匿名内建函数，是Await规范的一部分，用于将
 promise fulfillment值
@@ -1661,7 +1662,8 @@ ReferenceRecord是一个已解决的名称或性质的绑定，它的字段在�
     c. 返回 ?base.SetMutableBinding(V.\[\[ReferencedName]], W, V.\[\[Strict]])（见
 9.1）
 ***** 注意 步骤5.a可能创建一个对象，除了上述抽象操作和基本对象的\[\[Set]]内部
-方法外的其他行为不能访问这个对象。实现可以选择规避实际创建这个对象。
+            方法外的其他行为不能访问这个对象。实现可以选择规避实际创建这个
+            对象。
 **** 6.2.4.6 GetThisValue(V)
 抽象操作GetThisValue接受参数V。被调用时执行下列步骤：
 1. Assert：IsPropertyReference(V)是true
@@ -1880,7 +1882,7 @@ fromIndex（非负整数）和count（非负整数）。被调用时执行下列
     e. 设置count是count-1.
 7. 返回NormalCompletion(empty)
 ***** 注意 有可能有从data block到shared data block的操作。这里没有禁止有可能
-在别的地方处理了。
+            在别的地方处理了。
 * 7 抽象操作
 这些操作不是ECMAScript语言的部分；在这里定义他们，只是帮助ECMAScript语言的
 语义规范。而且贯穿本规范还有更多的特定抽象操作被定义了。
@@ -1911,9 +1913,9 @@ preferredType到想要的类型。被调用时执行下列步骤：
     d. 返回?OrdinaryToPrimitive(input, prferredType)
 3. 返回input
 **** 注意 当ToPrimitive被不带提示的调用时，它的行为跟hint是number时是一样的
-    然而，对象可以通过重写@@toPrimitive方法来覆盖这个行为。在本规范中只有
-     Date对象（详见21.4.4.45）和Symbol对象（详见20.4.3.5）重写了ToPrimitive行为。
-     Date对象对待空hint为string。
+           然而，对象可以通过重写@@toPrimitive方法来覆盖这个行为。在本规范中
+           只有Date对象（详见21.4.4.45）和Symbol对象（详见20.4.3.5）重写了
+           ToPrimitive行为。Date对象对待空hint为string。
 **** 7.1.1.1 OrdinaryToPrimitive(O, hint)
 抽象操作OrdinaryToPrimitive接受参数O和hint。被调用时执行下列步骤：
 1. Assert：Type(O)是对象
@@ -1988,12 +1990,12 @@ StrUnsignedDecimalLiteral :::
 
 上面用到的没有明确定义的语法符号在字面数字的词法语法（12.8.3）中定义。
 ***** 注意2 StringNumericLiteral和NumericLiteral语义有些不同，需要注意
-      . StringNumericLiteral可以在始末包含有限的空格或者换行符
-      . StringNumericLiteral其实位值可以有任意个0
-      . StringNumericLiteral可以包含+或-来指明符号
-      . StringNumericLiteral可以是空的或者值包含空白符，被转换成+0_F
-      . Infinity和-Infinity被时别为StringNumericLiteral，而不是NumericLiteral
-      . StringNumericLiteral不能包含BigIntLiteralSuffix
+             . StringNumericLiteral可以在始末包含有限的空格或者换行符
+             . StringNumericLiteral其实位值可以有任意个0
+             . StringNumericLiteral可以包含+或-来指明符号
+             . StringNumericLiteral可以是空的或者值包含空白符，被转换成+0_F
+             . Infinity和-Infinity被时别为StringNumericLiteral，而不是NumericLiteral
+             . StringNumericLiteral不能包含BigIntLiteralSuffix
 ***** 7.1.4.1.1 运行语义：MV
 String转化为Number值总体上与从字面数字得到Number值的规定相似，但是有些细节
 是不同的，所以在这里给出从字符串数字到Number类型值的转换过程。这个值由两步
@@ -2053,11 +2055,11 @@ MV。
 4. 让int32bit是int按2^32取模
 5. 如果int32bit>=2^31,返回F(int32bit - 2^32)否则返回F(int32bit)
 **** 注意 上述定义ToInt32
-    . ToInt32抽象操作是向前强效的。如果被提供了一个它产生的结果，这个第二次
-      使用需要值不变。
-    . ToInt32(ToUnit32(x))与ToInt32(x)是相同值。（这是为了保留后面将+∞_F和-∞_F
-      映射到+0_F的性质）
-    . ToInt32映射-0_F到+0_F
+           . ToInt32抽象操作是向前强效的。如果被提供了一个它产生的结果，
+             这个第二次使用需要值不变。
+           . ToInt32(ToUnit32(x))与ToInt32(x)是相同值。（这是为了保留后面将+∞_F
+             和-∞_F映射到+0_F的性质）
+           . ToInt32映射-0_F到+0_F
 *** 7.1.7 ToUint32(argument)
 抽象操作ToUint32接受参数argument。将argument转换为2^32的整数Number，范围在
 [+0_F,F(2^32-1)]内。被调用时执行下列步骤：
@@ -2067,12 +2069,12 @@ MV。
 4. 让int32bit是int按2^32取模
 5. 返回F(int32bit)
 **** 注意 上述定义ToUint32
-    . 只有第5步上ToUint32与ToInt32有差异
-    . ToUint32抽象操作是向前强效的。如果被提供了一个它产生的结果，这个第二次
-      使用需要值不变。
-    . ToUnit32(ToInt32(x))与ToUint32(x)是相同值。（这是为了保留后面将+∞_F和-∞_F
-      映射到+0_F的性质）
-    . ToUint32映射-0_F到+0_F
+           . 只有第5步上ToUint32与ToInt32有差异
+           . ToUint32抽象操作是向前强效的。如果被提供了一个它产生的结果，这
+             个第二次使用需要值不变。
+           . ToUnit32(ToInt32(x))与ToUint32(x)是相同值。（这是为了保留后面将+∞_F
+             和-∞_F映射到+0_F的性质）
+           . ToUint32映射-0_F到+0_F
 *** 7.1.8 ToInt16(argument)
 抽象操作ToInt16接受参数argument。将argument转换为2^16的整数Number，范围在
 [F(-2^15), F(2^15-1)]内。被调用时执行下列步骤：
@@ -2090,8 +2092,8 @@ MV。
 4. 让int16bit是int按2^16取模
 5. 返回F(int16bit)
 **** 注意 上述定义ToUint16
-    . ToUint16与ToUint32的唯一差别是在第4步，用2^16替代了2^32。
-    . ToUint16映射-0_F到+0_F
+           . ToUint16与ToUint32的唯一差别是在第4步，用2^16替代了2^32。
+           . ToUint16映射-0_F到+0_F
 *** 7.1.10 ToInt8(argument)
 抽象操作ToInt8接受参数argument。将argument转换为2^8的整数Number，范围在
 [-128_F, 127_F]内。被调用时执行下列步骤：
@@ -2121,8 +2123,8 @@ MV。
 8. 如果f是odd，返回F(f+1)
 9. 返回F(f)
 **** 注意 不像其他ECMAScript的整数转换，ToUint8Clamp的修圆方式不同于截断整数
-     也不是转换+∞_F到+0_F。ToUint8Clamp采用中间取偶的方式进行修圆。这也不同
-     于Math.round的四舍五入方式。
+           也不是转换+∞_F到+0_F。ToUint8Clamp采用中间取偶的方式进行修圆。这也
+           不同于Math.round的四舍五入方式。
 *** 7.1.13 ToBigInt(argument)
 抽象操作ToBigInt接受参数argument。将argument转换为BigInt值，或者投掷异常如果
 需要隐式的丛Number转换的话。被调用时执行下列步骤：
@@ -2407,9 +2409,9 @@ Number值。被调用时执行下列步骤：
 6. 如果internalSlotsList含有\[\[Extensible]]，设置obj.\[\[Extensible]]是true。
 7. 返回obj
 **** 注意 在本规范中，由例如ArrayCreate、BoundFunctionCreated等抽象操作创建的
-     奇异对象，首先要调用MakeBasicObject获得一个基本对象，然后覆盖部分或者
-     全部的内置方法。为了封装奇异对象的创建，对象基础内置方法在这些操作
-     外是不能修改的。
+           奇异对象，首先要调用MakeBasicObject获得一个基本对象，然后覆盖部分
+           或者全部的内置方法。为了封装奇异对象的创建，对象基础内置方法在
+           这些操作外是不能修改的。
 *** 7.3.2 Get(O,P)
 抽象操作Get接受参数O（对象）和P（性质键）。用于检索对象上指定性质的值。
 被调用时执行下列步骤：
@@ -6106,7 +6108,7 @@ ECMAScripFunction对象封装了参数化的ECMAScript代码，闭合了词法�
 那找这里的定义，所有的ECMAScript函数对象都有\[\[Call]]内部方法。ECMAScript函
 数对象有\[\[Construct]]内部方法时，也是一个构造范。
 *** 10.2.1 \[\[Call]](thisArgument, argumentsList)
-ECMAScript函数对象F上的\[\[Call]]内部函数劫后参数thisArgument（ECMAScript语言
+ECMAScript函数对象F上的\[\[Call]]内部函数接受参数thisArgument（ECMAScript语言
 值）和argumentsList（List<ECMAScript语言值>）。被调用时执行下列步骤
 1. Assert：F是ECMAScript函数对象
 2. 让callerContext是运行时执行背景
@@ -6122,7 +6124,7 @@ ECMAScript函数对象F上的\[\[Call]]内部函数劫后参数thisArgument（EC
 7. 让result是OrdinaryCallEvaluateBody(F, argumentsList)
 8. 从ExecutionContextStack上移除calleeContext，并恢复callerContext作为运行时执行
    背景。
-9. 如果result.\[\[Type]]是返回，返回NormalCompletion(result.\[\[Value]])
+9. 如果result.\[\[Type]]是return，返回NormalCompletion(result.\[\[Value]])
 10. ReturnIfAbrupt(result)
 11. 返回NormalCompletion(undefined)
 **** 注意 当calleeContext在第8步被从ExecutionContextStack上移除后，如果它是被挂
@@ -15433,122 +15435,840 @@ key和value调用时，执行下列步骤：
 1. 让obj是?ToObject(O)
 2. 返回?obj.\[\[GetPrototypeOf]]()
 **** 20.1.2.13 Object.is(value1, value2)
+当is被带参数value1和value2调用时，执行下列步骤：
+1. 返回SameValue(value1, value2)
 **** 20.1.2.14 Object.isExtensible(O)
+当isExtensible被带参数O调用时，执行下列步骤：
+1. 如果Type(O)不是Object，返回false。
+2. 返回?IsExtensible(O)
 **** 20.1.2.15 Object.isFrozen(O)
+当isFrozen被带参数O调用时，执行下列步骤：
+1. 如果Type(O)不是Object，返回true。
+2. 返回?TestIntegrityLevel(O, frozen)
 **** 20.1.2.16 Object.isSealed(O)
+当isSealed被带参数O调用时，执行下列步骤：
+1. 如果Type(O)不是Object，返回true。
+2. 返回?TestIntegrityLevel(O, sealed)
 **** 20.1.2.17 Object.keys(O)
+当keys被带参数O调用时，执行下列步骤：
+1. 让obj是?ToObject(O)
+2. 让nameList是?EnumerableOwnPropertyNames(obj, key)
+3. 返回CreateArrayFromList(nameList)
 **** 20.1.2.18 Object.preventExtensions(O)
+当preventExtensions被带参数O调用时，执行下列步骤：
+1. 如果Type(O)不是Object，返回O。
+2. 让status是?O.\[\[PreventExtensions]]()
+3. 如果status是false，投掷TypeError异常
+4. 返回O
 **** 20.1.2.19 Object.prototype
+Object.prototype的初始值是Object原型对象。
+
+其性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 **** 20.1.2.20 Object.seal(O)
+当seal被调用时，执行下列步骤：
+1. 如果Type(O)不是Object，返回O。
+2. 让status是?SetIntegrityLevel(O, seal)
+3. 如果status是false，投掷TypeError异常
+4. 返回O
 **** 20.1.2.21 Object.setPrototypeOf(O, proto)
+当setPrototypeOf被带参数O和proto调用时，执行下列步骤：
+1. 值O是?RequireObjectCoercible(O)
+2. 如果Type(proto)不是Object或者Null，投掷TypeError异常
+3. 如果Type(O)不是Object，返回O。
+4. 让status是?O.\[\[SetPrototypeOf]](proto)
+5. 如果status是false，投掷TypeError异常
+6. 返回O
 **** 20.1.2.22 Object.values(O)
+当values被带参数O调用时，执行下列步骤：
+1. 让obj是?ToObject(O)
+2. 让nameList是?EnumerableOwnPropertyNames(obj, value)
+3. 返回CreateArrayFromList(nameList)
 *** 20.1.3 Properties of the Object Prototype Object
+Object原型对象：
+. 是%Object.prototype%
+. 有\[\[Extensible]]内部占位，其值是true
+. 有10.4.7.1中定义的基本对象的内部方法，\[\[SetPrototypeOf]]方法除外（
+  因此这是一个原型不可变的奇异对象）。
+. 有\[\[Prototype]]内部占位，值是null
 **** 20.1.3.1 Object.prototype.constructor
+Object.prototype.constructor的初始值是%Object%
 **** 20.1.3.2 Object.prototype.hasOwnProperty(V)
+当hasOwnProperty方法被带参数V调用时，执行下列步骤：
+1. 让P是?ToPropertyKey(V)
+2. 让O是?ToObject(this值)
+3. 返回?HasOwnProperty(O, P)
+***** 注意 步骤1和步骤2的顺序是用来确保在之前版本中，即使this值是undefined
+            或者null也会在步骤1投掷的异常，现在扔会投掷。
 **** 20.1.3.3 Object.prototype.isPrototypeOf(V)
+当isPrototypeOf方法被带参数V调用时，执行下列步骤：
+1. 如果Type(V)不是Object，返回fasle
+2. 让O是?ToObject(this值)
+3. 重复
+    a. 置V是?V.\[\[GetPrototypeOf]]()
+    b. 如果V是null，返回false
+    c. 如果SameValue(O, V)是true，返回true
+***** 注意 步骤1和步骤2的的顺序用于保留在之前版本的规范中当V不是对象
+            且this值是undefined或者null时的行为。
 **** 20.1.3.4 Object.prototype.propertyIsEnummerable(V)
+当propertyIsEnumerable方法被带参数O调用时，执行下列步骤：
+1. 让P是?ToPropertyKey(V)
+2. 让O是?ToObject(this值)
+3. 让desc是?O.\[\[GetOwnProperty]](P)
+4. 如果desc是undefined，返回false
+5. 返回desc.\[\[Enumerable]]
+***** 注意1 这个方法不考虑原型链上的性质
+***** 注意2 步骤1和步骤2的顺序是用来确保在之前版本中，即使this值是undefined
+             或者null也会在步骤1投掷的异常，现在扔会投掷。
 **** 20.1.3.5 Object.prototype.toLocaleString([reserved1 [,reserved2]])
+当toLocaleString方被调用时，执行下列步骤：
+1. 让O是this值
+2. 返回?Invoke(O, "toString")
+
+本函数的可选参数没有被用到，但是试图与ECMA-402 toLocaleString函数的参数一致。
+没有包含ECMA-402支持的实现，不能将这些参数位置用于其他目的。
+***** 注意1 这个函数给没有定制toString行为的对象提供了通用的实现。Array、
+             Number、Date和%TypeArray%提供了各自定制的toLocaleString方法。
+***** 注意2 ECMA-402根本就没想过提供此实现的备用算法。
+             
 **** 20.1.3.6 Object.prototype.toSring()
+当toString被调用时，执行下列步骤：
+1. 如果this值是undefined，返回"\[object Undefined]"
+2. 如果this值是null，返回"\[object Null]"
+3. 让O是!ToObject(this值)
+4. 让isArray是?IsArray(O)
+5. 如果isArray是true，让builtTag是"Array"
+6. 否则如果O有\[\[ParameterMap]]内部占位，让builtTag是"Arguments"
+7. 否则如果O有\[\[Call]]内部方法，让builtTag是"Function"
+8. 否则如果O有\[\[ErrorData\]\]内部占位，让builtTag是"Error"
+9. 否则如果O有\[\[BooleanData]]内部占位，让builtTag是"Boolean"
+10. 否则如果O有\[\[NumberData]]内部占位，让builtTag是"Number"
+11. 否则如果O有\[\[StringData]]内部占位，让builtTag是"String"
+12. 否则如果O有\[\[DateValue]]内部占位，让builtTag是"Date"
+13. 否则如果O有\[\[RegExpMatcher]]内部占位，让builtTag是"RegExp"
+14. 否则，让builtTag是"Object"
+15. 让tag是?Get(O,@@toStringTag)
+16. 如果Type(tag)不是String，置tag是builtTag
+17. 返回"\[object",tag和"]"的字符串拼接。
+***** 注意 历史上这个函数偶尔被用于访问\[\[Class]]内部占位的字符串值。
+            而\[\[Class]]内部占位在之前版本的规范中用于不同内部对象的标准类
+            型。上述toString的定义保留了使用toString检测内建对象类型的遗留代
+            码的兼容性。它不对程序定义的对象和其他内建对象提供可靠的类型
+            检测机制。另外，程序可以用@@toStringTag方式，抛弃之前遗留的类型
+            测试。
 **** 20.1.3.7 Object.prototype.valueOf()
+当valueOf被调用时，执行下列步骤：
+1. 返回?ToObject(this值)
 *** 20.1.4 Properties of Object Instances
+Object实例没有超出继承自Object原型对象的特定性质。
 ** 20.2 Function Objects
 *** 20.2.1 The Function Constructor
+Function构造范
+. 是%Funciton%
+. 是全局对象上"Function"性质的初始值
+. 当作为函数而不是构造调用时，创建和初始化新的函数对象。因此相同参数的
+  Function(...)函数调用与new Function(...)表达式创建的对象等价。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承Functinon的特定行为，必须含有super调用，以使用Function构造范创建
+  和初始化一个拥有内建函数行为必需的内部占位的子类实例。所有ECMAScript定义
+  函数对象的句法形式创建了Function的实例。任何句法无法创建除了
+  GeneratorFunciton、AsyncFucntion和AsyncGeneratorFunction子类之外的Function子类。
 **** 20.2.1.1 Function(p1, p2, ..., pn, body)
+最后的参数规定了函数体（执行代码），之前的参数规定了形式参数。
+
+当Function函数被带p1, p2, ..., pn, body（当n是0时，没有p参数，而且也可以没有
+body）参数调用时，执行下列步骤：
+1. 让C是活跃函数对象。
+2. 让args是被\[\[Call]]或者\[\[Constructor]]传给此函数的argumentsList
+3. 返回?CreateDynamicFunction(C, NewTarget, normal, args)
+***** 注意 可以不为每个形参提供特定的参数。比如，下列三个表达式产生相同
+            的结果：
+            new Function("a", "b", "c", "return a+b+c")
+            new Funciton("a, b, c", "return a+b+c")
+            new Funciton("a,b", "c", "return a+b+c")
 ***** 20.2.1.1.1 CreateDynamicFunction(constructor, newTarget, kind, args)
+抽象操作CreateDynamicFunction接受参数constructor（构造范）、newTarget（构造范）
+、kind（normal、generator、async或者asyncGenerator之一），和args（ECMAScript语言
+值的列表）。constructor是执行这个动作的构造范函数。newTarget是初始应用new行为
+的构造范。args是传递个constructor的参数值。被调用时执行下列步骤：
+1. Assert：执行背景栈最少有两个元素
+2. 让callerContext是执行背景栈次顶部的元素
+3. 让callerRealm是callerContext的Realm
+4. 让calleeRealm是当前RealmRecord
+5. 执行?HostEnsureCanCompileStrings(callerRealm, calleeRealm)
+6. 如果newTarget是undefined，值newTarget是constructor
+7. 如果kind是normal
+    a. 让goal是FunctionBody_[~Yield, ~Await]语法标识
+    b. 让parameterGoal是FormalParameters_[~Yield, ~Await]语法标识
+    c. 让fallbackProto是"%Function.prototype%"
+8. 否则如果kind是generator，那么
+    a. 让goal是GeneratorBody语法标识
+    b. 让parameterGoal是FormalParameters_[~Yield, ~Await]语法标识
+    c. 让fallbackProto是"%GeneratorFunction.prototype%"
+9. 否则如果kind是async，那么
+    a. 让goal是AsyncFunctionBody语法标识
+    b. 让parameterGoal是FormalParameters_[~Yield, ~Await]语法标识
+    c. 让fallbackProto是"%AsyncFunction.prototype%"
+10. 否则
+    a. Assert：kind是asyncGenerator
+    b. 让goal是AsyncGeneratorBody语法标识
+    c. 让parameterGoal是FormalParameters_[~Yield, ~Await]语法标识
+    d. 让fallbackProto是"%AsyncGeneratorFunction.prototype%"
+11. 让argCount是args中的元素数量
+12. 让P是空字符串
+13. 如果argCount=0，让bodyArg是空字符串
+14. 否则如果argCount=1，让bodyArg是args[0]
+15. 否则
+    a. Assert：argCount >=1
+    b. 让firstArg是args[0]
+    c. 值P是?ToString(firstArg)
+    d. 让k是1
+    e. 重复，当k< argCount - 1时
+        i. 让nextArg是args[k]
+       ii. 让nextArgString是?ToString(nextArg)
+      iii. 置P是P "," 和nextArgString的字符串拼接
+       iv. 置k是k+1
+    f. 让bodyArg是args[k]
+16. 让bodyString是0x000A（LINE FEED）,?ToString(bodyArg)和0x000A（LINE FEED）的
+    字符串拼接
+17. 让prefix是表50中与kind关联的前缀
+18. 让sourceString是prefix, " anonymous(", P, 0x000A（LINE FEED）, "){", bodyString
+    和"}"的字符串拼接
+19. 让sourceText是!StringToCodePoints(sourceString)
+20. 按照实现顺序执行随后的子步骤，解析和错误检测交替进行。
+    a. 让parameters是ParseText(!StringToCodePoints(P)), parameterGoal)
+    b. 如果parameters是错误列表，投掷SyntaxError异常
+    c. 让body是ParseText(!StringToCodePoint(bodyString), goal)
+    d. 如果body是错误列表，投掷SyntaxError异常
+    e. 让strict是body的FunctionBodyContainsUseStrict
+    f. 如果strict是true，应用UniqueFormalParameters : FormalParameters的早期错误
+       规则到parameters上。
+    g. 如果strict是true且parameters的IsSimpleParameterList是false，投掷Syntax异常
+    h. 如果parameters的BoundNames中任何元素也出现在body的LexicallyDeclaredNames
+       中，投掷Syntax异常
+    i. 如果body含有SuperCall，投掷Syntax异常。
+    j. 如果parameters含有SuperCall，投掷Syntax异常。
+    k. 如果body含有SuperProperty，投掷Syntax异常。
+    l. 如果parameters含有SuperProperty，投掷Syntax异常。
+    m. 如果kind是generator或者asyncGenerator，那么
+        i. 如果paramters含有YieldExpression，投掷Syntax异常
+    n. 如果kind是async或者asyncGenerator，那么
+        i. 如果parameters含有AwaitExpression，投掷Syntax异常
+    o. 如果strict是true，那么
+        i. 如果paramters的BoundNames含有重复元素，投掷Syntax异常
+21. 让proto是?GetPrototypeFromConstructor(newTarget, fallbackProto)
+22. 让realmF是当前RealmRecord
+23. 让scope是realmF.\[\[GlobalEnv]]
+24. 让F是!OrdinaryFunctionCreate(proto, sourceText, paramters, body, non-leixical-this,
+    scope)
+25. 执行SetFunctionName(F, "anonymous")
+26. 如果kind是generator，那么
+    a. 让prototype是!OrdinaryObjectCreate(%GeneratorFunction.prototype.prototype%)
+    b. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
+       \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]:false,
+       \[\[Configurable]]:false })
+27. 否则，如果kind是asyncGenerator，那么
+    a. 让prototype是!OrdinaryObjectCreate(%AsyncGeneratorFunction.prototype.prototype%)
+    b. 执行DefinePropertyOrThrow(F, "prototype", PropertyDescriptor {
+       \[\[Value]]:prototype, \[\[Writable]]:true, \[\[Enumerable]]:false,
+       \[\[Configurable]]:false })
+28. 否则如果kind是normal，执行MakeConstructor(F)
+29. 注意：kind是async的函数不能是构造范，也没有\[\[Construct]]内部方法，和
+    "prototype"性质
+30. 返回F
+****** 注意 CreateDynamicFunction在创建kind不是async的函数是都定义了"prototype"
+             性质，让函数具有作为构造范的可能。
+表50 Dynamic Function SourceText Prefixes
+| Kind 类型      | Prefix 前缀      |
+| normal         | "function"       |
+| generator      | "function*" |
+| async          | "async function" |
+| asyncGenerator | "async function*" |
 *** 20.2.2 Properties of the Function Constructor
+Function构造范：
+. 本身就是内建函数对象
+. 有\[\[Prototype]]内部占位，值是%Function.prototye%
+. 有下列性质：
 **** 20.2.2.1 Function.length
+这是数据性质，其值是1。性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true, }
 **** 20.2.2.2 Function.prototype
+其值是Function原型对象。
+
+这个性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 *** 20.2.3 Properties of the Function Prototype Object
+函数原型对象：
+. 是%Function.prototype%
+. 本身就是内建函数对象
+. 接受任意参数，被调用时返回undefined
+. 没有\[\[Constructor]]内部方法，也不能用new操作符当作构造范。
+. 有\[\[Prototype]]内部占位，值是%Object.prootype%
+. 没有"prototype"性质
+. 有"length"性质，值是+0_F
+. 有"name"性质，值空字符串
+**** 注意 函数原型对象被规定为函数对象，是为了兼容ECMAScript2015版之前的
+           ECMAScript代码。
 **** 20.2.3.1 Function.prototype.apply(thisArg, argArray)
+当apply方法被带参数thiArg和argArray调用时，执行下列步骤：
+1. 让func是this值
+2. 如果IsCallable(func)是false，投掷TypeError异常
+3. 如果argArray是undefind或者null，那么
+    a. 执行PrepareForTailCall()
+    b. 返回?Call(func, thisArg)
+4. 让argList是?CreateListFromArrayLike(argArray)
+5. 执行PrepareForTailCall()
+6. 返回?(func, thisArg, argList)
+***** 注意1 thisArg是直接传递，没有修正为this值。这从版本3有的变化，此前在
+             thisArg是undefined或者null时，被替换为全局对象，而且ToObject被应用
+             到其他全部值上，全部结果再传递给this值。即使thisArg是无修正传递，
+             非严格模式函数仍会执行上述转换行为到函数上。
+***** 注意2 如果func是箭头函数或者已绑函数奇异对象，那么thisArg会被步骤6的
+             \[\[Call]]函数忽略。
 **** 20.2.3.2 Function.prototype.bind(thisArg, ...args)
+当bind方法被带参数thiArg和可数个arg调用时，执行下列步骤：
+1. 让Target是this值
+2. 如果IsCallable(Target)是false，投掷TypeError异常。
+3. 让F是?BoundFunctionCreate(Target, thisArg, args)
+4. 让L是0
+5. 让targetHasLength是?HasOwnProperty(Target, "length")
+6. 如果targetHasLength是true，那么
+    a. 让targetLen是?Get(Target, "length")
+    b. 如果Type(targetLen)是Number，那么
+        i. 如果targetLen是+∞_F，置L是+∞.
+       ii. 否则如果targetLen是-∞_F，置L是0.
+      iii. 否则
+            1. 让targetLenAsInt是!ToIntegerOrInfinity(targetLen)
+            2. Assert：targetLenAsInt是有限的
+            3. 让argCount是args的元素数量
+            4. 置L是max(targetLenAsInt - argCount), 0)
+7. 执行!SetFunctionLength(F, L)
+8. 让targetName是?Get(Target, "name")
+9. 如果Type(targetName)不是String，置targetName是空字符串
+10. 执行SetFunctionName(F, targetName, "bound")
+11. 返回F
+***** 注意1 使用Function.prototype.bind创建的函数对象是奇异对象。它们还没有
+             "prototype"性质
+***** 注意2 如果Target是箭头函数或者已绑函数奇异对象，那么传递给本方法的
+             thisArg不会被用于随后的F调用。
 **** 20.2.3.3 Function.prototype.call(thisArg, ...args)
+当call方法被带参数thiArg和可数个arg调用时，执行下列步骤：
+1. 让func是this值
+2. 如果IsCallable(func)是false，投掷TypeError异常
+3. 执行PrepareToTailCall()
+4. 返回?Call(func, thisArg, args)
+***** 注意1 thisArg是直接传递，没有修正为this值。这是从版本3有的变化，此前在
+             thisArg是undefined或者null时，被替换为全局对象，而且ToObject被应用
+             到其他全部值上，全部结果再传递给this值。即使thisArg是无修正传递，
+             非严格模式函数仍会执行上述转换行为到函数上。
+***** 注意2 如果func是箭头函数或者已绑函数奇异对象，那么thisArg会被步骤4的
+             \[\[Call]]函数忽略。
 **** 20.2.3.4 Function.prototype.constructor
+Function.prototype.constructor的初始值是%Function%
 **** 20.2.3.5 Function.prototype.toString()
+当toString方法被调用时，执行下列步骤：
+1. 让func是this值
+2. 如果Type(func)是Object，func有\[\[SourceText]]内部占位，func.\[\[SourceText]]是
+   Unicode编码点的序列，而且!HostHasSourceTextAvailable(func)是true，那么
+    a. 返回!CodePointsToString(func.\[\[SourceText]])
+3. 如果func是内建函数对象，返回实现定义表述func源码的字符串。这个表述必须有
+   NativeFuncion句法。另外，如果func有\[\[InitialName]]内部占位而且
+   func.\[\[InitialName]]是字符串，那么返回字符串中被
+   NativeFunctionAccessor_opt PropertyName匹配的部分必须是func.\[\[InitialName]]的
+   值。
+4. 如果Type(func)是对象，而且IsCallable(func)是true，返回实现定义的表述func源码
+   的字符串。这个表述必须有NativeFunciton句法。
+5. 投掷TypeError异常
+NativeFunciton :
+    function NativeFunctionAccessor_opt PropertyName_[~Yield, ~Await]_opt (
+        FormalParameters_[~Yield, ~Await] ) { [ native code ] }
+NativeFunctionAccessor :
+    get
+    set
 **** 20.2.3.6 Function.prototype[@@hasInstance](V)
+当@@hasInstance方法被带参数V调用时，执行下列步骤：
+1. 让F是this值
+2. 返回?OrdinaryHasInstance(F, V)
+
+本函数的"name"性质是"[Symbol.hasInstance]"
+
+本性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
+***** 注意 这是大多数函数继承的@@hasInstance的默认实现。@@hasInstance会被
+            instanceof操作调用，用于判断某个值是不是特定构造范的实例。如
+            表达式
+            v instanceof F
+            评估为
+            F[@@hasInstance](v)
+            构造范函数能够控制instanceof识别其实例行为，通过给函数暴露不同的
+            @@hasInstance函数
+这个性质是不可写、不可设置的以便防止篡改，否则可以全局的暴露已绑函数的
+目标函数。
 *** 20.2.4 Funciton Instances
+每个函数实例都是ECMAScript函数对象，都有列在表29的内部占位。用
+Function.prototype.bind方法（20.2.3.2）创建的函数对象有列在表30的内部占位。
+
+函数实例有随后的性质
 **** 20.2.4.1 length
+"length"性质的值是整数值，用于指明函数期望的参数长度。然而，语言允许函数
+带不同长度的参数进行调用。当函数调用时的参数长度不同规定的"length"性质时，
+具体行为依赖函数。这个性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 **** 20.2.4.2 name
+"name"性质的值是字符串，用于描述函数。这个名字没有语义含义，但是一般是
+用于引用这个ECMAScript定义代码处函数的某个变量或者性质名称。这个性质的属性
+是{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
+
+匿名函数对象在本规范中没有联结到他们的背景名称，使用空字符串作为"name"性质
+的值。
 **** 20.2.4.3 prototype
+函数实例可以用作有"prototype"性质的构造范。当这种函数实例被创建时，另一个
+基本对象也同时被创建，而且是函数的"prototype"初始值。除非另有说明，本函数
+被作为构造范调用时创建的对象，其\[\[Prototype]]内部占位的初始化值是
+"prototype"性质的值。
+
+这个性质的属性是{ \[\[Writable]]:true, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
+***** 注意 使用Function.prototype.bind创建，或者由评估MethodDefinition（
+            同时不是是GeneratorMethod也不是AsyncGeneratorMethod）或者
+            ArrowFunction产生的函数对象，没有"prototype"性质
 *** 20.2.5 HostHasSourceTextAvailable(func)
+主机定义的HostHasSourceTextAvailable抽象操作接受参数func（函数对象）。允许主机
+环境阻止func提供的源文本。
+
+HostHasSourceTextAvailable实现必须正常完结。这个操作必须是参数确定性的。每次
+使用特定func作为参数时，它必须返回相同的完结记录。HostHasSourceTextAvailable的
+默认实现无条件的返回一个含有true的正常完结。
 ** 20.3 Boolean Objects
 *** 20.3.1 The Boolean Constructor
+Boolean构造范
+. 是%Boolean%
+. 是全局对象上"Boolean"性质的初始值。
+. 作为构造范调用时，创建并初始化一个新的Boolean对象
+. 当作为函数而不是构造范调用时，执行类型转换
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承Boolean的特定行为，必须含有super调用，以使用Boolean构造范创建
+  和初始化一个拥有\[\[BooleanData]]内部占位的子类实例。
 **** 20.3.1.1 Boolean(value)
+当Boolean方法被带参数value调用时，执行下列步骤：
+1. 让b是!ToBoolean(value)
+2. 如果NewTarget是undefined，返回b
+3. 让O是?OrdinaryCreateFromConstructor(NewTarget, "%Boolean.prototype%",
+   << \[\[BooleanData]] >> )
+4. 置O.\[\[BooleanData]]是b
+5. 返回O
 *** 20.3.2 Properties of the Boolean Constructor
+Boolean构造范
+. 有\[\[Prototype]]内部占位，其值是%Function.prototype%
+. 有以下性质
 **** 20.3.2.1 Boolean.prototype
+Boolean.prototype的初始化值是Boolean原型对像。
+
+这个性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 *** 20.3.3 Properties of the Boolean Prototype Object
+Boolean原型对象：
+. 是%Boolean.prototype%
+. 是基本对象
+. 本身是Boolean对象，其\[\[BooleanData]]内部占位的值是false
+. 有\[\[Prototype]]占位，其值是%Object.prototype%
+
+抽象操作thisBooleanValue接受参数value。被调用时执行下列步骤：
+1. 如果Type(value)是Boolean，返回value
+2. 如果Type(value)是Object，而且value有\[\[BooleanData]]内部占位，那么
+    a. 让b是value.\[\[BooleanData]]
+    b. Assert：Type(b)是Boolean
+    c. 返回b
+3. 投掷TypeError异常
 **** 20.3.3.1 Boolean.prototype.constructor
+Boolean.prototype.constructor的初始化值是%Boolean%
 **** 20.3.3.2 Boolean.prototype.toString()
+被调用时，执行下列步骤
+1. 让b是?thisBooleanValue(this值)
+2. 如果b是true，返回"true"，否则返回"false"。
 **** 20.3.3.3 Boolean.prototype.valueOf()
+被调用时，执行下列步骤
+1. 返回?thisBooleanValue(this值)
 *** 20.3.4 Properties Of Boolean Instances
+Boolean实例都是基本对象，继承Boolean原型对象的性质。Boolean实例有
+\[\[BooleanData]]内部占位。\[\[BooleanData]]内部占位是表述Boolean对象的Boolean值。
 ** 20.4 Symbol Objects
 *** 20.4.1 The Symbol Constructor
+Symbol构造范
+. 是%Symbol%
+. 是全局对象"Symbol"性质的初始值。
+. 作为函数调用时，返回新的Symbol值
+. 不能与new操作符合用
+. 不能被继承
+. 可以用在class定义的extends语句里，但super调用，会导致异常。
 **** 20.4.1.1 Symbol([description])
+当Symbol被带可选参数description调用时，执行下列步骤：
+1. 如果NewTarget不是undefined，投掷TypeError异常
+2. 如果description是undefined，让descString是undefined
+3. 否则，让descString是?ToString(description)
+4. 返回一个新的唯一Symbol，其\[\[Description]]内部占位的值descString
 *** 20.4.2 Properties of the Symbol Constructor
+Symbol构造范：
+. 有\[\[Prototype]]内部占位，其值是%Function.prototype%
+. 有随后性质：
 **** 20.4.2.1 Symbol.asyncIterator
+Symbol.asyncIterator的初始值是表1中的符号@@asyncIterator
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.2 Symbol.for(key)
+当Symbol.for被带参数key调用时，执行下列步骤：
+1. 让stringKey是?ToString(key)
+2. 遍历GlobalSymbolRegistry列表的元素记作e，做
+    a. 如果SameValue(e.\[\[key]], stringKey)是true，返回e.\[\[Symbol]]
+3. Assert：GlobalSymbolRegistry没有stringKey的条目
+4. 让newSymbol是新的Symbol值，其\[\[Description]]值是stringKey
+5. 附加记录{\[\[key]]:stringKey, \[\[Symbol]]:newSymbol}到GlobalSymbolRegistry末端。
+6. 返回newSymbol
+
+GlobalSymbolRegistry是全局可见的列表，被全部的领共享。在评估任何ECMAScript代码
+前，就初始化为新的空列表。GlobalSymbolRegistry的元素是按照表51定义的结构组成
+的记录。
+表51
+| 字段名       | 值     | 用途                     |
+| \[\[Key]]    | 字符串 | 用于标识Symbol的字符串键 |
+| \[\[Symbol]] | Symbol | 领可以查到的Symbol值     |
 **** 20.4.2.3 Symbol.hasInstance
+Symbol.hasInstance的初始值是表1中的符号@@hasInstance
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.4 Symbol.isConcatSpreadable
+Symbol.isConcatSpreadable的初始值是表1中的符号@@isConcatSpreadable
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.5 Symbol.iterator
+Symbol.iterator的初始值是表1中的符号@@iterator
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.6 Symbol.keyFor(sym)
+当Symbol.keyFor被带参数sym调用时，执行下列步骤：
+1. 如果Type(sym)不是Symbol，投掷TypeError异常
+2. 遍历GlobalSymbolRegistry列表（20.4.2.2）的元素记作e，做
+    a. 如果SameValue(e.\[\[Symbol]], sym)是true，返回e.\[\[Key]]
+3. Assert：GlobalSymbolRegistry没有sym的条目
+4. 返回undefined
 **** 20.4.2.7 Symbol.match
+Symbol.match的初始值是表1中的符号@@match
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.8 Symbol.matchAll
+Symbol.matchAll的初始值是表1中的符号@@matchAll
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.9 Symbol.prototype
+Symbol.prototype的初始值是Symbol原型对象
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.10 Symbol.replace
+Symbol.replace的初始值是表1中的符号@@replace
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.11 Symbol.search
+Symbol.search的初始值是表1中的符号@@serach
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.12 Symbol.species
+Symbol.species的初始值是表1中的符号@@species
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.13 Symbol.split
+Symbol.split的初始值是表1中的符号@@split
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.14 Symbol.toPrimitive
+Symbol.toPrimitive的初始值是表1中的符号@@toPrimitive
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.15 Symbol.toStringTag
+Symbol.toStringTag的初始值是表1中的符号@@toStringTag
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 20.4.2.16 Symbol.unscopables
+Symbol.unscopables的初始值是表1中的符号@@unscopables
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 *** 20.4.3 Properties of the Symbol Prototype Object
+Symbol原型对象：
+. 是%Symbol.prototype%
+. 是基本对象
+. 不是Symbol实例，也没有\[\[SymbolData]]内部占位
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+
+抽象操作thisSymbolValue接受参数value。被调用时执行下列步骤：
+1. 如果Type(value)是Symbol，返回value
+2. 如果Type(value)是Object，而且value有\[\[SymbolData]]内部占位，那么
+    a. 让s是value.\[\[SymbolData]]
+    b. Assert：Type(s)是Symbol
+    c. 返回s
+3. 投掷TypeError异常
 **** 20.4.3.1 Symbol.prototype.constructor
+Symbol.prototype.constructor的初始值是%Symbol%
 **** 20.4.3.2 get Symbol.prototype.description
+Symbol.protoype.description是访问性质，其set访问器是undefined。其get访问器执行
+下列步骤：
+1. 让s是this值
+2. 让sym是?thisSymbolValue(s)
+3. 返回sym.\[\[Description]]
 **** 20.4.3.3 Symbol.prototype.toString()
+被调用时，执行下列步骤
+1. 让sym是?thisSymbolValue(this值)
+2. 返回SymbolDescriptionString(sym)
 ***** 20.4.3.3.1 SymbolDescriptiveString(sym)
+抽象操作SymbolDescriptionString接受参赛数sym。被调用时执行下列步骤：
+1. Assert：Type(sym)是Symbol
+2. 让desc是sym的\[\[Description]]的值
+3. 如果desc是undefined，置desc是空字符串
+4. Assert：Type(desc)是String
+5. 返回"Symbol(",desc,")"的字符串拼接
 **** 20.4.3.4 Symbol.prototype.valueOf()
+被调用时执行下列步骤：
+1. 返回?thisSymbolValue(this值)
 **** 20.4.3.5 Symbol.prototype[@@toPrimitive](hint)
+ECMAScript语言操作Symbol转换为基础值调用此函数。
+
+当@@toPrimitive方法被带参数hint调用时，执行下列步骤：
+1. 返回?thisSymbolValue(this值）
+
+这个函数"name"性质值是"[Symbol.toPrimitive]"
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
+***** 注意 参数被忽略了。
 **** 20.4.3.6 Symbol.prototype[@@toStringTag]
+@@toStringTag性质的初始值是"Symbol"
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** 20.4.4 Properties of Symbol Instances
+Symbol实例都是基本对象，继承Symbol原型对象的性质。Symbol实例有\[\[SymboData]]
+内部占位。\[\[SymbolData]]内部占位是表述Symbol对象的Symbol值。
 ** 20.5 Error Objects
+当出现运行错误时，会抛出Error对象的实例。本Error对象还可以作为用户定义的
+异常类的基础对象。
+
+当ECMAScript实现侦测到运行时错误时，会投掷一个2.5.5定义的NativeError的新实例，
+或者投掷一个2.5.7定义的AggregateError的实例。这些对象都有下方描述的结构，
+区别在与：name使用构造范的name而不是NativeError，原型对象的name性质不同，原型对象上
+实现定义的message性质不同，%AggregateError%的errors性质有差异。
 *** 20.5.1 The Error Constructor
+Error构造范：
+. 是%Error%
+. 是全局对象上"Error"性质的初始值
+. 作为函数而不是构造范调用是，创建和初始化新的Error对象。因此相同参数的
+  Error(...)函数调用与new Error(...)表达式创建的对象等价。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承Error的特定行为，必须含有super调用，以使用Error构造范创建
+  和初始化一个拥有\[\[ErrorData]]内部占位的子类实例。
 **** 20.5.1.1 Error(message)
+当Error函数被带参数message调用时，执行下列步骤：
+1. 如果NewTarget是undefined，让newTarget是活跃函数对象，否则让newTarget
+   是NewTarget
+2. 让O是?OrdinaryCreateFromConstructor(newTarget, "%Error.prototype%", <<
+   \[\[ErrorData]] >> )
+3. 如果message不是undefined，那么
+    a. 让msg是?ToString(message)
+    b. 让msgDesc是PropertyDescriptor { \[\[Value]]:msg, \[\[Writable]]:true,
+       \[\[Enumerable]]:false, \[\[Configurable]]:true }
+    c. 执行!DefinePropertyOrThrow(O, "message", msgDesc)
+4. 返回O
 *** 20.5.2 Properties of the Error Constructor
+Error构造范：
+. 有\[\[Prototype]]内部占位，初始值是%Function.prototype%
+. 有下列性质
 **** 20.5.2.1 Error.prototype
+Error.prototype的初始值是Error原型对象
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 *** 20.5.3 Properties of the Error Prototype Object
+Error原型对象：
+. 是%Error.prototype%
+. 是基本对象
+. 不是Error实例，也没有\[\[ErrorData]]内部占位
+. 有\[\[Prototype]]内部占位，其值是%Object.prototype%
 **** 20.5.3.1 Error.prototype.constructor
+Error.prototype.constructor的初始值是%Error%
 **** 20.5.3.2 Error.prototype.message
+Error.prototype.message的初始值是空字符串
 **** 20.5.3.3 Error.prototype.name
+Error.prototype.name的初始值是"Error"
 **** 20.5.3.4 Error.prototype.toString()
+被调用时执行下列步骤：
+1. 让O是this值
+2. 如果Type(O)不是Object，投掷TypeError异常
+3. 让name是?Get(O, "name")
+4. 如果name是undefined，置name是"Error"，否则置name是?ToString(name)
+5. 让msg是?Get(O, "message")
+6. 如果msg是undefined，置msg是空字符串；否则置msg是?ToString(msg)
+7. 如果name是空字符串，返回msg
+8. 如果msg是空字符串，返回name
+9. 返回name,0x003A（COLON）,0x0020（SPACE）,msg的字符串拼接
 *** 20.5.4 Properties of Error Instances
+Error实例都是基本对象，继承Error原型对象的性质。Error实例有\[\[ErrorData]]内
+部占位，其值是undefined。\[\[ErrorData]]内部占位的唯一指定用途是在
+Object.prototype.toString调用到Error对象时识别是Error、AggregateError或者NativeError
+的实例。
 *** 20.5.5 Native Error Types Used in This Standard
+在发现运行时错误时，投掷下方所列的NativeError的实例或者AggregateError
 **** 20.5.5.1 EvalError
+EvalError构造范是%EvalError%
+
+目前本规范不使用这个异常。这个对象被保留下来兼容之前的版本的规范。
 **** 20.5.5.2 RangeError
+RangeError构造范是%RangeError%
+
+指明某个值不在允许的范围内。
 **** 20.5.5.3 ReferenceError
+ReferenceError构造范是%ReferenceError%
+
+指明使用了无效的引用
 **** 20.5.5.4 SyntaxError
+SyntaxError构造范是%SyntaxError%
+
+指明解析时有错误。
 **** 20.5.5.5 TypeError
+TypeError构造范是%TypeError%
+
+TypeError用于指明无法成功的操作，而且没有其他合适的NativeError指明这个错误
+原因。
 **** 20.5.5.6 URIError
+URIError构造范是%URIError%
+
+用于指明某个全局URI处理函数被用在不符合其用途的地方。
 *** 20.5.6 NativeError Object Constructor
+当ECMAScript实现侦测到运行时错误时，它投掷某个在20.5.5定义的NativeError对象
+的实例。这些对象都有下方描述的结构，区别在与：name使用构造范的name而不
+是NativeError，原型对象的name性质不同，原型对象上实现定义的message性质不同。
+
+每个错误对象，在定义中使用到NativeError的地方应当替换为20.5.5所列的名称。
 **** 20.5.6.1 The NativeError Constructors
+每个NativeError构造范
+. 当作为函数而不是构造范调用时，创建并初始化新的NativeError对象。
+  因此相同参数时作为函数还是构造范调用是等价的。因此NativeError(...)函数调
+  用与new NativeError(...)表达式在参数相同时创建的对象等价。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承NativeError的特定行为，必须含有super调用，以使用NativeError构造范
+  创建和初始化拥有\[\[ErrorData]]内部占位的子类实例。
 ***** 20.5.6.1.1 NativeError(message)
+当NativeError被带参数message调用时，执行下列步骤：
+1. 如果NewTarget是undefined，让newTarget是活跃函数对象，否则让newTarget
+   是NewTarget
+2. 让O是?OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", <<
+   \[\[ErrorData]] >> )
+3. 如果message不是undefined，那么
+    a. 让msg是?ToString(message)
+    b. 让msgDesc是PropertyDescriptor { \[\[Value]]:msg, \[\[Writable]]:true,
+       \[\[Enumerable]]:false, \[\[Configurable]]:true }
+    c. 执行!DefinePropertyOrThrow(O, "message", msgDesc)
+4. 返回O
+
+步骤2的实际值根据定义的NativeError构造范分别是"%EvalError.prototype%"、
+"%RangeError.prototype%"、"%ReferenceError.prototype%"、"%SyntaxError.prototype%"
+"%TypeError.prototype%"或者"%URIError.prototype%"
 **** 20.5.6.2 Properties of the NativeError Constructors
+每个NativeError构造范
+. 有\[\[Prototype]]内部占位，值是%Error%
+. 有"name"性质，值是"NativeError"
+. 有下列性质：
 ***** 20.5.6.2.1 NativeError.prototype
+NativeError.prototype的初始值是NativeError原型对象（20.5.6.3）。每个NativeError
+构造范有不同的原型对象。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 20.5.6.3 Properties of the NativeError Prototype Objects
+每个NativeError原型对象：
+. 是基本对象
+. 不是Error实例，也没有\[\[ErrorData]]内部占位
+. 有\[\[Prototype]]内部占位，值是%Error.prototype%
 ***** 20.5.6.3.1 NativeError.prototype.constructor
+给定NativeError构造范的原型上的"constructor"性质的初始值是对应内部对象
+%NativeError%（20.5.6.1）。
 ***** 20.5.6.3.2 NativeError.prototype.message
+给定NativeError构造范的原型上的"message"性质的初始值是空字符串
 ***** 20.5.6.3.3 NativeError.prototype.name
+给定NativeError构造范的原型上的"那么"性质的初始值是由对应构造范名称（用
+名称替换NativeError）组成的字符串。
 **** 20.5.6.4 Properties of NativeError Instances
+NativeError实例都是基本对象，继承NativeError原型对象的性质，实例有
+\[\[ErrorData]]内部占位，其值是undefined。\[\[ErrorData]]内部占位的唯一指定用
+途是在Object.prototype.toString调用时识别是Error、AggregateError或者NativeError
+的实例。
 *** 20.5.7 AggregateError Objects
 **** 20.5.7.1 The AggregateError Constructors
+AggregateError构造范：
+. 是%AggregateError%
+. 是全局对象上"AggregateError"性质的初始值
+. 当作为函数而不是构造调用时，创建和初始化新的函数对象。因此相同参数的
+  AggregateError(...)函数调用与new AggregateError(...)表达式创建的对象等价。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承AggregateError的特定行为，必须含有super调用，以使用AggregateError
+  构造范创建和初始化一个拥有\[\[ErrorData]]内部占位的子类实例。
 ***** 20.5.7.1.1 AggregateError(errors, message)
+当AggregateError函数被带参数errors和message调用时，执行下列步骤：
+1. 如果NewTarget是undefined，让newTarget是活跃函数对象，否则让newTarget
+   是NewTarget
+2. 让O是?OrdinaryCreateFromConstructor(newTarget, "%AggregateError.prototype%", <<
+   \[\[ErrorData]] >> )
+3. 如果message不是undefined，那么
+    a. 让msg是?ToString(message)
+    b. 让msgDesc是PropertyDescriptor { \[\[Value]]:msg, \[\[Writable]]:true,
+       \[\[Enumerable]]:false, \[\[Configurable]]:true }
+    c. 执行!DefinePropertyOrThrow(O, "message", msgDesc)
+4. 让errorList是?IterableToList(errors)
+5. 执行!DefinePropertyOrThrow(O, "errors", ProperDescriptor { \[\[Configurable]]:true,
+   \[\[Enumerable]]:false, \[\[Writable]]:true,
+   \[\[Value]]:!CreateArrayFromList(errorsList) })
+6. 返回O
 **** 20.5.7.2 Properties of the AggregateError Constructor
+AggregateError构造范：
+. 有\[\[Prototype]]内部占位，初始值是%Error%
+. 有下列性质:
 ***** 20.5.7.2.1 AggregateError.prototype
+AggregateError.prototype的初始值是%AggregateError.prototype%
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 20.5.7.3 Properties of the AggregateError Prototype Object
+AggregateError原型对象：
+. 是%AggregateError.prototype%
+. 是基本对象
+. 不是Error或者AggregateError实例，也没有\[\[ErrorData]]内部占位
+. 有\[\[Prototype]]内部占位，其值是%Error.prototype%
 ***** 20.5.7.3.1 AggregateError.prototype.constructor
+AggregateError.prototype.constructor的初始值是%AggregateError%
 ***** 20.5.7.3.2 AggregateError.prototype.message
+AggregateError.prototype.message的初始值是空字符串
 ***** 20.5.7.3.3 AggregateError.prototype.name
+AggregateError.prototype.name的初始值是"AggregateError"
 **** 20.5.7.4 Properties of AggregateError Instances
-** 21 Numbers and Dates
-* 25
+AggregateError实例都是基本对象，继承AggregateError原型对象的性质，而且
+有\[\[ErrorData]]内部占位，其值是undefined。\[\[ErrorData]]内部占位的唯一指定
+用途是在Object.prototype.toString（20.1.3.6）调用时识别是Error、AggregateError或
+者NativeError的实例。
+* 21 Numbers and Dates
+* 22 Text Processing
+* 23 Indexed Collections
+* 24 Keyed Collections
+* 25 Structured Data
 ** 25.1
 * 26 Managing Memory
 * 27 Control Abstraction Objects
