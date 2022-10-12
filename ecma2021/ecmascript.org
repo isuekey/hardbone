@@ -16265,6 +16265,198 @@ AggregateError实例都是基本对象，继承AggregateError原型对象的性�
 用途是在Object.prototype.toString（20.1.3.6）调用时识别是Error、AggregateError或
 者NativeError的实例。
 * 21 Numbers and Dates
+** 21.1 Number Objects
+*** 21.1.1 The Number Constructor
+Number构造范
+. 是%Number%
+. 是全局对象"Number"性质的初始值。
+. 作为构造范调用时，返回新的Number值
+. 作为函数而不是构造范调用时，执行类型转换
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承Number的特定行为，必须含有super调用，以使用Number构造范创建和初
+  始化一个拥有\[\[NumberData]]内部占位的子类实例。
+**** 20.1.1.1 Number(value)
+当Number方法被带参数value调用时，执行下列步骤：
+1. 如果value存在，那么
+    a. 让prim是?ToNumber(value)
+    b. 如果Type(prim)是BigInt，让n是F(R(prim))
+    c. 其他情况让n是prim
+2. 否则
+    a. 让n是+0_F
+3. 如果NewTarget是undefined，返回n
+4. 让O是?OrdinaryCreateFromConstructor(NewTarget, %Number.prototype%, <<
+   \[\[NumberData]] >>)
+5. 置O.\[\[NumberData]]是n
+6. 返回O
+*** 21.1.2 Properties of the Number Constructor
+Number构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
+**** 21.1.2.1 Number.EPSILON
+Number.EPSILON的初始化值是Boolean原型对像。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
+**** 21.1.2.2 Number.isFinite( number )
+**** 21.1.2.3 Number.isInteger( number )
+**** 21.1.2.4 Number.isNaN( number)
+**** 21.1.2.5 Number.isSafeInteger( number )
+**** 21.1.2.6 Number.MAX_SAFE_INTEGER
+**** 21.1.2.7 Number.MAX_VALUE
+**** 21.1.2.8 Number.MIN_SAFE_INTEGER
+**** 21.1.2.9 Number.MIN_VALUE
+**** 21.1.2.10 Number.NAN
+**** 21.1.2.11 Number.NEGATIVE_INFINITY
+**** 21.1.2.12 Number.parseFloat( string )
+**** 21.1.2.13 Number.parseInt( string, radix )
+**** 21.1.2.14 Number.POSITIVE_INFINITY
+**** 21.1.2.15 Number.prototype
+*** 21.1.3 Properties of the Number Prototype Object
+**** 2.1.3.1 Number.prototype.constructor
+**** 2.1.3.2 Number.prototype.toExponential( fractionDigits )
+**** 2.1.3.3 Number.prototype.toFixed( fractionDigits )
+**** 2.1.3.4 Number.prototype.toLocaleString( [reserved1[, reserved2]] )
+**** 2.1.3.5 Number.prototype.toPrecision( precition )
+**** 2.1.3.6 Number.prototype.toString( [radix] )
+**** 2.1.3.7 Number.prototype.valueOf()
+*** 21.1.4 Properties of Number Instances
+** 21.2 BigInt Objects
+*** 21.2.1 The BigInt Constructor
+**** 21.2.1.1 BigInt(value)
+***** 21.2.1.1 NumberToBigInt(number)
+*** 21.2.2 Properties of the BigInt Constructor
+**** 21.2.2.1 BigInt.asIntN( bits, bigint )
+**** 21.2.2.1 BigInt.asUintN( bits, bigint )
+**** 21.2.2.1 BigInt.prototype
+*** 21.2.3 Properties of the BigInt Prototype Object
+**** 2.1.3.1 BigInt.prototype.constructor
+**** 2.1.3.2 BigInt.prototype.toLocaleString( [reserved1[, reserved2]] )
+**** 2.1.3.3 BigInt.prototype.toString( [radix] )
+**** 2.1.3.4 BigInt.prototype.valueOf()
+**** 2.1.3.5 BigInt.prototype[@@toStringTag]
+** 21.3 The Math Object
+*** 21.3.1 Value Properties of the Math Object
+**** 21.3.1.1 Math.E
+**** 21.3.1.2 Math.LN10
+**** 21.3.1.3 Math.LN2
+**** 21.3.1.4 Math.LOG10E
+**** 21.3.1.5 Math.LOG2E
+**** 21.3.1.6 Math.PI
+**** 21.3.1.7 Math.SQRT1_2
+**** 21.3.1.8 Math.SQRT2
+**** 21.3.1.9 Math[@@toStringTag]
+*** 21.3.2 Function Properties of the Math Object
+**** 21.3.2.1 Math.abs( x )
+**** 21.3.2.2 Math.acos( x )
+**** 21.3.2.3 Math.acosh( x )
+**** 21.3.2.4 Math.asin( x )
+**** 21.3.2.5 Math.asinh( x )
+**** 21.3.2.6 Math.atan( x )
+**** 21.3.2.7 Math.atanh( x )
+**** 21.3.2.8 Math.atan2( x )
+**** 21.3.2.9 Math.cbrt( x )
+**** 21.3.2.10 Math.ceil( x )
+**** 21.3.2.11 Math.clz32( x )
+**** 21.3.2.12 Math.cos( x )
+**** 21.3.2.13 Math.cosh( x )
+**** 21.3.2.14 Math.exp( x )
+**** 21.3.2.15 Math.expm1( x )
+**** 21.3.2.16 Math.floor( x )
+**** 21.3.2.17 Math.fround( x )
+**** 21.3.2.18 Math.hypot( ...args )
+**** 21.3.2.19 Math.imul( x, y )
+**** 21.3.2.20 Math.log( x )
+**** 21.3.2.21 Math.log1p( x )
+**** 21.3.2.22 Math.log10( x )
+**** 21.3.2.23 Math.log2( x )
+**** 21.3.2.24 Math.max( ...args )
+**** 21.3.2.25 Math.min( ...args )
+**** 21.3.2.26 Math.pow( base, exponent )
+**** 21.3.2.27 Math.random( )
+**** 21.3.2.28 Math.round( x )
+**** 21.3.2.29 Math.sign( x )
+**** 21.3.2.30 Math.sin( x )
+**** 21.3.2.31 Math.sinh( x )
+**** 21.3.2.32 Math.sqrt( x )
+**** 21.3.2.33 Math.tan( x )
+**** 21.3.2.34 Math.tanh( x )
+**** 21.3.2.35 Math.trunc( x )
+** 21.4 Date Objects
+*** 21.4.1 Overview of Date Objects And Definitions of Abstract Operations
+**** 21.4.1.1 Time Values and Time Range
+**** 21.4.1.2 Day Number and Time within Day
+**** 21.4.1.3 Year Number
+**** 21.4.1.4 Month Number
+**** 21.4.1.5 Date Number
+**** 21.4.1.6 Week Day
+**** 21.4.1.7 LocalTZA(t, isUTC)
+**** 21.4.1.8 LocalTime( t )
+**** 21.4.1.9 UTC(t)
+**** 21.4.1.10 Hours, Minutes, Second and Milliseconds
+**** 21.4.1.11 MakeTime(hour, min, sec, ms)
+**** 21.4.1.12 MakeDay(year, month, date)
+**** 21.4.1.13 MakeDate(day, time)
+**** 21.4.1.14 TimeClip(time)
+**** 21.4.1.15 Date Time String Format
+***** 21.4.1.15.1 Expanded Years
+*** 21.4.2 The Date Constructor
+**** 21.4.2.1 Date( ...values )
+*** 21.4.3 Properties of the Date Constructor
+**** 21.4.3.1 Date.now()
+**** 21.4.3.2 Date.parse( string )
+**** 21.4.3.3 Date.prototype
+**** 21.4.3.4 Date.UTC(year[, month[, date[, hours[, minutes[, seconds[, ms ]]]]]])
+*** 21.4.4 Properties of the Date Prototype Object
+**** 21.4.4.1 Date.prototype.constructor
+**** 21.4.4.2 Date.prototype.getDate()
+**** 21.4.4.3 Date.prototype.getDay()
+**** 21.4.4.4 Date.prototype.getFullYear()
+**** 21.4.4.5 Date.prototype.getHours()
+**** 21.4.4.6 Date.prototype.getMilliseconds()
+**** 21.4.4.7 Date.prototype.getMinutes()
+**** 21.4.4.8 Date.prototype.getMonth()
+**** 21.4.4.9 Date.prototype.getSeconds()
+**** 21.4.4.10 Date.prototype.getTime()
+**** 21.4.4.11 Date.prototype.getTimezoneOffset()
+**** 21.4.4.12 Date.prototype.getUTCDate()
+**** 21.4.4.13 Date.prototype.getUTCDay()
+**** 21.4.4.14 Date.prototype.getUTCFullYear()
+**** 21.4.4.15 Date.prototype.getUTCHours()
+**** 21.4.4.16 Date.prototype.getUTCMilliseconds()
+**** 21.4.4.17 Date.prototype.getUTCMinutes()
+**** 21.4.4.18 Date.prototype.getUTCMonth()
+**** 21.4.4.19 Date.prototype.getUTCSeconds()
+**** 21.4.4.20 Date.prototype.setDate( date )
+**** 21.4.4.21 Date.prototype.setFullYear( year[, month[, date ]] )
+**** 21.4.4.22 Date.prototype.setHours(hour[, min[, sec[, ms ]]] )
+**** 21.4.4.23 Date.prototype.setMilliseconds( ms )
+**** 21.4.4.24 Date.prototype.setMinutes( min[, sec[, ms ]] )
+**** 21.4.4.25 Date.prototype.setMonth( month[, date ] )
+**** 21.4.4.26 Date.prototype.setSeconds( sec[, ms ] )
+**** 21.4.4.27 Date.prototype.setTime( time )
+**** 21.4.4.28 Date.prototype.setUTCDate( date )
+**** 21.4.4.29 Date.prototype.setUTCFullYear( year[, month[, date ]] )
+**** 21.4.4.30 Date.prototype.setUTCHours(hour[, min[, sec[, ms ]]] )
+**** 21.4.4.31 Date.prototype.setUTCMilliseconds( ms )
+**** 21.4.4.32 Date.prototype.setUTCMinutes( min[, sec[, ms ]] )
+**** 21.4.4.33 Date.prototype.setUTCMonth( month[, date ] )
+**** 21.4.4.34 Date.prototype.setUTCSeconds( sec[, ms ] )
+**** 21.4.4.35 Date.prototype.toDateString()
+**** 21.4.4.36 Date.prototype.toISOString()
+**** 21.4.4.37 Date.prototype.toJSON( key )
+**** 21.4.4.38 Date.prototype.toLocaleDateString( [reserved1[, reserved2 ]] )
+**** 21.4.4.39 Date.prototype.toLocaleString( [reserved1[, reserved2 ]] )
+**** 21.4.4.40 Date.prototype.toLocaleTimeString( [reserved1[, reserved2 ]] )
+**** 21.4.4.41 Date.prototype.toString()
+***** 21.4.4.41.1 TimeString( tv )
+***** 21.4.4.41.2 DateString( tv )
+***** 21.4.4.41.3 TimeZoneString( tv )
+***** 21.4.4.41.4 ToDateString( tv )
+**** 21.4.4.42 Date.prototype.toTimeString()
+**** 21.4.4.43 Date.prototype.toUTCString()
+**** 21.4.4.44 Date.prototype.valueOf()
+**** 21.4.4.45 Date.prototype[@@toPrimitive]( hint )
+*** 21.4.5 Properties of Date Instances
 * 22 Text Processing
 * 23 Indexed Collections
 * 24 Keyed Collections
