@@ -16293,94 +16293,779 @@ Number构造范：
 . 有\[\[Prototype]]内部占位，值是%Function.prototype%
 . 有如下性质
 **** 21.1.2.1 Number.EPSILON
-Number.EPSILON的初始化值是Boolean原型对像。
+Number.EPSILON的值是Number值，是大于1的最小Number值与1的差，大约是
+2.2204460492503130808472633361816 × 10^-16。
 
 此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
 \[\[Configurable]]:false, }
 **** 21.1.2.2 Number.isFinite( number )
+当Number.isFinite被带参数number调用时，执行下列步骤：
+1. 如果Type(number)不是Number，返回false
+2. 如果number是NaN、+∞_F或-∞_F，返回false
+3. 其他返回true
 **** 21.1.2.3 Number.isInteger( number )
+当Number.isInteger被带参数number调用时，执行下列步骤：
+1. 返回!IsIntegerNumber(number)
 **** 21.1.2.4 Number.isNaN( number)
+当Number.isNaN被带参数number调用时，执行下列步骤：
+1. 如果Type(number)不是Number，返回false
+2. 如果number是NaN，返回true
+3. 其他返回false
+***** 注意 与全局的isNaN函数（19.2.3）不同，本函数在检测是否是NaN前，不进行
+            类型转换。
 **** 21.1.2.5 Number.isSafeInteger( number )
+当Number.isSafeInteger被带参数number调用时，执行下列步骤：
+1. 如果!IsIntegerNaumber(number)是true，那么
+    a. 如果abs(R(number)) <= 2^53 - 1，返回true
+2. 返回false
 **** 21.1.2.6 Number.MAX_SAFE_INTEGER
+***** 注意 Number.MAX_SAFE_INTEGER的值是最大的整数Number，记作n，因此R(n)和
+            R(n)+1都能被Number值准确的表示。
+Number.MAX_SAFE_INTEGER的值是9007199254740991_F（F(2^53 - 1)）。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 21.1.2.7 Number.MAX_VALUE
+Number.MAX_VALUE的值是最大的正有限Number值，大约是
+1.7976931348623157 × 10^308
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 21.1.2.8 Number.MIN_SAFE_INTEGER
+***** 注意 Number.MIN_SAFE_INTEGER的值是最小的整数Number，记作n，因此R(n)和
+            R(n)-1都能被Number值准确的表示。
+Number.MIN_SAFE_INTEGER的值是-9007199254740991_F（F(-(2^53 - 1))）。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 21.1.2.9 Number.MIN_VALUE
-**** 21.1.2.10 Number.NAN
+Number.MIN_VALUE的值是最小的正Number值，大约是
+5 × 10^-324。
+
+在IEEE-752 2019规范里，双精度字节表示，可能的最小值是非标准的。如果实现不
+提供非标准值，那么Number.MIN_VALUE值必须是可以被规范准确表示的最小非零正
+有理数。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
+**** 21.1.2.10 Number.NaN
+Number.EPSILON的值是Number值，是大于1的最小Number值与1的差，大约是
+2.2204460492503130808472633361816 × 10^-16。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 21.1.2.11 Number.NEGATIVE_INFINITY
+Number.NEGATIVE_INFINITY的值是-∞_F。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 21.1.2.12 Number.parseFloat( string )
+Number.parseFloat数据性质的值与定义在19.2.4中全局对象上"parseFloat"性质的初始
+值是相同的内建函数对象。
 **** 21.1.2.13 Number.parseInt( string, radix )
+Number.parseInt数据性质的值与定义在19.2.5中全局对象上"parseInt"性质的初始
+值是相同的内建函数对象。
+
 **** 21.1.2.14 Number.POSITIVE_INFINITY
+Number.POSITIVE_INFINITY的值是+∞_F。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 21.1.2.15 Number.prototype
+Number.prototype的初始值是Number原型对象
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 *** 21.1.3 Properties of the Number Prototype Object
+Number原型对象：
+. 是%Number.prototype%
+. 是基本对象
+. 本身是Number对象，有\[\[NumberData]]内部占位，其值是+0_F
+. 有\[\[Prototype]]占位，其值是%Object.prototype%
+
+除非显示说明，否则，下方定义的Number原型对象上的方法都不是泛用的，因此传递
+给它们的this值必须是Number值，或者是含有已初始化为Number值的\[\[NumberData]]内
+部占位的对象。
+
+抽象操作thisNumberValue接受参数value。被调用时执行下列步骤：
+1. 如果Type(value)是Number，返回value
+2. 如果Type(value)是Object，而且value有\[\[NumberData]]内部占位，那么
+    a. 让n是value.\[\[NumberData]]
+    b. Assert：Type(n)是Number
+    c. 返回n
+3. 投掷TypeError异常
+
+在本规范里方法的短语"thisNumber值"指将方法的this值作为调用参数传递给抽象操作
+thisNumberValue后获得的结果。
 **** 2.1.3.1 Number.prototype.constructor
+Number.prototype.constructor的初始值是%Number%
 **** 2.1.3.2 Number.prototype.toExponential( fractionDigits )
+返回thisNumber值的十进制指数形式的字符串，包含一位整数和fractionDigits位小数。
+如果fractionDigits是undefined，尽可能多的包含有效数字以唯一表示这个Number（
+就像ToString，除了本方法总是输出指数形式）。执行下列步骤：
+1. 让x是?thisNumberValue(this值)
+2. 让f是?ToIntegerOrInfinity(fractionDigits)
+3. Assert：如果fractionDigits是undefined，那么f是0
+4. 如果x不是finite，返回!Number::toSring(x)
+5. 如果f < 0或者f > 100，投掷RangeError异常
+6. 置x是R(x)
+7. 让s是空字符串
+8. 如果x < 0，那么
+    a. 置s是"-"
+    b. 置x是-x
+9. 如果x = 0，那么
+    a. 让m是由f+1个0x0030编码单元（DIGIT ZERO）组成的字符串
+    b. 让e是0
+10. 否则
+    a. 如果fractionDigits不是undefined，那么
+        i. 让e和n是合于10^f <= n < 10^(f+1)而且n * 10^(e-n)-x最接近0的整数。如果
+           由多组e和n，选择n*10^(e-f)最大的那组e和f
+    b. 否则
+        i. 让e、n和f是合于f>=0，10^f <= n < 10 ^(f+1)，n * 10^(e-f)是x，而且f尽可
+           能小的整数。注意n的十进制表示有f+1个数字，n被不能被10整除，而且
+           按照本准则，n的最小有效位数不是唯一的。
+    c. 让m是由n表示的十进制数数字（去掉头部的0，按照顺序）组成的字符串。
+11. 如果f!=0，那么
+    a. 让a的m的第一个编码单元
+    b. 让b是m中剩下的f个编码单元
+    c. 置m是a、"."和b字符串拼接
+12. 如果e=0，那么
+    a. 让c是"+"
+    b. 让d是"0"
+13. 否则
+    a. 如果e>0，让c是"+"
+    b. 否则
+        i. Assert：e < 0
+       ii. 让c是"-"
+      iii. 置e是-e
+    c. 让d是由e表示十进制数数字（去掉头部0，按照顺序）组成的字符串
+14. 置m是m、"e"、c和d组成字符串拼接
+15. 返回s和m的字符串拼接
+***** 注意 为了实现提供超出上述规则精度的转换，建议步骤10.b.i使用建议的
+            备用算法：
+            i. 让e、n和f是合于f>=0，10^f <= n < 10^(f+1)，n*10^(e-f)是x，而且f尽
+               可能小。如果有多个n，选择n*10^(e-f)最接近x的n。如果仍有两个n，
+               选择偶数的那个n
 **** 2.1.3.3 Number.prototype.toFixed( fractionDigits )
+***** 注意1 toFixed返回thisNumber值以固定fractionDigits小数位表示的字符串。如果
+             fractionDigits是undefined，假设为0
+执行如下步骤：
+1. 让x是?thisNumberValue(this值)
+2. 让f是?ToIntegerOrInfinity(fractionDigits)
+3. Assert：如果fractionDigits是undefined，f是0
+4. 如果f不是有限的，投掷RangeError异常
+5. 如果f<0或者f>100，投掷RangeError异常
+6. 如果x不是有限的，返回!Number::toString(x)
+7. 置x是R(x)
+8. 让s是空字符串
+9. 如果x<0，那么
+    a. 置s是"-"
+    b. 置x是-x
+10. 如果 x>= 10^21，那么
+    a. 让m是!ToString(F(x))
+11. 否则
+    a. 让n是满足n/(10^f)-x最接近0的整数。如果有两个n，选择大的那个
+    b. 如果n是0，让m是"0"。否则让m由n表示的十进制数数字（去掉头部0，
+       按照顺序）组成的字符串。
+    c. 如果f!=0，那么
+        i. 让k是m的长度
+       ii. 如果k<=f，那么
+            1. 让z是由f+1-k个0x0030编码单元（DIGIT ZERO）组成的字符串
+            2. 置m是z和m字符串拼接
+            3. 置k是f+1
+      iii. 让a是m的前k-f个编码单元
+       iv. 让b是m中其他f个编码单元
+        v. 置m是a、"."和b字符串拼接
+12. 返回s和m字符串拼接
+***** 注意2 某些值toFixed的输出精度可能高于toString，因为toString只是根据近似
+             的Number值打印足够区分的有效位。比如
+             (1000000000000000128).toString() returns "1000000000000000100"，而
+             (1000000000000000128).toFixed(0) returns "1000000000000000128".
 **** 2.1.3.4 Number.prototype.toLocaleString( [reserved1[, reserved2]] )
-**** 2.1.3.5 Number.prototype.toPrecision( precition )
+包含了ECMA-402国际化接口的ECMAScript实现必须按照ECMA-402规范的规定实现
+Number.prototype.toLocaleString方法。如果是不包含ECMA-402接口的ECMAScript实现
+使用下方的toLocaleString规定
+
+根据主机环境的当前本地习俗产生thisNumber值的有格式字符串。这个函数是
+实现定义的，因此可以，但是不鼓励，返回toString相同的结果。
+
+这意味着本方法的可选参数是在ECMA-402规范里定义的。没有支持ECMA-402的实现
+不能将这些参数位用于其他。
+**** 2.1.3.5 Number.prototype.toPrecision( precision )
+返回thisNumber值的十进制，包含一位整数和precition-1位小数的指数形式的字符串，
+或者以固定precision位有效数字的字符串。如果precision是undefined，以ToString替
+代。规定执行下列步骤：
+1. 让x是?thisNumberValue(this值)
+2. 如果precision是undefined，返回!ToString(x)
+3. 让p是?toIntegerOrInfinity(precision)
+4. 如果x不是有限的，返回Number::toString(x)
+5. 如果p<1或者p>100，投掷RangeError异常
+6. 值x是R(x)
+7. 让s是空字符串
+8. 如果x<0，那么
+    a. 置s是0x002D编码单元（HYPHEN-MINUS）
+    b. 置x是-x
+9. 如果x=0，那么
+    a. 让m是由p个0x0030编码单元（DIGIT ZERO）组成的字符串
+    b. 让e是0
+10. 否则
+    a. 让e和n是合于10^(p-1) <= n < 10^n，且n*10^(e-p+1)-x最接近0.如果有两组
+       e和n，选择让n*10^(e-p+1)更大的那组e和n
+    b. 让m是由n表示的十进制数数字（去掉头部0，按照顺序）组成的字符串
+    c. 如果e<-6或者e>=p，那么
+        i. Assert：e!=0
+       ii. 如果p!=1，那么
+            1. 让a是m的第一个编码单元
+            2. 让b是m中其他p-1个编码单元
+            3. 置m是a、"."和b的字符串拼接
+      iii. 如果e>0，那么
+            1. 让c是编码单元0x002B（PLUS SIGN）
+       iv. 否则
+            1. Assert：e < 0
+            2. 让c是0x002D编码单元（HYPHEN-MINUS）
+            3. 置e是-e
+        v. 让d是由e表示的十进制数数字（去掉头部0，按照顺序）组成的字符串
+       vi. 返回s、m、编码单元0x0065（LATIN SMALL LETTER E）、c和d的字符串拼接
+11. 如果e = p-1，返回s和m的字符串拼接
+12. 如果e >= 0，那么
+    a. 置m是m的前e+1个编码单元、0x002E（FULL STOP）和m剩余p-e-1个编码单元的
+       字符串拼接
+13. 否则
+    a. 置m是0x0030（DIGIT ZERO）、0x002E（FULL STOP）、-(e+1)个0x0030（DIGIT ZERO）
+       和m的字符串拼接。
+14. 返回s和m的字符串拼接
 **** 2.1.3.6 Number.prototype.toString( [radix] )
+***** 注意 可选参数radix的整数值在[2,36]内。如果radix是undefined，用10_F代替。
+被调用时执行下列步骤：
+1. 让x是?thisNumberValue(this值）
+2. 如果radix是undefined，让radixMV是10
+3. 否则，让radixMV是?ToIntegerOrInfinity(radix)
+4. 如果radixMV < 2或者radixMV > 36，投掷RangeError异常
+5. 如果radixMV = 10，返回!ToString(x)
+6. 返回以randixMV进制表示thisNumber值的字符串。字母a-z被用作10到35的数字。确切
+   的算法是实现定义的，但是应该规范6.1.6.1.20定义的归纳。
+
+toString函数不是泛型的。如果this值不是Number或者Number对象，会投掷TypeError异
+常。所以不能传递给别的对象，作为方法使用。
+
+toString方法的"length"性质是1_F
 **** 2.1.3.7 Number.prototype.valueOf()
+1. 返回?thisNumberValue(this值)
 *** 21.1.4 Properties of Number Instances
+Number实例都是基本对象，继承Number原型对象的性质。Number实例有\[\[NumberData]]
+内部占位。\[\[NumberData]]内部占位是表述Number对象的Number值。
 ** 21.2 BigInt Objects
 *** 21.2.1 The BigInt Constructor
+BigInt构造范
+. 是%BigInt%
+. 是全局对象"BigInt"性质的初始值。
+. 作为函数而不是构造范调用时，执行类型转换
+. 不能与new操作符合用，不能被继承。可以用在class定义的extends语句里，
+  但super调用，会导致异常。
 **** 21.2.1.1 BigInt(value)
+当BigInt被带可选参数value调用时，执行下列步骤：
+1. 如果NewTarget不是undefined，投掷TypeError异常
+2. 如果prim是?ToPrimitive(value, number)
+3. 如果Type(prim)是Number，返回?NumberToBigInt(prim)
+4. 否则返回?ToBigInt(value)
 ***** 21.2.1.1 NumberToBigInt(number)
+抽象操作NumberToBigInt接受参数number（Number值）。被调用时执行下列步骤：
+1. 如果IsIntegralNumber(number)是false，投掷RangeError异常
+2. 返回表示R(number)的BigInt值
 *** 21.2.2 Properties of the BigInt Constructor
+BigInt构造范的\[\[Prototype]]值是%Function.prototype%
+
+BigInt构造范有随后性质：
 **** 21.2.2.1 BigInt.asIntN( bits, bigint )
+当BigInt.asIntN被带参数bits和bigint调用时，执行下列步骤：
+1. 置bits是?ToIndex(bits)
+2. 置bigint是?ToBigInt(bigint)
+3. 让mod是R(bigint)对2^bits求模
+4. 如果mod>=2^(bits-1)，返回Z(mod - 2^bits)，否则返回Z(mod)
 **** 21.2.2.1 BigInt.asUintN( bits, bigint )
+当BigInt.asUintN被带参数bits和bigint调用时，执行下列步骤：
+1. 置bits是?ToIndex(bits)
+2. 置bigint是?ToBigInt(bigint)
+3. 返回表示R(bigint)对2^bits求模结果的BigInt
 **** 21.2.2.1 BigInt.prototype
+BigInt.prototype的初始值是BigInt原型对象
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 *** 21.2.3 Properties of the BigInt Prototype Object
+BigInt原型对象：
+. 是%BigInt.prototype%
+. 是基本对象
+. 不是BigInt对象，没有\[\[BigIntData]]内部占位
+. 有\[\[Prototype]]内部占位，其值是%Object.prototype%
+
+抽象操作thisBigIntValue接受参数value。被调用时执行下列步骤：
+1. 如果Type(value)是BigInt，返回value
+2. 如果Type(value)是Object，而且value有\[\[BigIntData]]内部占位，那么
+    a. Assert：Type(value.\[\[BigIntData]])是BigInt
+    b. 返回value.\[\[BigIntData]]
+3. 投掷TypeError异常
+
+在本规范里方法的短语"thisBigInt值"指将方法的this值作为调用参数传递给抽象操作
+thisBigIntValue后获得的结果。
 **** 2.1.3.1 BigInt.prototype.constructor
+BigInt.prototype.constructor的初始值是%BigInt%
 **** 2.1.3.2 BigInt.prototype.toLocaleString( [reserved1[, reserved2]] )
+包含了ECMA-402国际化接口的ECMAScript实现必须按照ECMA-402规范的规定实现
+BigInt.prototype.toLocaleString方法。如果是不包含ECMA-402接口的ECMAScript实现
+使用下方的toLocaleString规定
+
+根据主机环境的当前本地习俗产生thisBigInt值的有格式字符串。这个函数是
+实现定义的，因此可以，但是不鼓励，返回toString相同的结果。
+
+这意味着本方法的可选参数是在ECMA-402规范里定义的。没有支持ECMA-402的实现
+不能将这些参数位用于其他。
 **** 2.1.3.3 BigInt.prototype.toString( [radix] )
+***** 注意 可选参数radix的整数值在[2,36]内。如果radix是undefined，用10_F代替。
+被调用时执行下列步骤：
+1. 让x是?thisBigIntValue(this值）
+2. 如果radix是undefined，让radixMV是10
+3. 否则，让radixMV是?ToIntegerOrInfinity(radix)
+4. 如果radixMV < 2或者radixMV > 36，投掷RangeError异常
+5. 如果radixMV = 10，返回!ToString(x)
+6. 返回以randixMV进制表示thisNumber值的字符串。字母a-z被用作10到35的数字。确切
+   的算法是实现定义的，但是应该规范6.1.6.1.23定义的归纳。
+
+toString函数不是泛型的。如果this值不是BigInt或者BigInt对象，会投掷TypeError异
+常。所以不能传递给别的对象作为方法使用。
 **** 2.1.3.4 BigInt.prototype.valueOf()
+1. 返回?thisBigIntValue(this值)
 **** 2.1.3.5 BigInt.prototype[@@toStringTag]
+@@toStringTag性质的初始值是"BigInt"
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 ** 21.3 The Math Object
+Math对象：
+. 是%Math%
+. 是全局对象"Math"性质的初始值
+. 是基本对象
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 不是函数对象
+. 没有\[\[Constructor]]内部方法；不能与new操作符合用
+. 没有\[\[Call]]内部方法；不能作为函数调用
+*** 注意 在本规范里，短语"x的Number值"使用6.1.6.1定义的含义。
 *** 21.3.1 Value Properties of the Math Object
 **** 21.3.1.1 Math.E
+e的Number值，自然对数的底，大约是2.7182818284590452354。
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 21.3.1.2 Math.LN10
+10的自然对数的Number值，大约是2.302585092994046。
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 21.3.1.3 Math.LN2
+10的自然对数的Number值，大约是0.6931471805599453。
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 21.3.1.4 Math.LOG10E
+以10为底，e的对数的Number值，大约是0.4342944819032518。
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
+***** 注意 Math.LOG10E近似于Math.LN10的倒数。
 **** 21.3.1.5 Math.LOG2E
+以2为底，e的对数的Number值，大约是1.4426950408889634。
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
+***** 注意 Math.LOG2E近似于Math.LN2的倒数。
 **** 21.3.1.6 Math.PI
+π的Number值，圆周长与直径的比值，大约是3.1415926535897932。
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 21.3.1.7 Math.SQRT1_2
+1/2平方根的Number值，大约是0.7071067811865476。
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
+***** 注意 Math.SQRT1_2近似于Math.SQRT2的倒数。
 **** 21.3.1.8 Math.SQRT2
+2平方根的Number值，大约是1.4142135623730951。
+
+此性质具有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }.
 **** 21.3.1.9 Math[@@toStringTag]
+@@toStringTag性质的初始值是"Math"
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** 21.3.2 Function Properties of the Math Object
+**** 注意 acos, acosh, asin, asinh, atan, atanh, atan2, cbrt, cos, cosh, exp, expm1,
+           hypot, log, log1p, log2, log10, pow, random, sin, sinh, sqrt, tan和tanh这里
+           没有准确规范，除了因为兴趣使用的边界值作为参数的结果规定。其他的
+           参数，这些函数一般试图计算出相应数学方法的近似值，但是有些度数
+           允许使用近似值算法。一般在这些实现里应当为ECMAScript使用平台上C向
+           数学库。
+
+           尽管算法选择权在实现，推荐使用（不是本标准的规定）包含在fdlibm里
+           为IEEE754-2019的近似算法实现，它是Sun Microsytems的自由数学库。
 **** 21.3.2.1 Math.abs( x )
+返回x的绝对值，结果与x大小一样，但是是正数。
+
+当Math.abs被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，返回NaN
+3. 如果n是-0_F，返回+0_F
+4. 如果n是-∞_F，返回+∞_F
+5. 如果n < +0_F，返回-n
+6. 返回n
 **** 21.3.2.2 Math.acos( x )
+返回x的反余弦结果。结果以弧度表示，在[+0_F,F(π)]上。
+
+当Math.acos方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n > 1_F或者n <-1_F，返回NaN
+3. 如果n是1_F，返回+0_F
+4. 返回表示R(x)的反余弦结果的实现近似值。
 **** 21.3.2.3 Math.acosh( x )
+返回x的反双曲余弦结果。
+
+当Math.acos方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN或n是+∞_F，返回n
+3. 如果n是1_F，返回+0_F
+4. 如果n<1_F，返回NaN
+5. 返回表示R(x)的反双曲余弦结果的实现近似值。
 **** 21.3.2.4 Math.asin( x )
+返回x的反正弦结果。结果以弧度表示，在[F(-π/2),F(π/2)]上。
+
+当Math.asin方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F或者n是-0_F，返回n
+3. 如果n>1_F，或者n<-1_F，返回NaN
+4. 返回表示R(x)的反正弦结果的实现近似值。
 **** 21.3.2.5 Math.asinh( x )
+返回x的反双曲正弦结果。
+
+当Math.asinh方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F，n是+∞_F或者n是-∞_F，返回n
+3. 返回表示R(x)的反双曲正弦结果的实现近似值。
 **** 21.3.2.6 Math.atan( x )
+返回x的反正切结果。结果以弧度表示，在[F(-π/2),F(π/2)]上。
+
+当Math.atan方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F或者n是-0_F，返回n。
+3. 如果n是+∞_F，返回表示π/2的实现近似值
+4. 如果n是-∞_F，返回表示-π/2的实现近似值
+5. 返回表示R(x)的反正切结果的实现近似值。
 **** 21.3.2.7 Math.atanh( x )
-**** 21.3.2.8 Math.atan2( x )
+返回x的反双曲正切结果。
+
+当Math.atanh方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F或者n是-0_F，返回n。
+3. 如果n > 1_F或者n <-1_F，返回NaN
+4. 如果n是1_F，返回+∞_F
+5. 如果n是-1_F，返回-∞_F
+6. 返回表示R(x)的反双曲正切结果的实现近似值。
+**** 21.3.2.8 Math.atan2( y, x )
+返回参数y和x表示的商y/x的反正切结果，y和x的符号表示结果所在的像限。注意
+先是y再是x，这一点是有意的，惯例的双参数反正切函数。结果以弧度表示，在
+[-π,+π]上。
+
+当Math.atan2方法被带参数y和x调用时，执行下列步骤：
+1. 让ny是?ToNumber(y)
+2. 让nx是?ToNumber(x)
+3. 如果ny是NaN或者nx是NaN，返回NaN
+4. 如果ny是+∞_F，那么
+    a. 如果nx是+∞_F，返回表示π/4的实现近似值
+    b. 如果nx是-∞_F，返回表示3π/4的实现近似值
+    c. 返回表示π/2的实现近似值
+5. 如果ny是-∞_F，那么
+    a. 如果nx是+∞_F，返回表示-π/4的实现近似值
+    b. 如果nx是-∞_F，返回表示-3π/4的实现近似值
+    c. 返回表示-π/2的实现近似值
+6. 如果ny是+0_F，那么
+    a. 如果nx>+0_F或者nx是+0_F，然会+0_F
+    b. 返回表示π的实现近似值。
+7. 如果ny是-0_F，那么
+    a. 如果nx>+0_F或者nx是+0_F，然会-0_F
+    b. 返回表示-π的实现近似值。
+8. Assert：ny是有限的，而且不是+0_F或-0_F
+9. 如果ny>+0_F，那么
+    a. 如果nx是+∞_F，返回+0_F
+    b. 如果nx是-∞_F，返回表示π的实现近似值。
+    c. 如果nx是+0_F或者-0_F，返回表示π/2的实现近似值。
+10. 如果ny<+0_F，那么
+    a. 如果nx是+∞_F，返回-0_F
+    b. 如果nx是-∞_F，返回表示-π的实现近似值。
+    c. 如果nx是+0_F或者-0_F，返回表示-π/2的实现近似值。 
+11. Assert：nx是有限的，而且不是+0_F或-0_F。
+12. 如果n是1_F，返回+0_F
+13. 返回表示R(ny)/R(nx)商的反正切结果的实现近似值。
 **** 21.3.2.9 Math.cbrt( x )
+返回x的立方根。
+
+当Math.cbrt方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F，n是+∞_F或者n是-∞_F，返回n
+3. 返回表示R(x)的立方根的实现近似值。
 **** 21.3.2.10 Math.ceil( x )
+返回不小于x的最小（接近-∞）的整数Number。如果x已经是整数Number，结果就
+是x。
+
+当Math.ceil方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F，n是+∞_F或者n是-∞_F，返回n
+3. 如果n<+0_F，而且n>-1_F，返回-0_F
+4. 如果n是整数Number，返回n
+5. 返回不小于x的最小（接近-∞_F）的整数Number
+***** 注意 Math.ceil(x)的值与-Math.floor(-x)的值相同。
 **** 21.3.2.11 Math.clz32( x )
+当Math.clz32方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToUint32(x)
+2. 让p是以无符号32位二进制表示n时头部0的个数。
+3. 返回F(p)
+***** 注意 如果n是+0_F或者-0_F，会返回32_F。32位二进制编码的最大位是1，会返回
+            +0_F
 **** 21.3.2.12 Math.cos( x )
+返回x的余弦结果。参数以弧度表示。
+
+当Math.cos方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F或者n是-0_F，返回n
+3. 如果n是+∞_F或者n是-∞_F，返回NaN
+4. 返回表示R(x)的余弦结果的实现近似值。
 **** 21.3.2.13 Math.cosh( x )
+返回x的双曲余弦结果。
+
+当Math.cosh方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+∞_F或者n是-∞_F，返回n
+3. 如果n是+0_F或者n是-0_F，返回1_F
+4. 返回表示R(x)的余弦结果的实现近似值。
+***** 注意 Math.cos(x)的结果与(Math.exp(x) + Math.exp(-x)) / 2的结果相同。
 **** 21.3.2.14 Math.exp( x )
+返回x的指数结果（以e为底，x为指数的结果。e是自然对数）。
+
+当Math.exp方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，或者n是+∞_F，返回n。
+3. 如果n是+0_F或者n是-0_F，返回+1_F
+4. 如果n是-∞_F，返回+0_F。
+5. 返回表示R(x)的指数结果的实现近似值。
 **** 21.3.2.15 Math.expm1( x )
+返回x的指数结果（以e为底，x为指数的结果。e是自然对数）减去1的结果。即使x
+接近0，计算的结果也是准确的。
+
+当Math.expm1方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F或者n是+∞_F，返回n。
+4. 如果n是-∞_F，返回-1_F。
+4. 返回表示R(x)的指数结果减去1的结果的实现近似值。
 **** 21.3.2.16 Math.floor( x )
+返回不大于x的最大（接近+∞）的整数Number。如果x已经是整数Number，结果就
+是x。
+
+当Math.ceil方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F，n是+∞_F或者n是-∞_F，返回n
+3. 如果n<1_F，而且n>+0_F，返回+0_F
+4. 如果n是整数Number，返回n
+5. 返回不大于x的最大（接近+∞）的整数Number。
+***** 注意 Math.floor(x)的值与-Math.ceil(-x)的值相同。
 **** 21.3.2.17 Math.fround( x )
+当Math.fround方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，返回NaN
+3. 如果n是+0_F，n是-0_F，n是+∞_F或者n是-∞_F，返回n
+4. 让n32是使用roundTiesToEvent模式将n转换为IEEE 754-2019二进制32格式的值的结果
+5. 让n64是将n32转换为IEEE 754-2019二进制64格式的值的结果
+6. 返回n64的ECMAScript的Number值。
 **** 21.3.2.18 Math.hypot( ...args )
+返回参数的平方和的平方根。
+
+当Math.hypot方法被带可数参数args调用时，执行下列步骤：
+1. 让coerced是新的空列表
+2. 遍历args的元素记作arg，做
+    a. 让n是?ToNumber(arg)
+    b. 附加n到coerced末端
+3. 让onlyZero是true
+4. 遍历coerced的元素记作number，做
+    a. 如果number是NaN，或者是+∞_F，返回number
+    b. 如果number是-∞_F，返回+∞_F
+    c. 如果number不是是+0_F或者-0_F，置onlyZero是false
+5. 如果onlyZero是true，返回+0_F
+6. 返回表示coerced元素数学值的平方和的平方根的实现近似值。
+
+hypot方法的"length"性质值是2_F。
+***** 注意 实现需要避免因为上溢或者下溢导致的精度丢失。通常在一些幼稚的
+            实现里带多个参数调用此方法时容易出现这种错误。
 **** 21.3.2.19 Math.imul( x, y )
+当Math.imul方法被带参数x和y调用时，执行下列步骤：
+1. 让a是R(?ToUint32(x))
+2. 让b是R(?ToUint32(y))
+3. 让product是(a * b)对2^32取模的结果
+4. 如果product>=2^31，返回F(product - 2^32)；否则返回F(product)
+5. 返回不小于x的最小（接近-∞_F）的整数Number
 **** 21.3.2.20 Math.log( x )
+返回x自然对数。
+
+当Math.log方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，或者n是+∞_F，返回n
+3. 如果n是1_F，返回+0_F
+4. 如果n是+0_F或者n是-0_F，返回-∞_F。
+5. 如果n<+0_F，返回NaN
+6. 返回表示R(x)的自然对数的实现近似值。
 **** 21.3.2.21 Math.log1p( x )
+返回1+x的自然对数。即使x接近0，计算的结果也是准确的。
+
+当Math.log1p方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F或者n是+∞_F，返回n
+3. 如果n是-1_F，返回-∞_F
+4. 如果n<-1_F，返回NaN
+5. 返回表示1+R(x)的自然对数的实现近似值。
 **** 21.3.2.22 Math.log10( x )
+返回x的以10为底的对数。
+
+当Math.log10方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，或者n是+∞_F，返回n
+3. 如果n是1_F，返回+0_F
+4. 如果n是+0_F或者n是-0_F，返回-∞_F。
+5. 如果n<+0_F，返回NaN
+6. 返回表示R(x)的以10为底对数的实现近似值。
 **** 21.3.2.23 Math.log2( x )
+返回x的以2为底的对数。
+
+当Math.log2方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，或者n是+∞_F，返回n
+3. 如果n是1_F，返回+0_F
+4. 如果n是+0_F或者n是-0_F，返回-∞_F。
+5. 如果n<+0_F，返回NaN
+6. 返回表示R(x)的以2为底对数的实现近似值。
 **** 21.3.2.24 Math.max( ...args )
+给定可数个参数，每个参数调用ToNumber的结果中最大的值。
+
+当Math.max方法被带可数参数args调用时，执行下列步骤：
+1. 让coerced是新的空列表
+2. 遍历args的元素记作arg，做
+    a. 让n是?ToNumber(arg)
+    b. 附加n到coerced末端
+3. 让highest是-∞_F
+4. 遍历coerced的元素记作number，做
+    a. 如果number是NaN，返回number
+    b. 如果number是+0_F，而且highest是-0_F，置heighest是+0_F
+    c. 如果number > highest，置highest是number。
+5. 返回highest
+***** 注意 除了认为+0_F大于-0_F，其他用于检测最大值的比较使用抽象关系比较。
+max方法的"length"性质值是2_F。
 **** 21.3.2.25 Math.min( ...args )
+给定可数个参数，每个参数调用ToNumber的结果中最小的值。
+
+当Math.min方法被带可数参数args调用时，执行下列步骤：
+1. 让coerced是新的空列表
+2. 遍历args的元素记作arg，做
+    a. 让n是?ToNumber(arg)
+    b. 附加n到coerced末端
+3. 让lowest是+∞_F
+4. 遍历coerced的元素记作number，做
+    a. 如果number是NaN，返回number
+    b. 如果number是-0_F，而且lowest是+0_F，置lowest是-0_F
+    c. 如果number < lowest，置lowest是number。
+5. 返回lowest
+***** 注意 除了认为+0_F大于-0_F，其他用于检测最大值的比较使用抽象关系比较。
+min方法的"length"性质值是2_F。
 **** 21.3.2.26 Math.pow( base, exponent )
+当Math.pow方法被带参数base和exponent调用时，执行下列步骤：
+1. 置base是?ToNumber(base)
+2. 置exponent是?ToNumber(exponent)
+3. 返回!Number::exponentiate(base, exponent)
 **** 21.3.2.27 Math.random( )
+返回正的大于等于+0_F，并且严格小于1_F的Number值，在此范围内近似均匀分布的
+随机或者伪随机选择，使用实现定义的算法或者策略。本方法不接受参数。
+
+为不同realms创建Math.random函数的连续调用产生不同随机序列。
 **** 21.3.2.28 Math.round( x )
+返回最接近x的整数Number值。如果有两个数同样接近x，那么选择接近+∞_F的那个
+Number值。如果x已经是整数，结果是x。
+
+当Math.round方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+∞_F，n是-∞_F或者n是整数Number，返回n
+3. 如果n<+0.5_F而且n>+0_F，返回+0_F
+4. 如果n<+0_F而且n>=-0.5_F，返回-0_F
+5. 返回最接近n的整数Number，优先接近+∞_F的Number。
+***** 注意1 Math.round(3.5)返回4，但是Math.round(-3.5)返回-3
+***** 注意2 Math.round(x)的值不总是与Math.floor(x + 0.5)的结果相同。当x是-0_F或者
+             小于+0_F，但是大于-0.5_F，Math.round(x)返回-0_F，但是
+             Math.floor(x+0.5)返回+0_F。Math.round(x)与Math.floor(x + 0.5)不同，有
+             可能因为在计算x+0.5时内部修圆了。
 **** 21.3.2.29 Math.sign( x )
+返回x的符号，指明x时正的，负的或者是0
+
+当Math.sign方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F或者n是-0_F，返回n
+3. 如果n<+0_F，返回-1_F
+4. 返回1_F
 **** 21.3.2.30 Math.sin( x )
+返回x的正弦结果。结果以弧度表示，在[+0_F,F(π)]上。
+
+当Math.sin方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F或者n是-0_F，返回n。
+3. 如果n是+∞_F，n是-∞_F，返回NaN。
+4. 返回表示R(x)的正弦结果的实现近似值。
 **** 21.3.2.31 Math.sinh( x )
+返回x的双曲正弦结果。
+
+当Math.sinh方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F或者n是+∞_F，返回n
+3. 返回表示R(x)的双曲正弦结果的实现近似值。
+***** 注意 Math.sinh(x)与(Math.exp(x) - Math.exp(-x)) / 2结果相同。
 **** 21.3.2.32 Math.sqrt( x )
+返回x的平方根。
+
+当Math.sqrt方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F或者n是+∞_F，返回n。
+3. 如果n<+0_F，返回NaN
+4. 返回表示R(x)的平方根结果的实现近似值。
 **** 21.3.2.33 Math.tan( x )
+返回x的正切结果。结果以弧度表示。
+
+当Math.tan方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F，返回n。
+3. 如果n是+∞_F，n是-∞_F，返回NaN
+4. 返回表示R(x)的正切结果的实现近似值。
 **** 21.3.2.34 Math.tanh( x )
+返回x的双曲正切结果。
+
+当Math.tanh方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F或者n是-0_F，返回n
+3. 如果n是+∞_F，返回+1_F
+3. 如果n是-∞_F，返回-1_F
+4. 返回表示R(x)的双曲正切结果的实现近似值。
+***** 注意 Math.tanh(x)与(Math.exp(x) - Math.exp(-x)) / (Math.exp(x) + Math.exp(-x))
+            是相同结果
 **** 21.3.2.35 Math.trunc( x )
+返回x的整数部分，移除任意小数部分。如果x是整数，返回x。
+
+当Math.trunc方法被带参数x调用时，执行下列步骤：
+1. 让n是?ToNumber(x)
+2. 如果n是NaN，n是+0_F，n是-0_F，n是+∞_F或者n是-∞_F，返回n
+3. 如果n<1_F，而且n>+0_F，返回+0_F
+4. 如果n<+0_F，而且n>-1_F，返回-0_F。
+5. 返回向+0最靠近x的整数Number。
 ** 21.4 Date Objects
 *** 21.4.1 Overview of Date Objects And Definitions of Abstract Operations
 **** 21.4.1.1 Time Values and Time Range
