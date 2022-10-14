@@ -27,6 +27,7 @@
 ** TODO instantiate 和 intialize在这里都被翻译成初始化了，这是错误。
    instantiate表示建立变量（实例化）。initialize表示建立变量并赋值，或者给
    未赋值的变量赋值（初始化）。后期需要校订。
+** 时标 代表UTC1970年1月1日0时0分0秒000毫秒
 *** 根据编译原理，大小端由其他编译层处理。
 * 前言 
 ** TODO [44,46] 
@@ -17065,83 +17066,837 @@ Number值。如果x已经是整数，结果是x。
 2. 如果n是NaN，n是+0_F，n是-0_F，n是+∞_F或者n是-∞_F，返回n
 3. 如果n<1_F，而且n>+0_F，返回+0_F
 4. 如果n<+0_F，而且n>-1_F，返回-0_F。
-5. 返回向+0最靠近x的整数Number。
+5. 返回向+0最接近n的整数Number。
 ** 21.4 Date Objects
 *** 21.4.1 Overview of Date Objects And Definitions of Abstract Operations
+随后的函数都是操作时间值（21.4.1.1）的抽象操作。注意，任何情况下，如果某个
+参数是NaN，那么结果就是NaN。
 **** 21.4.1.1 Time Values and Time Range
+在ECMAScript中的时间度量方式与POSIX类似，尤其是共享了公历的术语，从UTC1970年
+1月1日的0时0分0秒000的时标开始，而且认为每天86400秒（每秒1000毫秒）。
+
+ECMAScript时间值是Number，要么是表示毫秒精度的具体时间的整数，要么是NaN，表示
+不合规的时刻。时间值是24*60*60*1000=86,400,000（记作dt）的倍数（比如
+86,400,000*d，d是整数）表示时标后d个UTC整天的开始（负数表示时标之前）。其他
+有限时间值t被定义成t前最大的dt的倍数，记作s，和在s所表示的那天的t-s毫秒数。
+
+时间值不考虑UTC闰秒，没有时间值表示正闰秒的时刻，但是去掉负闰秒的UTC时刻有
+时间值表示。不过，尽管时间值定义与UTC分片对齐，也只在闰秒边界和闰秒后的0
+秒处中断。
+
+Number值可以精确的表示-9,007,199,254,740,992到9,007,199,254,740,992（21.1.2.8和
+21.1.2.6）的整数。时间值支持范围的稍微小些，从-8,640,000,000,000,000到
+8,640,000,000,000,000毫秒数。这也就是表明支持-100,000,000到100,000,000天的范围，
+以时标UTC1970-01-01 00:00:00:000为原点。
+***** 注意 在公历里每400年有97个闰年。因此平均每年365.2425天，也就是
+            31,556,952,000毫秒。因此Number值相对于1970年大约最多可以表示
+            -285,426到285,426年。而更小的时间值相对于1970年按规定大约可以表示
+            -273,790到273,790年。
 **** 21.4.1.2 Day Number and Time within Day
+给定时间值t，属于的天数
+Day(t) = F(floor(R(t/msPerDay)))
+这里每天毫秒数是
+msPerDay = 86400000_F
+
+余数称作是这天的时间：
+TimeWithinDay(t)=F(R(t) modulo R(msPerDay))
 **** 21.4.1.3 Year Number
+ECMAScript使用公历将天数映射到年数，然后明确年内的月份和日期。本日历里，润
+年是4的倍数不是100的倍数，或者是400的倍数。因此年内天数由年数y确定：
+DaysInYear(y)
+  = 365_F 如果 (R(y) modulo 4) != 0
+  = 366_F 如果 (R(y) modulo 4) = 0 and (R(y) modulo 100) != 0
+  = 365_F 如果 (R(y) modulo 100) = 0 and (R(y) modulo 400) != 0
+  = 366_F 如果 (R(y) modulo 400) = 0
+
+所有的非闰年都是365天，每月的天数是正常的天数，而如年在二月会多一天。年y的
+第一天：
+DayFromYear(y) = F( 365 * (R(y) - 1970) + floor( (R(y) - 1969) / 4 ) -
+  floor( (R(y) - 1901) / 100 ) + floor( (R(y) - 1601) / 400 ) )
+
+年开始的时间值是
+TimeFromYear(y) = msPerDay * DayFromYear(y)
+
+时间值确定年：
+YearFromTime(t) = TimeFromYear(y) <= t的最大整数值y（接近+∞）
+
+闰年函数在闰年返回1，否则返回0
+InLeapYear(t)
+  = +0_F 如果DaysInYear(YearFromTime(t)) = 365_F
+  = +1_F 如果DaysInYear(YearFromTime(t)) = 366_F
 **** 21.4.1.4 Month Number
+月份以[+0_F,11_F]的整数标识。MonthFromTime(t)将时间值t按照如下定义映到月份：
+MonthFromTime(t)
+  = +0_F 如果 +0_F <= DayWithYear(t) < 31_F
+  = +1_F 如果 +31_F <= DayWithYear(t) < 59_F
+  = +2_F 如果 +59_F + InLeapYear(t) <= DayWithYear(t) < 90_F + InLeapYear(t)
+  = +3_F 如果 +90_F + InLeapYear(t) <= DayWithYear(t) < 120_F + InLeapYear(t)
+  = +4_F 如果 +120_F + InLeapYear(t) <= DayWithYear(t) < 151_F + InLeapYear(t)
+  = +5_F 如果 +151_F + InLeapYear(t) <= DayWithYear(t) < 181_F + InLeapYear(t)
+  = +6_F 如果 +181_F + InLeapYear(t) <= DayWithYear(t) < 212_F + InLeapYear(t)
+  = +7_F 如果 +212_F + InLeapYear(t) <= DayWithYear(t) < 243_F + InLeapYear(t)
+  = +8_F 如果 +243_F + InLeapYear(t) <= DayWithYear(t) < 273_F + InLeapYear(t)
+  = +9_F 如果 +273_F + InLeapYear(t) <= DayWithYear(t) < 304_F + InLeapYear(t)
+  = +10_F 如果 +304_F + InLeapYear(t) <= DayWithYear(t) < 334_F + InLeapYear(t)
+  = +11_F 如果 +334_F + InLeapYear(t) <= DayWithYear(t) < 365_F + InLeapYear(t)
+这里
+DayWithinYear(t) = Day(t) - DayFromYear(YearFromTime(t))
+
+月份+0_F是一月；1_F是二月；2_F是三月；3_F是四月；4_F是五月；5_F是六月；
+6_F是七月；7_F是八月；8_F是九月；9_F是十月；10_F是十一月；11_F是十二月。注意
+MonthFromTime(+0_F)=+0_F，标识1970年1月。
 **** 21.4.1.5 Date Number
+日数是[1_F,31_F]内的整数。DateFromTime(t)将时间值t按照如下定义映到日数：
+DateFromTime(t)
+  = DayWithinYear(t) + 1_F 如果 MonthFromTime(t) = +0_F
+  = DaywithinYear(t) - 30_F 如果 MonthFromTime(t) = 1_F
+  = DaywithinYear(t) - 58_F - InLeapYear(t) 如果 MonthFromTime(t) = 2_F
+  = DaywithinYear(t) - 89_F - InLeapYear(t) 如果 MonthFromTime(t) = 3_F
+  = DaywithinYear(t) - 119_F - InLeapYear(t) 如果 MonthFromTime(t) = 4_F
+  = DaywithinYear(t) - 150_F - InLeapYear(t) 如果 MonthFromTime(t) = 5_F
+  = DaywithinYear(t) - 180_F - InLeapYear(t) 如果 MonthFromTime(t) = 6_F
+  = DaywithinYear(t) - 211_F - InLeapYear(t) 如果 MonthFromTime(t) = 7_F
+  = DaywithinYear(t) - 242_F - InLeapYear(t) 如果 MonthFromTime(t) = 8_F
+  = DaywithinYear(t) - 272_F - InLeapYear(t) 如果 MonthFromTime(t) = 9_F
+  = DaywithinYear(t) - 303_F - InLeapYear(t) 如果 MonthFromTime(t) = 10_F
+  = DaywithinYear(t) - 333_F - InLeapYear(t) 如果 MonthFromTime(t) = 11_F
 **** 21.4.1.6 Week Day
+时间值t是星期几（简称：星日）由如下定义
+WeekDay(t) = F(R(Day(t) + 4_F) modulo 7)
+星日+0_F是星期日；1_F是星期一；2_F是星期二；3_F是星期三；4_F是星期四；
+5_F是星期五；6_F是星期六。注意WeekDay(+0_F)=4_F，与1970年1月1日星期四一致。
+Sunday Monday TuesDay WednesDay ThursDay Friday Saturday。
 **** 21.4.1.7 LocalTZA(t, isUTC)
+LocalTZA(t, isUTC)是实现定义的算法，返回一个根据本地时区调整的时间，以毫秒
+表示的整数。在t上生效的标准时间的本地政策和夏令时应该按照本节规定产生作
+用。
+
+当isUTC是true，LocalTZA(t_UTC,true)应当返回用毫秒表示的时间值t_UTC对应的时间
+在本地时间上的偏移，记作t_off。t_UTC+t_off的结果应与本地时间t_local一致。
+
+当isUTC是false，localTZA(t_local, false)应当返回用毫秒表示的本地时间t_local与UTC
+时间的偏移，记作t_off。t_local - t_off的结果应与时间值t_UTC一致。
+
+输入t是常规的时间值，但可能是任意Number值。因为若isUTC是false，而t_local表示的
+时间值可能因为偏移而超出时间值的范围。算法不能限制t_local要在时间值范围内，
+因此这种输入也是允许的。
+
+如果t_local表示的是在负时区多次重复（比如：在夏令时结束或者或者因为时区规
+则变更导致的偏移减少）的时间，或者在正时区略过本地时间（比如：在夏令时开
+始或者因为时取变更规则导致的偏移增加）的时间，t_local必须先被时区偏移解释
+后再做转换。
+
+如果实现不支持上述描述的转换，或者因为时间t的政策规则时间在实现里不可用，
+结果必须是+0_F。
+
+msPerHour = 3600 * 1000;
+***** 注意 推荐实现是选用LANA时区数据库的时区信息。
+            https://www.iana.org/time-zones/
+
+            美国/纽约2017年11月5号1:30AM出现两次（回退了），但是必须被翻译为
+            1:30AM UTC-04而不是1:30AM UTC-05。
+            LocalTZA(TimeClip(MakeDate(MakeDay(2017, 10, 5), MakeTime(1, 30, 0, 0))),
+            false)是-4 * msPerHour
+
+            美国/纽约2017年3月12号2:30AM不存在，但是必须被解释为2:30AM UTC-05（
+            与3:30AM UTC-04一致）
+            LocalTZA(TimeClip(MakeDate(MakeDay(2017, 2, 12), MakeTime(2, 30, 0, 0))),
+            false)是-5 * msPerHour
+
+            时区偏移值是正数或者负数。
 **** 21.4.1.8 LocalTime( t )
+抽象操作LocalTime接受参数t。将t从UTC转换为本地时间。被调用时执行下列步骤：
+1. 返回 t + LocalTZA(t, true)
+***** 注意 两个不同的t_UTC在负时区有重复时间是会被转换为相同的本地时间
+            t_local（比如：夏令时结束，或者时区调整减少了）
+
+            LocalTime(UTC(t_local))不必总是等于t_lcoal。同样UTC(LocalTime(t_UTC))
+            不必总是等于t_UTC。
 **** 21.4.1.9 UTC(t)
+抽象操作UTC接受参数t。将t从本地时间转换为UTC。被调用时执行下列步骤：
+1. 返回 t - LocalTZA(t, false)
+***** 注意 UTC(LocalTime(t_UTC))不必总是等于t_UTC。同样LocalTime(UTC(t_local))不
+            必总是等于t_lcoal。
 **** 21.4.1.10 Hours, Minutes, Second and Milliseconds
+下列抽象操作用于分解时间值
+HourFromTime(t) = F(floor(R(t / msPerHour)) modulo HoursPerDay)
+MinFromTime(t) = F(floor(R(t / msPerMinute)) modulo MinutesPerHour)
+SecFromTime(t) = F(fllor(R(t / msPerSecond)) modulo SecondsPerMinute)
+msFromTime(t) = F(R(t) modulo msPerSecond)
+其中
+HoursPerDay = 24
+MinutesPerHour = 60
+SecondsPerMinute = 60
+msPerSecond = 1000_F
+msPerMinute = 60000_F = msPerSecond * F(SecondsPerMinute)
+msPerHour = 3600000_F = msPerMinute * F(MinutesPerHour)
 **** 21.4.1.11 MakeTime(hour, min, sec, ms)
+抽象操作MakeTime接受参数hour（Number值），min（Number值），sec（Number值）
+和ms（Number值）。计算出毫秒数的值。被调用时执行下列步骤：
+1. 如果hour不是有限的或者min不是有限的或者sec不是有限的或者ms不是有限的，
+   返回NaN。
+2. 让h是F(!ToIntegerOrInfinity(hour))
+3. 让m是F(!ToIntegerOrInfinity(min))
+4. 让s是F(!ToIntegerOrInfinity(sec))
+5. 让milli是F(!ToIntegerOrInfinity(ms))
+6. 让t是((h * msPerHour + m * msPerMinute) + s * msPerSecond) + milli。执行
+   IEEE 754-2019的规则（也就是 *和+表述 ECMAScript操作符）
+7. 返回t
 **** 21.4.1.12 MakeDay(year, month, date)
+抽象操作MakeDay接受参数year（Number值），month（Number值）和date（Number值）。
+计算出天数。被调用时执行下列步骤：
+1. 如果year不是有限的或者month不是有限的或者date不是有限的，返回NaN。
+2. 让y是F(!ToIntegerOrInfinity(year))
+3. 让m是F(!ToIntegerOrInfinity(month))
+4. 让dt是F(!ToIntegerOrInfinity(date))
+5. 让ym是y+F(floor(R(m) / 12))
+6. 如果ym不是有限的，返回NaN
+7. 让mn是F(R(m) modulo 12)
+8. 找到某个时间值t合于YearFromTime(t)是ym，MonthFromTime(t)是mn，且DateFromTime(t)
+   是1_F。如果不存在t（因为超出时间范围了），返回NaN。
+9. 返回Day(t) + dt - 1_F
 **** 21.4.1.13 MakeDate(day, time)
+抽象操作MakeDate接受参数day（Number值）和time（Number值）。计算出毫秒数数。
+被调用时执行下列步骤：
+1. 如果day不是有限的或者time不是有限的，返回NaN。
+2. 让tv是day * msPerDay + time
+3. 如果tv不是有限的，返回NaN
+4. 返回tv
 **** 21.4.1.14 TimeClip(time)
+抽象操作TimeClip接受参数time（Number值）。计算出毫秒数。被调用时执行下列步
+骤：
+1. 如果time不是有限的，返回NaN
+2. 如果abs(R(time)) > 8.64*10^15，返回NaN
+3. 返回F(!ToIntegerOrInfinity(time))
 **** 21.4.1.15 Date Time String Format
+ECMAScript在ISO 8601日历扩展格式的简化型上定义了时间值输出格式。格式如:
+YYYY-MM-DDTHH:mm:ss.sssZ
+
+元素如下所述：
+| YYYY | 是公历年的四位十进制数字表述，从0000到9999，或者是扩展年形式， |
+|      | 即"+"或"-"跟随六位十进制数字。                                 |
+| \-   | "-"（连字符）在字符串出现两次。                                |
+| MM   | 用两位十进制数表示的年内的月数，从01（一月）到12（十二月）     |
+| DD   | 月内的天数，从01到31。                                         |
+| T    | "T"子符出现在字符串中，以表明开始时间元素                      |
+| HH   | 天内两个午夜间的小时数，两位十进制数，从00到24。               |
+| ：   | ":"（分号）在字符串出现了两次                                  |
+| mm   | 小时内包含开始的分钟数，两位十进制数，从00到59。               |
+| ss   | 分钟内包含开始的秒数，两位十进制数，从00到59                   |
+| .    | "."（点）出现在字符串中                                        |
+| sss  | 秒内包含开始的毫秒数，三位十进制数。                           |
+| Z    | UTC偏移量用"Z"表述（UTC没有偏移），或者用"+"或"-"跟随时间      |
+|      | 表达HH:mm（指明本地时间在UTC前或者后的时间）                                 |
+
+这个格式包含仅有日期的形式：
+YYYY
+YYYY-MM
+YYYY-MM-DD
+
+也包含日时形式，由上述日期形式跟随下方的时间形式和追加可选的UTC偏移组成：
+THH:mm
+THH:mm:ss
+THH:mm:ss.sss
+
+字符串日期越出日期边界了，或者有不合法的元素，都不是本格式的实例。
+***** 注意1 每天都是在午夜开始和结束，所以00:00和24:00用于区分一天上的两个
+             午夜。这就意味着类似1995-02-04T24:00和1995-02-05T00:00严格表示同一
+             个时刻。日期结束形式的解释是与ISO 8601一致的，尽管规范保留它
+             用于描述时间间隔，而且不允许它出现在时间点的表示上。
+***** 注意2 没有国际标准规定民用时区的缩写比如CET、EST等，甚至有时同样的
+             缩写表示不同的时区。因此ISO 8601和本格式规定用数字表示时区的
+             偏移。
 ***** 21.4.1.15.1 Expanded Years
+从1970年1月1日（21.4.1.1）向前或后大约可以表示273,790年，这要求能够表示0之前
+或者9999之后的年份。ISO 8601允许扩展年的表述，但是只能通过信息交换伙伴的
+相互协议。在间化的ECMAScript格式里，这种扩展年应当有六位数字和前缀"+"或"-"
+符号。第0年被认为是正的，因此前缀是"+"。匹配到日期时间字符串格式的带有
+超出时间值范围的扩展年的字符串被Date.parse当作不可识别的，从而返回NaN，而
+不是返回实现规定的行为或者实现探索行为。
+****** 注意 带有扩展年的日期时间
+             | -271821-04-20T00:00:00Z | 271822 B.C. |
+             | -000001-01-01T00:00:00Z | 2 B.C.      |
+             | +000000-01-01T00:00:00Z | 1 B.C.      |
+             | +000001-01-01T00:00:00Z | 1 A.D.      |
+             | +001970-01-01T00:00:00Z | 1970 A.D.   |
+             | +002009-12-15T00:00:00Z | 2009 A.D.   |
+             | +275760-09-13T00:00:00Z | 275760 A.D. |
 *** 21.4.2 The Date Constructor
+日期构造范
+. 是%Date%
+. 是全局对象上"Date"性质的初始值
+. 被作为构造范调用时，传键和初始化新的日期对像
+. 被作为函数，而不是构造范，调用时，返回表示当前UTC时间的字符串
+. 是函数，不同数量和类型的参数，行为不同。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承Date的特定行为，必须含有super调用，以使用Date构造范创建和初始
+  化一个拥有\[\[DateValue]]内部占位的子类实例。
+. "length"性质是7_F
 **** 21.4.2.1 Date( ...values )
+当Date函数被调用时，执行下列步骤：
+1. 如果NewTarget是undefined，那么
+    a. 让now是当前时间的UTC时间值
+    b. 返回ToDateString(now)
+2. 让numberOfArgs是values元素的数量
+3. 如果numberOfArgs = 0，那么
+    a. 让dv是当前时间的UTC时间值
+4. 如果numberOfArgs = 1，那么
+    a. 让value是values[0]
+    b. 如果Type(value)是Object，而且value有\[\[DateValue]]内部占位，那么
+        i. 让tv是!thisTimeValue(value)
+    c. 否则
+        i. 让v是?ToPrimitive(value)
+       ii. 如果Type(v)是字符串，那么
+            1. Assert：下一步不会返回异常完结，因为Type(v)是字符串
+            2. 让tv是解析日期v得到的时间值，严格按照parse（21.4.3.2）方法解析。
+      iii. 否则
+            1. 让tv是?ToNumber(v)
+    d. 让dv是TimeClip(tv)
+5. 否则
+    a. Assert：numberOfArgs >= 2
+    b. 让y是?ToNumber(values[0])
+    c. 让m是?ToNumber(values[1])
+    d. 如果numberOfArgs > 2, 让dt是?ToNumber(values[2])，否则让dt是1_F
+    e. 如果numberOfArgs > 3, 让h是?ToNumber(values[3])，否则让h是+0_F
+    f. 如果numberOfArgs > 4, 让min是?ToNumber(values[4])，否则让min是+0_F
+    g. 如果numberOfArgs > 5, 让s是?ToNumber(values[5])，否则让5是+0_F
+    h. 如果numberOfArgs > 6, 让milli是?ToNumber(values[6])，否则让milli是+0_F
+    i. 如果y是NaN，让yr是NaN
+    j. 否则
+        i. 让yi是!ToIntegerOrInfinity(y)
+       ii. 如果0<= yi <= 99，让yr是1900_F + F(yi)；否则让yr是y
+    k. 让finalDate是MakeDate(MakeDay(yr, m, dt), MakeTime(h, min, s, milli))
+    l. 让dv是TimClip(UTC(finalDate))
+6. 让O是?OrdinaryCreateFromConstructor(NewTarget, %Date.prototype%, << \[\[DateValue]]
+   >>)
+7. 置O.\[\[DateValue]]是dv
+8. 返回O
 *** 21.4.3 Properties of the Date Constructor
+Date构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质：
 **** 21.4.3.1 Date.now()
+now函数返回在调用now的时刻的UTC时间值。
 **** 21.4.3.2 Date.parse( string )
+parse函数会对参数应用ToString。如果ToString是意外完结，那么立刻返回。其他时，
+parse将结果字符串当作一个日期时间；返回表示日期时间对应的UTC时间值的数值。
+字符串根据内容是本地时间，是UTC时间，或者其他时区的时间。函数先试图用日期
+时间格式（21.4.1.15），包含扩展年，来解析字符串。如果字符串与格式不一致，
+函数会再尝试实现规定的探索式格式或者是实现规定的日期格式。无法识别的日期
+或者含有超限值的元素，会让Date.parse返回NaN
+
+如果字符串符合日期时间文本格式，缺省元素使用替代值占位。当MM或者DD缺少时，
+使用"01"替代。当HH、mm或者ss缺省时，使用"00"替代。在sss缺省时，使用"000"替
+代。如果没有UTC偏移，独日期形式的被翻译成UTC时间，而日期时间形式的被翻译成
+本地时间。
+
+在ECMAScript的某个实现里，如果x是Date对象，其毫秒数是0，那么随后的表达式都
+产生相同的数值，如果这些形式还是初始值的话：
+x.valueOf()
+Date.parse(x.toString())
+Date.parse(x.toUTCString())
+Date.parse(x.toISOString())
+
+然而，表达式
+Date.parse(x.toLocaleString()) 不需要与上述几个表达式的结果一致，通常，在字符
+串不符合日期时间格式（21.4.1.15），也无法在实现里通过Date对象的toString或者
+toUTCString方法产生是，Date.parse产生的值由实现定义。
 **** 21.4.3.3 Date.prototype
+Date.prototype的初始值是Date原型对象。
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** 21.4.3.4 Date.UTC(year[, month[, date[, hours[, minutes[, seconds[, ms ]]]]]])
+当UTC函数被调用时，执行下列步骤：
+1. 让y是?ToNumber(year)
+2. 如果month存在，让m是?ToNumber(month)；否则让m是+0_F
+3. 如果date存在，让dt是?ToNumber(date)；否则让dt是+1_F
+4. 如果hours存在，让h是?ToNumber(hours)；否则让h是+0_F
+5. 如果minutes存在，让min是?ToNumber(minutes)；否则让min是+0_F
+6. 如果seconds存在，让s是?ToNumber(seconds)；否则让s是+0_F
+7. 如果ms存在，让milli是?ToNumber(ms)；否则让milli是+0_F
+8. 如果y是NaN，让yr是NaN
+9. 否则
+    a. 让yi是!ToIntegerOrInfinity(y)
+    b. 如果0 <= yi <= 99，让yr是1900_F+F(yi)；否则让yr是y
+10. 返回TimeClip(MakeDate(MakeDay(yr, m, dt), MakeTime(h, min, s, milli)))
+
+UTC函数的"length"性质值是7_F
+
+***** 注意 UTC函数与Date构造范有两处不同：1、返回时间值的毫秒数，而不是Date
+            对象；2、将参数翻译成UTC时间，而不是本地时间。
 *** 21.4.4 Properties of the Date Prototype Object
+Date原型对象：
+. 是%Date.prototype%
+. 本身是一个基本对象
+. 不是Date实例，没有\[\[DateValue]]内部占位
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+
+除非另有显式定义，下方定义的Date原型上的方法都不是泛型的，传递它们的this值
+必须是对象，而且要有\[\[DateValue]]内部占位，并且初始化了时间值。
+
+抽象操作thisTimeValue接受参数value。被调用时，执行下列步骤：
+1. 如果Type(value)是对象，而且内部占位\[\[DateValue]]，那么
+    a. 返回value.\[\[DateValue]]
+2. 投掷TypeError异常
+
+在随后的是Date原型对像上性质的函数的定义里，短语"this Date对象"指的是在其上
+调用此函数的对象，记作this。如果this的类型不是Object，投掷TypeError异常。而
+在本规范方法内的短语"this时间值"指的是带this值调用thisTimeValue抽象操作后的
+结果。
 **** 21.4.4.1 Date.prototype.constructor
+Date.prototype.constructor的初始值是%Date%
 **** 21.4.4.2 Date.prototype.getDate()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回DateFromTime(LocalTime(t))
 **** 21.4.4.3 Date.prototype.getDay()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回WeekDay(LocalTime(t))
 **** 21.4.4.4 Date.prototype.getFullYear()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回YearFromTime(LocalTime(t))
 **** 21.4.4.5 Date.prototype.getHours()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回HourFromTime(LocalTime(t))
 **** 21.4.4.6 Date.prototype.getMilliseconds()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回msFromTime(LocalTime(t))
 **** 21.4.4.7 Date.prototype.getMinutes()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回MinFromTime(LocalTime(t))
 **** 21.4.4.8 Date.prototype.getMonth()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回MonthFromTime(LocalTime(t))
 **** 21.4.4.9 Date.prototype.getSeconds()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回SecFromTime(LocalTime(t))
 **** 21.4.4.10 Date.prototype.getTime()
+被调用时执行下列步骤：
+1. 返回?thisTimeValue(this值)
 **** 21.4.4.11 Date.prototype.getTimezoneOffset()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回(t - LocalTime(t)) / msPerMinute
 **** 21.4.4.12 Date.prototype.getUTCDate()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回DateFromTime(t)
 **** 21.4.4.13 Date.prototype.getUTCDay()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回WeekDay(t)
 **** 21.4.4.14 Date.prototype.getUTCFullYear()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回YerFromTime(t)
 **** 21.4.4.15 Date.prototype.getUTCHours()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回HourFromTime(t)
 **** 21.4.4.16 Date.prototype.getUTCMilliseconds()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回msFromTime(t)
 **** 21.4.4.17 Date.prototype.getUTCMinutes()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回MinFromTime(t)
 **** 21.4.4.18 Date.prototype.getUTCMonth()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回MonthFromTime(t)
 **** 21.4.4.19 Date.prototype.getUTCSeconds()
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，返回NaN
+3. 返回SecFromTime(t)
 **** 21.4.4.20 Date.prototype.setDate( date )
+被调用时执行下列步骤：
+1. 让t是LocalTime(?thisTimeValue(this值))
+2. 让dt是?ToNumber(date)
+3. 让newDate是MakeDate(MakeDay(YearFromTime(t), MonthFromTime(t), dt),
+   TimeWithinDay(t))。
+4. 让u是TimeClip(UTC(newDate))
+5. 置this Date对象的\[\[DateValue]]内部占位的值是u。
+6. 返回u
 **** 21.4.4.21 Date.prototype.setFullYear( year[, month[, date ]] )
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，置t是+0_F；其他，置t是LocalTime(t)
+3. 让y是?ToNumber(year)
+4. 如果month不存在，让m是MonthFromTime(t)；其他，让m是?ToNumber(month)
+5. 如果date不存在，让dt是DateFromTime(t)；其他，让dt是?ToNumber(date)
+6. 让newDate是MakeDate(MakeDay(y, m, dt), TimeWithinDay(t))。
+7. 让u是TimeClip(UTC(newDate))
+8. 置this Date对象的\[\[DateValue]]内部占位的值是u。
+9. 返回u
+
+setFullYear方法"length"性质是3_F
+***** 注意 如果month不存在，本方法的行为就像month以getMonth()结果出现。如果
+            date不存在，本方法的行为就像date以getDate()结果出现。
 **** 21.4.4.22 Date.prototype.setHours(hour[, min[, sec[, ms ]]] )
+被调用时执行下列步骤：
+1. 让t是LocalTime(?thisTimeValue(this值))
+2. 让h是?ToNumber(hour)
+3. 如果min不存在，让m是MinFromTime(t)；其他，让m是?ToNumber(min)
+4. 如果sec不存在，让s是SecFromTime(t)；其他，让s是?ToNumber(sec)
+5. 如果ms不存在，让milli是msFromTime(t)；其他，让milli是?ToNumber(ms)
+6. 让newDate是MakeDate(Day(t),MakeTime(h, m, s, milli))
+7. 让u是TimeClip(UTC(newDate))
+8. 置this Date对象的\[\[DateValue]]内部占位的值是u。
+9. 返回u
+
+setHours方法"length"性质是4_F
+***** 注意 如果min不存在，本方法的行为就像min以getMinutes()结果出现。如果
+            sec不存在，本方法的行为就像sec以getSeconds()结果出现。如果ms不存
+            在，本方法的行为就像ms以getMilliseconds()结果出现。
 **** 21.4.4.23 Date.prototype.setMilliseconds( ms )
+被调用时执行下列步骤：
+1. 让t是LocalTime(?thisTimeValue(this值))
+2. 让ms是?ToNumber(ms)
+3. 让time是MakeTime(HourFromTime(t), MinFromTime(t), SecondFromTime(t), ms)。
+4. 让u是TimeClip(UTC(MakeDate(Day(t), time)))
+5. 置this Date对象的\[\[DateValue]]内部占位的值是u。
+6. 返回u
 **** 21.4.4.24 Date.prototype.setMinutes( min[, sec[, ms ]] )
+被调用时执行下列步骤：
+1. 让t是LocalTime(?thisTimeValue(this值))
+2. 让m是?ToNumber(min)
+3. 如果sec不存在，让s是SecFromTime(t)；其他，让s是?ToNumber(sec)
+4. 如果ms不存在，让milli是msFromTime(t)；其他，让milli是?ToNumber(ms)
+5. 让date是MakeDate(Day(t), MakeTime(HourFromTime(t, m, s, milli)
+6. 让u是TimeClip(UTC(date))
+7. 置this Date对象的\[\[DateValue]]内部占位的值是u。
+8. 返回u
+
+setMinutes方法"length"性质是3_F
+***** 注意 如果sec不存在，本方法的行为就像sec以getSeconds()结果出现。如果ms
+            不存在，本方法的行为就像ms以getMilliseconds()结果出现。
 **** 21.4.4.25 Date.prototype.setMonth( month[, date ] )
+被调用时执行下列步骤：
+1. 让t是LocalTime(?thisTimeValue(this值))
+2. 让m是?ToNumber(month)
+3. 如果date不存在，让dt是DateFromTime(t)；其他，让dt是?ToNumber(date)
+4. 让newDate是MakeDate(MakeDay(YearFromTime(t), m, dt), TimeWithinDay(t))。
+5. 让u是TimeClip(UTC(newDate))
+6. 置this Date对象的\[\[DateValue]]内部占位的值是u。
+7. 返回u
+
+setMonth方法"length"性质是2_F
+***** 注意 如果date不存在，本方法的行为就像date以getDate()结果出现。
 **** 21.4.4.26 Date.prototype.setSeconds( sec[, ms ] )
+被调用时执行下列步骤：
+1. 让t是LocalTime(?thisTimeValue(this值))
+2. 让s是?ToNumber(set)
+3. 如果ms不存在，让milli是msFromTime(t)；其他，让milli是?ToNumber(ms)
+4. 让date是MakeDate(Day(t),MakeTime(HourFromTime(t),MinFromTime(t), s, milli))
+5. 让u是TimeClip(UTC(newDate))
+6. 置this Date对象的\[\[DateValue]]内部占位的值是u。
+7. 返回u。
+
+setSeconds方法"length"性质是2_F
+***** 注意 如果ms不存在，本方法的行为就像ms以getMilliseconds()结果出现。
 **** 21.4.4.27 Date.prototype.setTime( time )
+被调用时执行下列步骤：
+1. 执行?thisTimeValue(this值)
+2. 让t是?ToNumber(time)
+3. 让v是TimeClip(t)
+4. 置this Date对象的\[\[DateValue]]内部占位的值是v。
+5. 返回v。
 **** 21.4.4.28 Date.prototype.setUTCDate( date )
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 让dt是?ToNumber(date)
+3. 让newDate是MakeDate(MakeDay(YearFromTime(t), MonthFromTime(t), dt),
+   TimeWithinDay(t))。
+4. 让v是TimeClip(newDate)
+5. 置this Date对象的\[\[DateValue]]内部占位的值是v。
+6. 返回v。
 **** 21.4.4.29 Date.prototype.setUTCFullYear( year[, month[, date ]] )
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 如果t是NaN，置t是+0_F。
+3. 让y是?ToNumber(year)
+4. 如果month不存在，让m是MonthFromTime(t)；否则，让m是?ToNumber(month)
+5. 如果date不存在，让dt是DateFromTime(t)；否则，让dt是?ToNumber(date)
+6. 让newDate是MakeDate(MakeDay(y, m, dt), TimeWithinDay(t))。
+7. 让v是TimeClip(newDate)
+8. 置this Date对象的\[\[DateValue]]内部占位的值是v。
+9. 返回v。
+
+setUTCFullYear方法"length"性质是3_F
+***** 注意 如果month不存在，本方法的行为就像month以getUTCMonth()结果出现。如果
+            date不存在，本方法的行为就像date以getUTCDate()结果出现。
 **** 21.4.4.30 Date.prototype.setUTCHours(hour[, min[, sec[, ms ]]] )
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 让h是?ToNumber(hour)
+3. 如果min不存在，让m是MinFromTime(t)；其他，让m是?ToNumber(min)
+4. 如果sec不存在，让s是SecFromTime(t)；其他，让s是?ToNumber(sec)
+5. 如果ms不存在，让milli是msFromTime(t)；其他，让milli是?ToNumber(ms)
+6. 让newDate是MakeDate(Day(t),MakeTime(h, m, s, milli))
+7. 让v是TimeClip(newDate)
+8. 置this Date对象的\[\[DateValue]]内部占位的值是v。
+9. 返回v。
+
+setUTCHours方法"length"性质是4_F
+***** 注意 如果min不存在，本方法的行为就像min以getUTCMinutes()结果出现。如果
+            sec不存在，本方法的行为就像sec以getUTCSeconds()结果出现。如果ms不存
+            在，本方法的行为就像ms以getUTCMilliseconds()结果出现。
 **** 21.4.4.31 Date.prototype.setUTCMilliseconds( ms )
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 让milli是?ToNumber(ms)
+3. 让time是MakeTime(HourFromTime(h), MinFromTime(m), SecondFromTime(s), milli)
+4. 让v是TimeClip(MakeDate(Day(t), time))
+5. 置this Date对象的\[\[DateValue]]内部占位的值是v。
+6. 返回v。
 **** 21.4.4.32 Date.prototype.setUTCMinutes( min[, sec[, ms ]] )
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 让m是?ToNumber(min)
+3. 如果sec不存在，让s是SecFromTime(t)；其他，让s是?ToNumber(sec)
+4. 如果ms不存在，让milli是msFromTime(t)；其他，让milli是?ToNumber(ms)
+5. 让date是MakeDate(Day(t),MakeTime(HourFromTime(h), m, s, milli))
+6. 让v是TimeClip(date)
+7. 置this Date对象的\[\[DateValue]]内部占位的值是v。
+8. 返回v。
+
+setUTCMinutes方法"length"性质是3_F
+***** 注意 如果sec不存在，本方法的行为就像sec以getUTCSeconds()结果出现。如
+            果ms不存在，本方法的行为就像ms以getUTCMilliseconds()结果出现。
 **** 21.4.4.33 Date.prototype.setUTCMonth( month[, date ] )
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 让m是?ToNumber(month)
+3. 如果date不存在，让dt是DateFromTime(t)；否则，让dt是?ToNumber(date)
+4. 让newDate是MakeDate(MakeDay(YearFromTime(t), m, dt), TimeWithinDay(t))。
+5. 让v是TimeClip(newDate)
+6. 置this Date对象的\[\[DateValue]]内部占位的值是v。
+7. 返回v。
+
+setUTCMonth方法"length"性质是2_F
+***** 注意 如果date不存在，本方法的行为就像date以getUTCDate()结果出现。
 **** 21.4.4.34 Date.prototype.setUTCSeconds( sec[, ms ] )
+被调用时执行下列步骤：
+1. 让t是?thisTimeValue(this值)
+2. 让s是?ToNumber(sec)
+3. 如果ms不存在，让milli是msFromTime(t)；其他，让milli是?ToNumber(ms)
+4. 让date是MakeDate(Day(t),MakeTime(HourFromTime(h), MinFromTime(m), s, milli))
+5. 让v是TimeClip(date)
+6. 置this Date对象的\[\[DateValue]]内部占位的值是v。
+7. 返回v。
+
+setUTCSeconds方法"length"性质是2_F
+***** 注意 如果ms不存在，本方法的行为就像ms以getUTCMilliseconds()结果出现。
 **** 21.4.4.35 Date.prototype.toDateString()
+被调用时执行下列步骤：
+1. 让O是this Date对象
+2. 让tv是?thisTimeValue(O)
+3. 如果tv是NaN，返回"Invalid Date"
+4. 让t是LocalTime(tv)
+5. 返回DateString(t)
 **** 21.4.4.36 Date.prototype.toISOString()
+如果this时间值不是有限的Number或者它对应的年不能用日期时间格式表示，本函数
+会投掷RangeError异常。其他情况，会返回在UTC时间尺度上的表述此this时间值的
+字符串，包括全部格式元素和UTC偏移"Z"。
 **** 21.4.4.37 Date.prototype.toJSON( key )
+本函数用在JSON.stringify（25.5.2）给Date对象提供字符串表述。
+
+当toJSON方法被带参数key调用时，执行下列步骤：
+1. 让O是?ToObject(this值）
+2. 让tv是?ToPrimitive(O, number)
+3. 如果Type(tv)是Number，而且tv不是有限的，返回null
+4. 返回?Invoke(O, "toISOString")
+***** 注意1 参数被忽略了
+***** 注意2 toJSON函数会尝试泛型，不要求this值是Date对象。因此可以提供给其他
+             对象作为方法。然而需要那些对象有toISOString方法。
 **** 21.4.4.38 Date.prototype.toLocaleDateString( [reserved1[, reserved2 ]] )
+包含ECMA-402国际API的ECMAScript实现必须按照ECMA-402规范的规定来实现
+Date.prototype.toLocaleDateString方。如果没有包含ECMA-402的API，按照随后的规范
+实现toLocaleDateString方法。
+
+本函数返回字符串。内容是实现定义的，但是应当用简便、易读的形式表示当前时区
+时间的日期部分，且符合主机环境本地的习惯。
+
+这意味着本方法的可选参数定义在ECMA-402规范；不支持ECMA-402的实现不能将参数用
+做他途。
 **** 21.4.4.39 Date.prototype.toLocaleString( [reserved1[, reserved2 ]] )
+包含ECMA-402国际API的ECMAScript实现必须按照ECMA-402规范的规定来实现
+Date.prototype.toLocaleString方。如果没有包含ECMA-402的API，按照随后的规范
+实现toLocaleString方法。
+
+本函数返回字符串。内容是实现定义的，但是应当用简便、易读的形式表示当前时区
+时间，且符合主机环境本地的习惯。
+
+这意味着本方法的可选参数定义在ECMA-402规范；不支持ECMA-402的实现不能将参数用
+做他途。
 **** 21.4.4.40 Date.prototype.toLocaleTimeString( [reserved1[, reserved2 ]] )
+包含ECMA-402国际API的ECMAScript实现必须按照ECMA-402规范的规定来实现
+Date.prototype.toLocaleTimeString方。如果没有包含ECMA-402的API，按照随后的规范
+实现toLocaleTimeString方法。
+
+本函数返回字符串。内容是实现定义的，但是应当用简便、易读的形式表示当前时区
+时间的时间部分，且符合主机环境本地的习惯。
+
+这意味着本方法的可选参数定义在ECMA-402规范；不支持ECMA-402的实现不能将参数用
+做他途。
 **** 21.4.4.41 Date.prototype.toString()
+被调用时执行下列步骤：
+1. 让tv是?thisTimeValue(this值)
+2. 返回ToDateString(tv)
+***** 注意1 任意Date对象d，比如d.\[\[DaeValue]]是1000的倍数，那么
+             Date.parse(d.toString()) == d.valueOf()。见于21.4.3.2
+***** 注意2 toString方法不支持泛型。如果this值不是Date对象投掷TypeError异常。
+             因此不能传递它给别的对象，将之作为方法。
 ***** 21.4.4.41.1 TimeString( tv )
+抽象操作TimeString接受参数tv。被调用时执行下列步骤：
+1. Assert：Type(tv)是Number
+2. Assert：tv不是NaN
+3. 让hour是HourFromTime(tv)的字符串表示，两位10进制数形式，
+   左侧补0（DIGIT ZERO 0x0030）
+4. 让minute是MinFromTime(tv)的字符串表示，两位10进制数形式，
+   左侧补0（DIGIT ZERO 0x0030）
+5. 让second是SecondFromTime(tv)的字符串表示，两位10进制数形式，
+   左侧补0（DIGIT ZERO 0x0030）
+6. 返回hour ":" minute ":" second 编码单元0x0020（SPACE）和"GMT"的字符串拼接
 ***** 21.4.4.41.2 DateString( tv )
+抽象操作DateString接受参数tv。被调用时执行下列步骤：
+1. Assert：Type(tv)是Number
+2. Assert：tv不是NaN
+3. 让weekday是WeekDay(tv)的Number值在表52中映射的名称
+4. 让month是MonthFromTime(tv)的Number值在表53中映射的名称
+5. 让day是DateFromTime(tv)的字符串表示，两位10进制数形式，
+   左侧补0（DIGIT ZERO 0x0030）
+6. 让yv是YearFromTime(tv)
+7. 如果yv >= +0_F，让yearSign是空字符串，否则让yearSign是"-"
+8. 让year是abs(R(yv))的十进制字符串表示
+9. 让paddedYear是!StringPad(year, 4_F, "0", start)
+10. 返回weekday 编码单元0x0020（SPACE） month 编码单元0x0020（SPACE） day
+    编码单元0x0020（SPACE） yearSign和paddedYear的字符串拼接。
+
+表52
+| Number 值 | Name 名称 |
+| +0_F      | Sun       |
+| 1_F       | Mon       |
+| 2_F       | Tue       |
+| 3_F       | Win       |
+| 4_F       | Thu       |
+| 5_F       | Fri       |
+| 6_F       | Sat       |
+表53
+| Number 值 | Name 名称 |
+| +0_F      | Jan       |
+| 1_F       | Feb       |
+| 2_F       | Mar       |
+| 3_F       | Apr       |
+| 4_F       | May       |
+| 5_F       | Jun       |
+| 6_F       | Jul       |
+| 7_F       | Aug       |
+| 8_F       | Sep       |
+| 9_F       | Oct       |
+| 10_F      | Nov       |
+| 11_F      | Dec       |
 ***** 21.4.4.41.3 TimeZoneString( tv )
+抽象操作TimeZoneString接受参数tv。被调用时执行下列步骤：
+1. Assert：Type(tv)是Number
+2. Assert：tv不是NaN
+3. 让offset是LocalTZA(tv, true)
+4. 如果offset >= +0_F，那么
+    a. 让offsetSign是"+"
+    b. 让absOffset是offset
+5. 否则
+    a. 让offsetSign是"-"
+    b. 让absOffset是-offset   
+6. 让offsetMin是MinFromTime(absOffset)的字符串表示，两位10进制数形式，
+   左侧补0（DIGIT ZERO 0x0030）
+7. 让offsetHour是HourFromTime(absOffset)的字符串表示，两位10进制数形式，
+   左侧补0（DIGIT ZERO 0x0030）
+8. 让tzName是实现定义的字符串，要么是空字符串，要么是编码单元0x0020（SPACE）
+   编码单元0x0028（LEFT PARENTHESIS） 实现定义的时区名称
+   编码单元0x0029（RIGHT PARENTHESIS）的字符串拼接
+9. 返回 offsetSign offsetHour offsetMin和tzName的字符串拼接
 ***** 21.4.4.41.4 ToDateString( tv )
+抽象操作ToDateString接受参数tv。被调用时执行下列步骤：
+1. Assert：Type(tv)是Number
+2. 如果tv是NaN，返回"Invalid Date"
+3. 让t是LocalTime(tv)
+4. 返回 DateString(t) 编码单元0x0020（SPACE） TimeString(t)和TimeZoneString(tv)的
+   字符串拼接
 **** 21.4.4.42 Date.prototype.toTimeString()
+被调用时执行下列步骤：
+1. 让O是thisDate对象
+2. 让tv是?thisTimeValue(O)
+3. 如果tv是NaN，返回"Invalid Date"
+4. 让t是LocalTime(tv)
+5. 返回TimeString(t)和TimeZoneString(tv)字符串拼接
 **** 21.4.4.43 Date.prototype.toUTCString()
+toUTCString方法返回表示this时间值时刻的字符串。字符串格式是基于RFC 7231的
+"HTTP-date"表述，全面支持ECMAScript Date对象。被调用时执行下列步骤：
+1. 让O是thisDate对象
+2. 让tv是?thisTimeValue(O)
+3. 如果tv是NaN，返回"Invalid Date"
+4. 让weekday是WeekDay(tv)的Number值在表52中映射的名称
+5. 让month是MonthFromTime(tv)的Number值在表53中映射的名称
+6. 让day是DateFromTime(tv)的字符串表示，两位10进制数形式，
+   左侧补0（DIGIT ZERO 0x0030）
+7. 让yv是YearFromTime(tv)
+8. 如果yv >= +0_F，让yearSign是空字符串，否则让yearSign是"-"
+9. 让year是abs(R(yv))的十进制字符串表示
+10. 让paddedYear是!StringPad(year, 4_F, "0", start)
+11. 返回weekday "," 编码单元0x0020（SPACE）day 编码单元0x0020（SPACE） month
+    编码单元0x0020（SPACE） yearSign paddedYear 编码单元0x0020（SPACE）
+    和TimeString(tv)的字符串拼接。
 **** 21.4.4.44 Date.prototype.valueOf()
+被调用时执行下列步骤：
+1. 返回?thisTimeValue(this值）
 **** 21.4.4.45 Date.prototype[@@toPrimitive]( hint )
+本方法用于ECMAScript语言将Date对象转换为基本值。hint允许的值有"default"、
+"number"或者"string"。在ECMAScript语言内建对象里，唯有Date对象将"default"当作
+"string"对待，其他内建对象都是将"default"当作"number"对待。
+
+当@@toPrimitive方法被带参数hint调用时，执行下列步骤：
+1. 让O是this值
+2. 如果Type(O)不是Object，投掷TypeError异常
+3. 如果hint是"string"或者"default"，那么
+    a. 让tryFirst是string
+4. 否则，如果hint是"number"，那么
+    a. 让tryFirst是number
+5. 否则 投掷TypeError异常
+6. 返回?OrdinaryToPrimitive(O, tryFirst)
+
+本方法的"name"性质值是"[Symbol.toPrimitive]"
+
+本性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** 21.4.5 Properties of Date Instances
+Date实例都是基本对象，继承Date原型对象的性质。Date实例都有\[\[DateValue]]内部
+占位。\[\[DateValue]]内部占位是表述this Date对象的时间值。
 * 22 Text Processing
 * 23 Indexed Collections
 * 24 Keyed Collections
