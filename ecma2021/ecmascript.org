@@ -17898,6 +17898,133 @@ toUTCString方法返回表示this时间值时刻的字符串。字符串格式�
 Date实例都是基本对象，继承Date原型对象的性质。Date实例都有\[\[DateValue]]内部
 占位。\[\[DateValue]]内部占位是表述this Date对象的时间值。
 * 22 Text Processing
+** 22.1 String Objects
+*** 22.1.1 The String Constructor
+**** 22.1.1.1 String( value )
+*** 22.1.2 Properties of the String Constructor
+**** 22.1.2.1 String.fromCharCode( ...codeUnits )
+**** 22.1.2.2 String.fromCodePoint( ...codePoints )
+**** 22.1.2.3 String.prototype
+**** 22.1.2.4 String.raw( template, ...substitutions )
+*** 22.1.3 Properties of the String Proptotype Object
+**** 22.1.3.1 String.prototype.charAt( pos )
+**** 22.1.3.2 String.prototype.charCodeAt( pos )
+**** 22.1.3.3 String.prototype.codePointAt( pos )
+**** 22.1.3.4 String.prototype.concat( ...args )
+**** 22.1.3.5 String.prototype.constructor
+**** 22.1.3.6 String.prototype.endsWith( searchString [, endPoint ] )
+**** 22.1.3.7 String.prototype.includes( searchString [, position ] )
+**** 22.1.3.8 String.prototype.indexOf( searchString [, position ] )
+**** 22.1.3.9 String.prototype.lastIndexOf( searchString [, position ] )
+**** 22.1.3.10 String.prototype.localeCompare( that [, reserved1 [, reserved2 ]] )
+**** 22.1.3.11 String.prototype.match( regexp )
+**** 22.1.3.12 String.prototype.matchAll( regexp )
+**** 22.1.3.13 String.prototype.normalize( [ form ] )
+**** 22.1.3.14 String.prototype.padEnd( maxLength [, fillString ] )
+**** 22.1.3.15 String.prototype.padStart( maxLength [, fillString ] )
+***** 22.1.3.15.1 StringPad(O, maxLength, fillString, placement)
+**** 22.1.3.16 String.prototype.repeat( count )
+**** 22.1.3.17 String.prototype.replace( searchValue, replaceValue )
+***** 22.1.3.17.1 GetSubstitution(matched, str, position, captures, namedCaptures, replacement)
+**** 22.1.3.18 String.prototype.replaceAll( searchValue, replaceValue )
+**** 22.1.3.19 String.prototype.search( regexp )
+**** 22.1.3.20 String.prototype.slice( start, end )
+**** 22.1.3.21 String.prototype.split( seperator, limit )
+***** 22.1.3.21.1 SplitMatch(S, q, R)
+**** 22.1.3.22 String.prototype.startsWith( searchString [, position ] )
+**** 22.1.3.23 String.prototype.substring( start, end )
+**** 22.1.3.24 String.prototype.toLocaleLowerCase( [ reserved1 [, reserved2 ]] )
+**** 22.1.3.25 String.prototype.toLocaleUpperCase( [ reserved1 [, reserved2 ]] )
+**** 22.1.3.26 String.prototype.toLowerCase( )
+**** 22.1.3.27 String.prototype.toString( )
+**** 22.1.3.28 String.prototype.toUpperCase( )
+**** 22.1.3.29 String.prototype.trim( )
+***** 22.1.3.29.1 TrimString(string, where)
+**** 22.1.3.30 String.prototype.trimEnd( )
+**** 22.1.3.31 String.prototype.trimStart( )
+**** 22.1.3.32 String.prototype.valueOf( )
+**** 22.1.3.33 String.prototype[@@iterator]( )
+*** 22.1.4 Properties of String Instances
+**** 22.1.4.1 length
+*** 22.1.5 String Iterator Objects
+**** 22.1.5.1 The %StringIteratorPrototype% Object
+***** 22.1.5.1.1 %StringIteratorPrototype%.next()
+***** 22.1.5.1.2 %StringIteratorPrototype%[@@toStringTag]
+** 22.2 RegExp (Regular Expression) Objects
+*** 22.2.1 Patterns
+**** 22.2.1.1 SS: Early Errors
+**** 22.2.1.2 SS: CapturingGroupNumber
+**** 22.2.1.3 SS: IsCharacterClass
+**** 22.2.1.4 SS: CharacterValue
+**** 22.2.1.5 SS: SourceText
+**** 22.2.1.6 SS: CapturingGroupName
+*** 22.2.2 Pattern Semantics
+**** 22.2.2.1 Notation
+**** 22.2.2.2 Pattern
+**** 22.2.2.3 Disjunction
+**** 22.2.2.4 Alternative
+**** 22.2.2.5 Term
+***** 22.2.2.5.1 RepeatMatcher(m, min, max, greedy, x, c, parenIndex, parenCount)
+**** 22.2.2.6 Assertion
+***** 22.2.2.6.1 IsWordChar( e )
+**** 22.2.2.7 Quantifier
+**** 22.2.2.8 Atom
+***** 22.2.2.8.1 CharacterSetMatcher( A, invert, direction )
+***** 22.2.2.8.2 Canonicalize( ch )
+***** 22.2.2.8.3 UnicodeMatchProperty( p )
+***** 22.2.2.8.4 UnicodeMatchPropertyValue( p, v )
+**** 22.2.2.9 AtomEscape
+***** 22.2.2.9.1 BackreferenceMatcher( n, direction )
+**** 22.2.2.10 CharacterEscape
+**** 22.2.2.11 DecimalEscape
+**** 22.2.2.12 CharacterClassEscape
+**** 22.2.2.13 CharacterClass
+**** 22.2.2.14 ClassRanges
+**** 22.2.2.15 NonemptyClassRanges
+***** 22.2.2.15.1 CharacterRange( A, B )
+**** 22.2.2.16 NonemptyClassRangesNoDash
+**** 22.2.2.17 ClassAtom
+**** 22.2.2.18 ClassAtomNoDash
+**** 22.2.2.19 ClassEscape
+*** 22.2.3 The RegExp Constructor
+**** 22.2.3.1 RegExp( pattern, flags )
+**** 22.2.3.2 Abstract Operations for the RegExp Cosntructor
+***** 22.2.3.2.1 RegExpAlloc( newTarget )
+***** 22.2.3.2.2 RegExpInitialize( obj, patter, flags )
+***** 22.2.3.2.3 SS: ParsePattern( patternText, u )
+***** 22.2.3.2.4 RegExpCreate( P, F )
+***** 22.2.3.2.5 EscapeRegExpPattern( P, F )
+*** 22.2.4 Properties of the RegExp Constructor
+**** 22.2.4.1 RegExp.prototype
+**** 22.2.4.2 get RegExp[@@species]
+*** 22.2.5 Properties of the RegExp Prototype Object
+**** 22.2.5.1 RegExp.prototype.constructor
+**** 22.2.5.2 RegExp.prototype.exec( string )
+***** 22.2.5.2.1 RegExpExec( R, S )
+***** 22.2.5.2.2 RegExpBuiltinExec( R, S )
+***** 22.2.5.2.3 AdvanceStringIndex( S, index, unicode )
+**** 22.2.5.3 RegExp.prototype.dotAll
+**** 22.2.5.4 RegExp.prototype.flags
+**** 22.2.5.5 RegExp.prototype.global
+**** 22.2.5.6 RegExp.prototype.ignoreCase
+**** 22.2.5.7 RegExp.prototype[@@match]( string )
+**** 22.2.5.8 RegExp.prototype[@@matchAll]( string )
+**** 22.2.5.9 RegExp.prototype.multiple
+**** 22.2.5.10 RegExp.prototype[@@replace]( string. replaceValue )
+**** 22.2.5.11 RegExp.prototype[@@search]( string )
+**** 22.2.5.12 RegExp.prototype.source
+**** 22.2.5.13 RegExp.prototype[@@split]( string, limit )
+**** 22.2.5.14 RegExp.prototype.sticky
+**** 22.2.5.15 RegExp.prototype.test( S )
+**** 22.2.5.16 RegExp.prototype.toString( )
+**** 22.2.5.17 RegExp.prototype.unicode
+*** 22.2.6 Properties of RegExp Instances
+**** 22.2.6.1 lastIndex
+*** 22.2.7 RegExp String Iterator Objects
+**** 22.2.7.1 CreateRegExpStringIterator( R, S, global, fullUnicode )
+**** 22.2.7.2 The %RegExpStringIteratorPrototype% Object
+***** 22.2.7.2.1 %RegExpStringIteratorPrototype%.next()
+***** 22.2.7.2.2 %RegExpStringIteratorPrototype%[@@toStringTag]
 * 23 Indexed Collections
 * 24 Keyed Collections
 * 25 Structured Data
