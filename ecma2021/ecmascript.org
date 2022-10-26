@@ -138,15 +138,13 @@ ECMAScript的用途远超过简单的脚本，被用于广泛的不同系统和�
 模型
 * 记号约定
 ** 句法与词法
-*** 5.1.1背景无关语法（context-free grammar 可能就是通用的语法描述约定）
-"context-free grammar"由若干"productions"组成。每个码型是一个树，有两个支干
-left-hand side 和 right-hand side，在"left-hand side"是一个抽象标记记为
-"nonterminal", 在"right-hand side" 是一个队列，由可数个标记（"nonterminal"或
-"terminal"）构成的序列。各个语法的"terminal"用特定字母描述。形式如NXn, 
-X属于{N,T},n为非负整数，差不多类似/N[NT]*/。
+*** 背景无关语法（context-free grammar 可能就是通用的语法描述约定）
+"context-free grammar"由若干"productions"组成。每个码型有一个称为nonterminal的
+抽象符号作为左支（left-hand side），由可数个nonterminal和terminal符号构成
+的序列作为右支（right-hand side)。每个语法，terminal符号都由规定字母表构成。
 
-"chain product"是只有一个"right-side nonterminal"和可数个"terminal"
-构成的序列组成的码型。（一定还有一个left-hand side nontermial）。
+"chain product"是只有一个"right-hand side nonterminal"和可数个"terminal"
+构成的序列组成的码型。
 
 一个语句从开始由仅一个区分出的称为"goal symbol"的"nontermimal"和一个给定
 的语法描述（context-free grammar)构成。语句具体指明一个"language"，即一组可数
@@ -154,7 +152,7 @@ X属于{N,T},n为非负整数，差不多类似/N[NT]*/。
 通过将语句中所有的"production left-hand side nonterminal"替换为
 "production right-hand side"的方式，递归获得。
 **** 这里其实蕴含了序的概念。这是按照输入顺序进行语法组织的。
-*** 5.1.2词汇与正则的语法
+*** 词汇与正则的语法
 ECMAScript的"lexical grammar"在12章详解。本语法与它的"terminal symbols"的Unicode
 编码一致，符合11.1定义的源码字符规则。定义了若干码型，从"goal symbol"开始有
 InputElementDiv, InputElementTemplateTail, InputElementRegExp, 
@@ -17966,6 +17964,7 @@ String.fromCharCode函数可以被带任意数量的参数调用，参数形式�
     a. 让nextCU是R(?ToUnit16(next))
     b. 附件nextCU到elements的末端
 4. 返回以elements元素为编码单元的字符串。如果codeUnits是空的，返回空字符串。
+
 fromCharCode函数的"length"性质的值是1_F。
 **** String.fromCodePoint( ...codePoints )
 String.fromCharPoint函数可以被带任意数量的参数调用，参数形式为剩余参
@@ -17978,6 +17977,7 @@ String.fromCharPoint函数可以被带任意数量的参数调用，参数形式
     d. 置s是 s !UTF16EncodeCodePoint(R(nextCP))的字符串拼接
 3. Assert：如果codePoints是空，那么result是空字符串
 4. 返回result
+
 fromCharPoint函数的"length"性质的值是1_F。
 **** String.prototype
 String.prototype的初始值是String原型对象
@@ -17985,13 +17985,133 @@ String.prototype的初始值是String原型对象
 此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
 \[\[Configurable]]:false, }
 **** String.raw( template, ...substitutions )
+String.raw函数可以被带若干参数调用。第一个参数是template，剩余的参数组成列表
+substitutions。被调用时执行下列步骤：
+1. 让numberOfSubstitutions是substitutions的数量
+2. 让cooked是?ToObject(template)
+3. 让raw是?ToObject(?Get(cooked, "raw"))
+4. 让literalSegments是?LengthOfArrayLike(raw)
+5. 如果literalSegments <= 0，返回空字符串
+6. 让stringElements是新的空List
+7. 让nextIndex是0
+8. 重复
+    a. 让nextKey是!ToString(F(nextIndex))
+    b. 让nextSeg是?ToString(?Get(raw, nextKey))
+    c. 追加nextSeg的编码单元到stringElements的末端
+    d. 如果nextIndex+1 == literalSegments，那么
+        i. 返回stringElements元素为编码单元组成的字符串。如果stringElements没有
+           元素，返回空字符串。
+    e. 如果nextIndex < numberOfSubstitutions，让next是substitutions[nextIndex]
+    f. 否则，让next是空字符串
+    g. 让nextSub是?ToString(next)
+    h. 追加nextSub的编码单元到stringElements的末端
+    i. 让nextIndex是nextIndex + 1
+***** 注意 试图用raw函数作为Tagged Templated（13.3.11）的标记函数。那时，第一个
+            参数是正确形式的模板对象，剩余参数保持替换对象的值。
 *** Properties of the String Proptotype Object
+String原型对象：
+. 是%String.prototype%
+. 是String奇异对象，有特定的内部方法。
+. 有\[\[StringData]]内部占位，值是空字符串
+. 有"length"性质，初始值是+0_F，属性是{ \[\[Writable]]:false,
+  \[\[Enumerable]]:false, \[\[Configurable]]:false, }。
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+
+除非另有显式定义，String原型对象上的方法
+除非另有显式定义，下方定义的String原型对象上的方法都不是泛型的，传递它们
+的this值必须是String值或者是有\[\[StringData]]内部占位，并初始化了String值的对
+象。
+
+抽象操作thisStringValue接受参数value。被调用时执行下列步骤：
+1. 如果Type(value)是String，返回value
+2. 如果Type(value)是Object，而且value有\[\[StringData]]内部占位，那么
+    a. 让s是value.\[\[StringData]]
+    b. Assert：Type(s)是String
+    c. 返回s
+3. 投掷TypeError异常
 **** String.prototype.charAt( pos )
+***** 注意1 返回只有一个元素的字符串，值是在this值转换出的String值
+                        post位置的编码单元的值。如果pos处没有元素，结果就是空
+                        字符串。结果是String值，不是String对象。
+
+                        如果pos是整数Number，那么x.charAt(pos)的结果与
+                        x.substring(pos, pos+1)的结果相等。
+
+当charAt是被带参数pos调用时，执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让position是?ToInetegerOrInfinity(pos)
+4. 让size是S的length
+5. 如果position < 0或者position >= size，返回空字符串
+6. 返回String值，长度为1，含有S的一个编码单元，也就是position处的编码单元。
+***** 注意2 chartAt函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给任意对象，作为其的方法。
 **** String.prototype.charCodeAt( pos )
+***** 注意1 返回Number值（小于2^16的非负整数），值是在this值转换出
+                        的String值pos位置的编码单元的值。如果pos处没有元素，
+                        结果就是NaN。
+
+当charCodeAt是被带参数pos调用时，执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让position是?ToInetegerOrInfinity(pos)
+4. 让size是S的length
+5. 如果position < 0或者position >= size，返回NaN
+6. 返回表示String S在position处编码单元数值的Number值。
+***** 注意2 chartCodeAt函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给任意对象，作为其的方法。
 **** String.prototype.codePointAt( pos )
+***** 注意1 返回不大于0x10FFFF的非负整数Number，值是在this值转换出
+                        的String值以pos开始的编码点按UTF-16编码（6.1.4）的编码
+                        点值。如果pos处没有元素，结果就是undefined。如果pos位置
+                        不是有效UTF-16的替代对，结果就是pos处的编码单元的值。
+
+当codePointAt是被带参数pos调用时，执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让position是?ToInetegerOrInfinity(pos)
+4. 让size是S的length
+5. 如果position < 0或者position >= size，返回undefined
+6. 让cp是!CodePointAt(S, position)
+7. 返回F(cp.\[\[CodePoint]])
+***** 注意2 codePointAt函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给任意对象，作为其的方法。
 **** String.prototype.concat( ...args )
+***** 注意1 返回只有一个元素的字符串，值是在this值转换出的String值
+                        的编码单元跟随每个参数转换为String值的编码单元。结果
+                        是String值，不是String对象。
+
+当concat是被带可数参数args调用时，执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让R是S
+4. 遍历args的元素，记作next，做
+    a. 让nextString是?ToString(next)
+    b. 置R是R和nextString的字符串拼接
+5. 返回R
+***** 注意2 chartAt函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给任意对象，作为其的方法。
 **** String.prototype.constructor
+String.prototype.constructor的初始值是%String%
 **** String.prototype.endsWith( searchString [, endPoint ] )
+被调用时执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让isRegExp是?isRegExp(searchString)
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+***** 注意1
+***** 注意2
+***** 注意3
 **** String.prototype.includes( searchString [, position ] )
 **** String.prototype.indexOf( searchString [, position ] )
 **** String.prototype.lastIndexOf( searchString [, position ] )
