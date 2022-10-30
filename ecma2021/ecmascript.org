@@ -636,6 +636,8 @@ x2,...,xN)产生x1到xN中数学意义上最小的。数学函数max(x1,x2,...,x
 
 "x modulo y"（y是有限的非零的）记法，计算一个与y（或者0）同号的k，满足
 abs(k) < abs(y)且x-k = q * y，其中q是整数值。
+
+短语“将x局限在lower和upper间的结果"
 短语"the result of clamping x between lower and upper"（x是扩展整数值，lower和
 upper是数学值，而且lower≤upper），如果x<lower，产生lower，如果x>upper，产生
 upper，其他产生x。
@@ -18098,24 +18100,92 @@ String.prototype.constructor的初始值是%String%
 1. 让O是?RequrieObjectCoercible(this值）
 2. 让S是?ToString(O)
 3. 让isRegExp是?isRegExp(searchString)
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-***** 注意1
-***** 注意2
-***** 注意3
+4. 如果isRegExp是true，投掷TypeError异常
+5. 让searchStr是?ToString(searchString)
+6. 让len是S的长度
+7. 如果endPosition是undefined，让pos是len，柔则让pos是?ToIntegerOrInfinity(endPosition)
+8. 让end是将pos局限在0与len间的结果。
+9. 让searcLength是searchStr的长度
+10. 如果searchLength==0，返会true
+11. 让start是end-searchLength
+12. 如果start<0，返回false
+13. 让substring是S上从start到end的子字符串
+14. 返回!SameValueNonNumeric(substring, searchStr)
+***** 注意1 当searchString转换出的String与this对象转换为String后从endPosition - length(this)
+                      开始每个编码单元都形同，返回true。其他返回false。
+***** 注意2 如果第一个参数是正则表达式，投掷异常，以便将来的版本允许定义相应参数的扩展。
+***** 注意3 endsWith函数试图是泛型的；不需要this值是String对象，因此他可以被传递给其他兑现作为方法。
 **** String.prototype.includes( searchString [, position ] )
+includes方法接受searchString和postion两个参数，被调用时执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让isRegExp是?isRegExp(searchString)
+4. 如果isRegExp是true，投掷TypeError异常
+5. 让searchStr是?ToString(searchString)
+6. 让pos是?ToIntegerOInfinity(position)
+7. Assert：如果position是undefined，那么pos是0
+8. 让len是S的长度
+9. 让start是将pos局限在0和len间的结果
+10. 让index是!StringIndexOf(S, searchStr, start)
+11. 如果index不是-1，返回true
+12. 返回false
+***** 注意1 当searchString转换出的String作为this对象转换为String的某个子字符串，有一个或者多个索引
+                      大于等于position，返回true；否则返回false。如果position是undefined，假设为0，搜索全部
+                      字符串
+***** 注意2 如果第一个参数是正则表达式，投掷异常，以便将来的版本允许定义相应参数的扩展。
+***** 注意3 includes函数试图是泛型的；不需要this值是String对象，因此他可以被传递给其他对象作为方法。
 **** String.prototype.indexOf( searchString [, position ] )
+***** 注意1 当searchString转换出的String作为this对象转换为String的某个子字符串，有一个或者多个索引
+                      大于等于position，返回其中最小的索引；否则返回-1_F。如果position是undefined，假设为+0_F，
+                      搜索全部字符串
+
+当indexOf是被带参数searchString和position调用时，执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让searchStr是?ToString(searchString)
+4. 让pos是?ToIntegerOrInfinity(position)
+5. Assert：如果position是undefined，那么pos是0
+6. 让len是S的长度
+7. 让start是将pos局限在0和len间的结果
+8. 返回F(!StringIndexOf(S, searchStr, start))
+***** 注意2 indexOf函数试图支持泛型，不要求this值是String对象。 因此可以被传递给任意对象，作为其的方法。
 **** String.prototype.lastIndexOf( searchString [, position ] )
+***** 注意1 当searchString转换出的String作为this对象转换为String的某个子字符串，有一个或者多个索引
+                      小于等于position，返回其中最大的索引；否则返回-1_F。如果position是undefined，假设为
+                      字符串的长度，搜索全部字符串
+
+当lastIndexOf是被带参数searchString和position调用时，执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让searchStr是?ToString(searchString)
+4. 让numPos是?ToNumber(position)
+5. Assert：如果position是undefined，那么pos是NaN
+6. 如果numPos是NaN，让pos是+∞，否则让pos是!ToIntegerOrInfinity(numPos)
+7. 让len是S的长度
+8. 让start是将pos局限在0和len间的结果
+9. 让searchLen是searchStr的长度
+10. 让k是不大于start的最大的非负整数，满足：k+searchLen <= len，且属于[0, searchLen)的每个整数有S上k+j的编码单元
+    与searchStr的j处编码单元相同；如果不存在，让k是-1。
+11. 返回F(k)
+***** 注意2 lastIndexOf函数试图支持泛型，不要求this值是String对象。 因此他可以被传递给任意对象作为方法。
 **** String.prototype.localeCompare( that [, reserved1 [, reserved2 ]] )
+包含ECMA-402国际API的ECMAScript实现必须按照ECMA-402规范的规定来实现
+localeCompare方法。如果没有包含ECMA-402的API，按照随后的规范
+实现localeCompare方法。
+
+当localeCompare方法被带that参数调用时返回不是NaN的Number，表示this值（转换为String）与that（转换为String）的
+本地敏感的字符串比较。两个字符串S和That。按照实现定义的方式比较。结果被试图用于排序字符串值，按照主机默认本地的规定
+进行排序，可能是负数、0或者正数，依赖于按照排序规则，依次是S在That前，相等或者S在That后。
+
+在执行比较之前，下发步骤先被执行来准备字符串：
+1. 让O是?RequireObjectCoercilbe(this值)
+2. 让S是?ToString(O)
+3. 让That是?ToString(that)
+
+这意味着本方法的可选参数定义在ECMA-402规范；不支持ECMA-402的实现不能将参数用做他途。
+
+localeCompare方法，如果被看作是有两个参数this和that的函数的话，在所有的String上是一致的
+比较函数（23.1.3.27）
 **** String.prototype.match( regexp )
 **** String.prototype.matchAll( regexp )
 **** String.prototype.normalize( [ form ] )
