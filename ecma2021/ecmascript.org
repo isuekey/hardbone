@@ -18117,11 +18117,76 @@ String.prototype.constructor的初始值是%String%
 **** String.prototype.lastIndexOf( searchString [, position ] )
 **** String.prototype.localeCompare( that [, reserved1 [, reserved2 ]] )
 **** String.prototype.match( regexp )
+当match方法被带参数regexp调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 如果regexp不是undefined或者null，那么
+    a. 让matcher是?GetMethod(regexp, @@match)
+    b. 如果matcher不是undefined，那么
+        i. 返回?Call(matcher, regexp, << O >>)
+3. 让S是?ToString(O)
+4. 让rx是?RegExpCreate(regexp, undefined)
+5. 返回?Invoke(rx, @@match, << S >>)
+***** 注意 match函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给其他对象作为方法。
 **** String.prototype.matchAll( regexp )
+以正则表达式regexp去匹配this值表示的字符串。如果能匹配到，返回一个迭代器，
+每次迭代结果的值是一个数组，含有匹配的结果。如果匹配不到，则返回null。
+
+当matchAll被调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 如果regexp不是undefined或者null，那么
+    a. 让isRegExp是?IsRegExp(regexp)
+    b. 如果isRegExp是true，那么
+        i. 让flags是?Get(regExp, "flags")
+       ii. 执行?RequireObjectCoercible(flags)
+      iii. 如果?ToString(flags)没有"g"，投掷TypeError异常
+    c. 让matcher是?GetMethod(regexp, @@matchAll)
+    d. 如果matcher不是undefined，那么
+        i. 返回?Call(matcher, regexp, << O >>)
+3. 让S是?ToString(O)
+4. 让rx是?RegExpCreate(regexp, "g")
+5. 返回?Invoke(rx, @@matchAll, << S >>)
+***** 注意1 matchAll函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给其他对象作为方法。
+***** 注意2 类似String.prototype.split，String.prototype.matchAll被设计为
+                         不修改传入的参数。
 **** String.prototype.normalize( [ form ] )
+当normalize方法被带可选参数form调用，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 让S是?ToString(O)
+3. 如果form是undefined，让f是"NFC"
+4. 否则，让f是?ToString(form)
+5. 如果f不是"NFC"、"NFD"、"NFKC"或"NFKD"，投掷RangeError异常
+6. 让ns是S按照f规范化的结果，遵循https://unicode.org/reports/tr15/ 规定
+7. 返回ns
+***** 注意1 normalize函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给其他对象作为方法。
 **** String.prototype.padEnd( maxLength [, fillString ] )
+当padEnd方法被调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值）
+2. 返回?StringPad(O, maxLength, fillString, end)
 **** String.prototype.padStart( maxLength [, fillString ] )
+当padStart方法被调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值）
+2. 返回?StringPad(O, maxLength, fillString, start)
 ***** StringPad(O, maxLength, fillString, placement)
+抽象操作StringPad接受参数O、maxLength、fillString和placement。被调用时执行下列
+步骤：
+1. Assert：placement是start或者end
+2. 让S是?ToString(O)
+3. 让intMaxLength是R(?ToLength(maxLength))
+4. 让stringLength是S的长度
+5. 如果intMaxLength <= stringLength，返回S
+6. 如果fillString是undefined，让filler是只一个有0x0020（SPACE）的字符串
+7. 否则，让filler是?ToString(fillString)
+8. 如果filler是空字符串，返回S。
+9. 让fillLen是intMaxLength - stringLength
+10. 让truncateStringFill是重复filler的字符串拼接按照fillLen节取的子字符串。
+11. 如果placement是start，返回truncateStringFill和S的字符串拼接
+12. 返回S和truncateStringFill的字符串拼接。
+***** 注意1 参数maxLength被处理为不小于S的长度
+***** 注意2 参数fillString默认是" "（只含有一个编码单元0x0020 SPACE
+                         的字符串）
 **** String.prototype.repeat( count )
 **** String.prototype.replace( searchValue, replaceValue )
 ***** GetSubstitution(matched, str, position, captures, namedCaptures, replacement)
