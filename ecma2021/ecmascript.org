@@ -18184,11 +18184,22 @@ String.prototype.constructor的初始值是%String%
 10. 让truncateStringFill是重复filler的字符串拼接按照fillLen节取的子字符串。
 11. 如果placement是start，返回truncateStringFill和S的字符串拼接
 12. 返回S和truncateStringFill的字符串拼接。
-***** 注意1 参数maxLength被处理为不小于S的长度
-***** 注意2 参数fillString默认是" "（只含有一个编码单元0x0020 SPACE
+****** 注意1 参数maxLength被处理为不小于S的长度
+****** 注意2 参数fillString默认是" "（只含有一个编码单元0x0020 SPACE
                          的字符串）
 **** String.prototype.repeat( count )
+被带调用时执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让n是?ToIntegerOrInfinity(count)
+4. 如果n < 0 或者 n是+∞，投掷RangeError异常
+5. 如果n是0，返回空字符串
+6. 返回n个S拼接在一起的字符串
+***** 注意2 本方法创建的String值含有count个this值转换出的String值
+***** 注意1 repeat函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给其他对象作为方法。
 **** String.prototype.replace( searchValue, replaceValue )
+
 ***** GetSubstitution(matched, str, position, captures, namedCaptures, replacement)
 **** String.prototype.replaceAll( searchValue, replaceValue )
 **** String.prototype.search( regexp )
