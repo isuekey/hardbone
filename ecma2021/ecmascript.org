@@ -18187,15 +18187,176 @@ localeCompare方法。如果没有包含ECMA-402的API，按照随后的规范
 localeCompare方法，如果被看作是有两个参数this和that的函数的话，在所有的String上是一致的
 比较函数（23.1.3.27）
 **** String.prototype.match( regexp )
+当match方法被带参数regexp调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 如果regexp不是undefined或者null，那么
+    a. 让matcher是?GetMethod(regexp, @@match)
+    b. 如果matcher不是undefined，那么
+        i. 返回?Call(matcher, regexp, << O >>)
+3. 让S是?ToString(O)
+4. 让rx是?RegExpCreate(regexp, undefined)
+5. 返回?Invoke(rx, @@match, << S >>)
+***** 注意 match函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给其他对象作为方法。
 **** String.prototype.matchAll( regexp )
+以正则表达式regexp去匹配this值表示的字符串。如果能匹配到，返回一个迭代器，
+每次迭代结果的值是一个数组，含有匹配的结果。如果匹配不到，则返回null。
+
+当matchAll被调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 如果regexp不是undefined或者null，那么
+    a. 让isRegExp是?IsRegExp(regexp)
+    b. 如果isRegExp是true，那么
+        i. 让flags是?Get(regExp, "flags")
+       ii. 执行?RequireObjectCoercible(flags)
+      iii. 如果?ToString(flags)没有"g"，投掷TypeError异常
+    c. 让matcher是?GetMethod(regexp, @@matchAll)
+    d. 如果matcher不是undefined，那么
+        i. 返回?Call(matcher, regexp, << O >>)
+3. 让S是?ToString(O)
+4. 让rx是?RegExpCreate(regexp, "g")
+5. 返回?Invoke(rx, @@matchAll, << S >>)
+***** 注意1 matchAll函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给其他对象作为方法。
+***** 注意2 类似String.prototype.split，String.prototype.matchAll被设计为
+                         不修改传入的参数。
 **** String.prototype.normalize( [ form ] )
+当normalize方法被带可选参数form调用，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 让S是?ToString(O)
+3. 如果form是undefined，让f是"NFC"
+4. 否则，让f是?ToString(form)
+5. 如果f不是"NFC"、"NFD"、"NFKC"或"NFKD"，投掷RangeError异常
+6. 让ns是S按照f规范化的结果，遵循https://unicode.org/reports/tr15/ 规定
+7. 返回ns
+***** 注意1 normalize函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给其他对象作为方法。
 **** String.prototype.padEnd( maxLength [, fillString ] )
+当padEnd方法被调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值）
+2. 返回?StringPad(O, maxLength, fillString, end)
 **** String.prototype.padStart( maxLength [, fillString ] )
+当padStart方法被调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值）
+2. 返回?StringPad(O, maxLength, fillString, start)
 ***** StringPad(O, maxLength, fillString, placement)
+抽象操作StringPad接受参数O、maxLength、fillString和placement。被调用时执行下列
+步骤：
+1. Assert：placement是start或者end
+2. 让S是?ToString(O)
+3. 让intMaxLength是R(?ToLength(maxLength))
+4. 让stringLength是S的长度
+5. 如果intMaxLength <= stringLength，返回S
+6. 如果fillString是undefined，让filler是只一个有0x0020（SPACE）的字符串
+7. 否则，让filler是?ToString(fillString)
+8. 如果filler是空字符串，返回S。
+9. 让fillLen是intMaxLength - stringLength
+10. 让truncateStringFill是重复filler的字符串拼接按照fillLen节取的子字符串。
+11. 如果placement是start，返回truncateStringFill和S的字符串拼接
+12. 返回S和truncateStringFill的字符串拼接。
+****** 注意1 参数maxLength被处理为不小于S的长度
+****** 注意2 参数fillString默认是" "（只含有一个编码单元0x0020 SPACE
+                         的字符串）
 **** String.prototype.repeat( count )
+被带调用时执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让n是?ToIntegerOrInfinity(count)
+4. 如果n < 0 或者 n是+∞，投掷RangeError异常
+5. 如果n是0，返回空字符串
+6. 返回n个S拼接在一起的字符串
+***** 注意2 本方法创建的String值含有count个this值转换出的String值
+***** 注意1 repeat函数试图支持泛型，不要求this值是String对象。
+                        因此可以被传递给其他对象作为方法。
 **** String.prototype.replace( searchValue, replaceValue )
+当replace方法被带参数searchValue和replaceValue调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 如果searchValue不是undefined或者null，那么
+    a. 让replacer是?GetMethod(searchValue, @@replace)
+    b. 如果replacer不是undefined，那么
+        i. 返回?Call(replacer, searchValue, << O, replaceValue >>)
+3. 让string是?ToString(O)
+4. 让searchString是?ToString(searchValue)
+5. 让functionalReplce是IsCallable(repalceValue)
+6. 如果functionalReplace是false，那么
+    a. 置replaceValue是?ToString(replaceValue)
+7. 让searchLength是searchString的长度
+8. 让position是!StringIndexOf(string, searchString, 0)
+9. 如果position是-1，返回string
+10. 让preserved是string从0到position的子字符串
+11. 如果functionalReplace是true，那么
+    a. 让replacement是?ToString(?Call(replaceValue, undefined, << searchString,
+       F(psoition), string >>))
+12. 否则
+    a. Assert：Type(replaceValue)是String
+    b. 让capture是新的空列表
+    c. 让replacement是!GetSubstitution(searchString, string, position, capture,
+       undefined, replaceValue)
+13. 返回preserved、replacement、string在psotion+searchLength及之后的子字符串的
+    字符串拼接
+***** 注意 replace函数试图支持泛型，不要求this值是String对象。因此可以被
+            传递给其他对象作为方法。
 ***** GetSubstitution(matched, str, position, captures, namedCaptures, replacement)
+抽象操作GetSubstitution接受参数matched、str、position(非负整数）、captrues、
+namedCaptrues和replacement。被调用时执行下列步骤：
+1. Assert：Type(matched)是String
+2. 让matchLength是matched的编码单元数量
+3. Assert：Type(str)是String
+4. 让stringLength是str的编码单元数量
+5. Assert：position <= stringLength
+6. Assert：captures是可能空的String列表
+7. Assert：Type(replacement)是String
+8. 让tailPos是position + matchLength
+9. 让m是captures的元素数量
+10. 让result是通过从replacement的编码单元根据表54替换后的结果派生处的字符串。
+    从左到右替换$，一旦替换了，新生成的替换文本不再参与替换。
+11. 返回result
+
+表54
+| 编码单元                         | Unicode字符                                   | 替换文本                                                                                                                                     |
+| 0x0024,0x0024                    | $$                                            | $                                                                                                                                            |
+| 0x0024,0x0026                    | $&                                            | matched                                                                                                                                      |
+| 0x0024,0x0060                    | $`                                            | str从0到position的子字符串                                                                                                                   |
+| 0x0024,0x0027                    | $'                                            | 如果tailPos >= stringLength，空字符串。否则是str从tailPos及之后的子字符串                                                                    |
+| 0x0024,N 其中0x0031<=N<=0x0039   | $n,其中n是1 2 3 4 5 6 7 8 9，而且$n后不是数字 | captures的第n个元素，n是1到9的数字。如果n<=m，而且captures第n个元素是undefined，使用空字符串。如果n>m，不替换。                              |
+| 0x0024,N,N 其中0x0030<=N<=0x0039 | $nn,其中n是0 1 2 3 4 5 6 7 8 9                | captures的第nn个元素，nn是两位十进制数字，从01到99。如果nn<=m，而且captures第nn个元素是undefined，使用空字符串。如果nn是00或者nn>m，不替换。 |
+| 0x0024,0x003C                    | $<                                            | 1. 如果namedCaptures是undefined，替换文本是"$<"                                                                                              |
+|                                  |                                               | 2.否则                                                                                                                                       |
+|                                  |                                               | a. Assert：Type(namedCaptrues)是Object                                                                                                       |
+|                                  |                                               | b. 扫描到下一个> U+003E（GREATER-THAN SIGN）                                                                                                 |
+|                                  |                                               | c. 如果没有找到，使用"$<"                                                                                                                    |
+|                                  |                                               | d. 否则：                                                                                                                                    |
+|                                  |                                               | i. 让groupName是$<和>包含的子字符串                                                                                                          |
+|                                  |                                               | ii. 让capture是?Get(nameCaptures, groupName)                                                                                                 |
+|                                  |                                               | iii. 如果capture是undefined，用空字符串替换直到>处的文本                                                                                     |
+|                                  |                                               | iv. 否则用?ToString(capture)替换直到>处的文本，                                                                                              |
+| 0x0024                           | 不是上述内容背景下的$                         | $                                                                                                                                            |
 **** String.prototype.replaceAll( searchValue, replaceValue )
+当replaceAll方法被带参数searchValue和replaceValue调用是，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 如果searchValue不是undefined和null，那么
+    a. 让isRegExp是?IsRegExp(searchValue)
+    b. 如果isRegExp是true，那么
+        i. 让flags是?Get(regExp, "flags")
+       ii. 执行?RequireObjectCoercible(flags)
+      iii. 如果?ToString(flags)没有"g"，投掷TypeError异常
+    c. 让replacer是?GetMethod(regexp, @@replace)
+    d. 如果replacer不是undefined，那么
+        i. 返回?Call(replacer, searchValue, << O, replaceValue >>)
+3. 
+4. 
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
 **** String.prototype.search( regexp )
 **** String.prototype.slice( start, end )
 **** String.prototype.split( seperator, limit )
