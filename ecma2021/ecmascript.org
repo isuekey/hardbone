@@ -637,7 +637,7 @@ x2,...,xN)产生x1到xN中数学意义上最小的。数学函数max(x1,x2,...,x
 "x modulo y"（y是有限的非零的）记法，计算一个与y（或者0）同号的k，满足
 abs(k) < abs(y)且x-k = q * y，其中q是整数值。
 
-短语“将x局限在lower和upper间的结果"
+短语"将x局限在lower和upper间的结果"
 短语"the result of clamping x between lower and upper"（x是扩展整数值，lower和
 upper是数学值，而且lower≤upper），如果x<lower，产生lower，如果x>upper，产生
 upper，其他产生x。
@@ -18105,7 +18105,7 @@ String.prototype.constructor的初始值是%String%
 6. 让len是S的长度
 7. 如果endPosition是undefined，让pos是len，柔则让pos是?ToIntegerOrInfinity(endPosition)
 8. 让end是将pos局限在0与len间的结果。
-9. 让searcLength是searchStr的长度
+9. 让searcLength是searchStr的长度\
 10. 如果searchLength==0，返会true
 11. 让start是end-searchLength
 12. 如果start<0，返回false
@@ -18343,24 +18343,132 @@ namedCaptrues和replacement。被调用时执行下列步骤：
     c. 让replacer是?GetMethod(regexp, @@replace)
     d. 如果replacer不是undefined，那么
         i. 返回?Call(replacer, searchValue, << O, replaceValue >>)
-3. 
-4. 
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
+3. 让string是?ToString(O)
+4. 让searchString是?ToString(searchValue)
+5. 让functionalReplace是IsCallable(replaceValue)
+6. 如果functionalReplace是false，那么
+    a. 置replaceValue是?ToString(replaceValue)
+7. 让searchLength是searchString的长度
+8. 让advanceBy是max(1, searchLength)
+9. 让matchPositions是新的空列表
+10. 让position是!StringIndexOf(string, searchString, 0)
+11. 当position不是-1时，重复
+    a. 追加position到matchPositions的末端
+    b. 置position是!StringIndexOf(string, searchString, position + advanceBy)
+12. 让endOfLastMatch是0
+13. 让result是空字符串
+14. 遍历matchedPositions的元素，记作p，做
+    a. 让preserved是string上从endOfLastMatch到p的子字符串
+    b. 如果functionalReplace是true，那么
+        i. 让replacement是?ToString(?Call(replaceValue, undefined, << searchString,
+           F(p), string >> ))
+    c. 否则
+        i. Assert：Type(replaceValue)是String
+       ii. 让captures是空的新列表
+      iii. 让repalcement是!GetSubstitution(searchString, string, p, captures,
+           undefined, repalceValue)
+    d. 置result是result preserved和replacement的字符串拼接
+    e. 置endOfLastMatch是p + searchLength
+15. 如果endOfLastMatch < string的长度，那么
+    a. 置result是，result、string上从endOfLastMatch的子字符串，的字符串拼接
+16. 返回result
 **** String.prototype.search( regexp )
+当search被带regexp参数调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值）
+2. 如果regexp不是undefined和null，那么
+    a. 让searcher是?GetMethod(regexp, @@search)
+    b. 如果searcher不是undefined，那么
+        i. 返回?Call(searcher, regexp, << O >>)
+3. 让string是?ToString(O)
+4. 让rx是?RegExpCreate(regexp, undefined)
+5. 返回?Invoke(rx, @@search, << string >>)
+***** 注意 search函数试图支持泛型，不要求this值是String对象。因此可以被
+            传递给其他对象作为方法。
 **** String.prototype.slice( start, end )
+slice方法接受参数start和end，返回this值转换成String值上[start,end)内的子字符
+串（如果end是undefined，则到String的末端）。设sourceLength是this值转换成String
+时的长度。如果start是负数，被当作sourceLength + start。如果end是负数，被当
+作sourceLength + end。结果是String值，不是String对象。被调用时执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 让S是?ToString(O)
+3. 让len是S的长度
+4. 让intStart是?ToIntegerOrInfinity(start)
+5. 如果intStart是-∞，让from是0
+6. 否则如果intStart < 0，让from是max(len + intStart, 0)
+7. 否则，让from是min(intStart, len)
+8. 如果end是undefined，让intEnd是len；否则让intEnd是?ToIntegerOrInfinity(end)
+9. 如果intEnd是-∞，让to是0
+10. 否则如果intEnd < 0，让to是max(len + intEnd, 0)
+11. 否则，让to是min(intEnd, len)
+12. 如果from >= to，返回空字符串
+13. 返回S上[from, to)的子字符串
+***** 注意 slice函数试图支持泛型，不要求this值是String对象。因此可以被
+            传递给其他对象作为方法。
 **** String.prototype.split( seperator, limit )
+返回Array对象，里面是从this值转换为String值的子字符串。子字符串是从左到
+右寻找separator，匹配到的部分不返回，而是用于拆分String值。seperator可以是
+任意长度的字符串，或者其他有@@split方法的对象。
+
+当split方法被调用时，执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 如果seperator不是undefined和null，那么
+    a. 让splitter是?GetMethod(seperator, @@split)
+    b. 如果splitter不是undefined，那么
+        i. 返回?Call(splitter, seperator, << O, limit >>)
+3. 让S是?ToString(O)
+4. 让A是!ArrayCreate(0)
+5. 让lengthA是0
+6. 如果limit是undefined，让lim是2^32 -1，否则让lim是R(?ToUint32(limit))
+7. 让R是?ToString(seperator)
+8. 如果lim == 0，返回A
+9. 如果sperator是undefined，那么
+    a. 执行!CreateDataPropertyOrThrow(A, "0", S)
+    b. 返回A
+10. 让s是S的长度
+11. 如果s==0，那么
+    a. 如果R不是空字符串，那么
+        i. 执行!CreateDataPropertyOrThrow(A, "0", S)
+    b. 返回A
+12. 让p是0
+13. 让q是p
+14. 重复，当q != s时
+    a. 让e时SplitMatch(S, q, R)
+    b. 如果e时not-matched，置q是q+1
+    c. 否则
+        i. Assert：e是非负整数，且e <= s
+       ii. 如果e == p，置q是q+1
+      iii. 否则
+            1. 让T是S上[p,q)的子字符串
+            2. 执行!CreateDataPropertyOrThrow(A, !ToString(F(lengthA)), T)
+            3. 置length是lengthA+1
+            4. 如果lengthA == lim, 返回A
+            5. 置p是e
+            6. 置q是p
+15. 让T是S上[p,s)的子字符串
+16. 执行!CreateDataPropertyOrThrow(A, !ToString(F(lengthA)), T)
+17. 返回A
+***** 注意1 seperator的值可能是空字符串。seperator不会去匹配在开始或者末尾
+             处的空字符串，也不会去匹配上次匹配末尾的空字符串。如果
+             seperator是空字符串，String会被按照编码单元拆分成数组；数组的
+             长度等于String的长度，每个子字符串含有一个编码单元。
+
+             如果this值是（或者转换为）空字符串，结果依赖于seperator能否
+             匹配空字符串。如果能，结果是空数组，否则结果是含有一个空
+             字符串的数组。
+
+             如果seperator是undefined，那么结果是含有this值转换为String的数组。
+             如果limit不是undefined，输出数组元素数量不会超过limit。
+***** 注意2 split函数试图支持泛型，不要求this值是String对象。因此可以被
+            传递给其他对象作为方法。
 ***** SplitMatch(S, q, R)
+抽象操作SplitMatch接受参数S（String）、q（非负整数）和R（String）。返回
+not-matched或者匹配的末端索引。被调用时执行下列步骤：
+1. 让r是R的编码单元数量
+2. 让s是S的编码单元数量
+3. 如果q + r > s，返回not-matched
+4. 如果有整数i在[0,r)之间，在S上q+i位置的编码单元与R上i位置的编码单元
+   不同，返回not-matched
+5. 返回q + r
 **** String.prototype.startsWith( searchString [, position ] )
 **** String.prototype.substring( start, end )
 **** String.prototype.toLocaleLowerCase( [ reserved1 [, reserved2 ]] )
