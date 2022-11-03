@@ -18019,7 +18019,6 @@ String原型对象：
   \[\[Enumerable]]:false, \[\[Configurable]]:false, }。
 . 有\[\[Prototype]]内部占位，值是%Object.prototype%
 
-除非另有显式定义，String原型对象上的方法
 除非另有显式定义，下方定义的String原型对象上的方法都不是泛型的，传递它们
 的this值必须是String值或者是有\[\[StringData]]内部占位，并初始化了String值的对
 象。
@@ -18103,16 +18102,16 @@ String.prototype.constructor的初始值是%String%
 4. 如果isRegExp是true，投掷TypeError异常
 5. 让searchStr是?ToString(searchString)
 6. 让len是S的长度
-7. 如果endPosition是undefined，让pos是len，柔则让pos是?ToIntegerOrInfinity(endPosition)
+7. 如果endPosition是undefined，让pos是len，否则让pos是?ToIntegerOrInfinity(endPosition)
 8. 让end是将pos局限在0与len间的结果。
-9. 让searcLength是searchStr的长度\
+9. 让searcLength是searchStr的长度
 10. 如果searchLength==0，返会true
 11. 让start是end-searchLength
 12. 如果start<0，返回false
 13. 让substring是S上从start到end的子字符串
 14. 返回!SameValueNonNumeric(substring, searchStr)
 ***** 注意1 当searchString转换出的String与this对象转换为String后从endPosition - length(this)
-                      开始每个编码单元都形同，返回true。其他返回false。
+                      开始每个编码单元都依次相同，返回true。其他返回false。
 ***** 注意2 如果第一个参数是正则表达式，投掷异常，以便将来的版本允许定义相应参数的扩展。
 ***** 注意3 endsWith函数试图是泛型的；不需要this值是String对象，因此他可以被传递给其他兑现作为方法。
 **** String.prototype.includes( searchString [, position ] )
@@ -18470,25 +18469,194 @@ not-matched或者匹配的末端索引。被调用时执行下列步骤：
    不同，返回not-matched
 5. 返回q + r
 **** String.prototype.startsWith( searchString [, position ] )
+被调用时执行下列步骤：
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让isRegExp是?isRegExp(searchString)
+4. 如果isRegExp是true，投掷TypeError异常
+5. 让searchStr是?ToString(searchString)
+6. 让len是S的长度
+7. 如果position是undefined，让pos是0，否则让pos是?ToIntegerOrInfinity(position)
+8. 让start是将pos局限在0与len间的结果。
+9. 让searcLength是searchStr的长度
+10. 如果searchLength==0，返会true
+11. 让end是start + searchLength
+12. 如果end > len，返回false
+13. 让substring是S上[start,end)的子字符串
+14. 返回!SameValueNonNumeric(substring, searchStr)
+***** 注意1 当searchString转换出的String与this对象转换为String后从position
+                      开始每个编码单元都依次相同，返回true。其他返回false。
+***** 注意2 如果第一个参数是正则表达式，投掷异常，以便将来的版本允许定义相应参数的扩展。
+***** 注意3 startsWith函数试图是泛型的；不需要this值是String对象，因此他可以被传递给其他兑现作为方法。
 **** String.prototype.substring( start, end )
+substring接受参数start和end，返回this值转换为String后上[start,end)的子字符串。
+结果是String值，不是String对象。
+
+如果某个参数是NaN或者负数，替换为0；如果参数大于String的长度，替换为String的
+长度。
+
+如果start比end大，则互换。
+
+被调用时执行下列步骤:
+1. 让O是?RequrieObjectCoercible(this值）
+2. 让S是?ToString(O)
+3. 让len是S的长度
+4. 让intStart是?ToIntegerOrInfinity(start)
+5. 如果end是undefined，让intEnd是len；否则让intEnd是?ToIntegerOrInfinity(end)
+6. 让finalStart是将intStart局限在0与len间的结果。
+7. 让finalEnd是将intEnd局限在0与len间的结果。
+8. 让from是min(finalStart, finalEnd)
+9. 让to是max(finalStart, finalEnd)
+10. 让end是start + searchLength
+11. 返回S上[from,to)的子字符串
+***** 注意 substring函数试图是泛型的；不需要this值是String对象，因此他可以被传递给其他兑现作为方法。
 **** String.prototype.toLocaleLowerCase( [ reserved1 [, reserved2 ]] )
+包含ECMA-402国际API的ECMAScript实现必须按照ECMA-402规范的规定来实现
+toLocaleLowerCase方法。如果没有包含ECMA-402的API，按照随后的规范
+实现toLocaleLowerCase方法。
+
+本函数按照6.1.4里的描述将String翻译成UTF-16编码点再处理。
+
+本函数除了结果试图按照主机环境所在地修正，而不是与所在地无关，之外，其他
+环节与toLowerCase严格一致。也就是在小写的时候，根据语言不同（比如土耳其
+语），使用不同的Unicode映射。
+
+这意味着本方法的可选参数定义在ECMA-402规范；不支持ECMA-402的实现不能将参数用
+做他途。
+***** 注意 toLocaleLowerCase函数试图是泛型的；不需要this值是String对象，因此他可以被传递给其他兑现作为方法。
 **** String.prototype.toLocaleUpperCase( [ reserved1 [, reserved2 ]] )
+包含ECMA-402国际API的ECMAScript实现必须按照ECMA-402规范的规定来实现
+toLocaseUppserCase方法。如果没有包含ECMA-402的API，按照随后的规范
+实现toLocaleUpperCase方法。
+
+本函数按照6.1.4里的描述将String翻译成UTF-16编码点再处理。
+
+本函数除了结果试图按照主机环境所在地修正，而不是与所在地无关，之外，其他
+环节与toUpperCase严格一致。也就是在大写的时候，根据语言不同（比如土耳其
+语），使用不同的Unicode映射。
+
+这意味着本方法的可选参数定义在ECMA-402规范；不支持ECMA-402的实现不能将参数用
+做他途。
+***** 注意 toLocaleUpperCase函数试图是泛型的；不需要this值是String对象，因此他可以被传递给其他兑现作为方法。
 **** String.prototype.toLowerCase( )
+本函数按照6.1.4里的描述将String翻译成UTF-16编码点再处理。被调用时执行下列
+步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 让S是?ToString(O)
+3. 让sText是!StringToCodePoints(S)
+4. 让lowerText是toLowercase(sText)，依据Unicode默认的大小写转换算法。
+5. 让L是!CodePointsToString(lowerText)
+6. 返回L
+
+结果必须是根据Unicode字符库（Unicode字符库不仅明确包含UnicodeData.txt文件，
+还包括全部本地敏感的映射文件SpecialCasings.txt）里本地无关的字符映射派生的。
+***** 注意1 有些字符的映射会产生多个编码点。在这里结果String跟源String的长度
+             不必相同。因为toUpperCase和toLowerCase都是背景敏感的行为，函数不
+             是对陈的。换句话说s.toUpperCase().toLowerCase()不必与s.toLowerCase()
+             相等。
+***** 注意2 toLowerCase函数试图支持泛型，不要求this值是String对象。因此可以被传递给
+             其他对象作为方法。
 **** String.prototype.toString( )
+当toString方法被调用时，执行下列步骤：
+1. 返回?thisStringValue(this值)
+***** 注意 String对象的toString方法与valueOf方法的结果相同。
 **** String.prototype.toUpperCase( )
+本函数按照6.1.4里的描述将String翻译成UTF-16编码点再处理。被调用时执行下列
+步骤：
+
+本函数除了映射使用Unicode默认大小写转换的toUpperCase算法外，其他环节行为与
+String.prototype.toLowerCase严格相同。
+***** 注意 toUpperCase函数试图支持泛型，不要求this值是String对象。因此可以被传递给
+             其他对象作为方法。
 **** String.prototype.trim( )
+本函数按照6.1.4里的描述将String翻译成UTF-16编码点再处理。
+
+被调用时执行下列步骤：
+1. 让S是this值
+2. 返回?TrimString(S, start+end)
+***** 注意 trim函数试图支持泛型，不要求this值是String对象。因此可以被传递给
+             其他对象作为方法。
 ***** TrimString(string, where)
+抽象操作TrimString接受参数string和where。按照6.1.4里的描述将String翻译成
+UTF-16编码点再处理。被调用时执行下列步骤：
+1. 让str是?RequireObjectCoercible(string)
+2. 让S是?ToString(str)
+3. 如果where是start，让T是S去掉头部空白的字符串值副本
+4. 否则如果where是end，让T是S去掉尾部空白的字符串值副本
+5. 否则
+    a. Assert：where是start+end
+    b 让T是S去掉头尾空白的字符串值副本
+6. 返回T
+
+本定义里空白是WhiteSpace和LineTerminal的合集。在检测编码点是不是Unicode分类
+"Space_Separator"（"Zs"）是，编码单元被按照6.1.4里的描述翻译成UTF-16编码点。
 **** String.prototype.trimEnd( )
+本函数按照6.1.4里的描述将String翻译成UTF-16编码点再处理。
+
+被调用时执行下列步骤：
+1. 让S是this值
+2. 返回?TrimString(S, end)
+***** 注意 trimEnd函数试图支持泛型，不要求this值是String对象。因此可以被传递给
+             其他对象作为方法。
 **** String.prototype.trimStart( )
+本函数按照6.1.4里的描述将String翻译成UTF-16编码点再处理。
+
+被调用时执行下列步骤：
+1. 让S是this值
+2. 返回?TrimString(S, start)
+***** 注意 trimStart函数试图支持泛型，不要求this值是String对象。因此可以被传递给
+             其他对象作为方法。
 **** String.prototype.valueOf( )
+当valueOf方法被调用时，执行下列步骤：
+1. 返回?thisStringValue(this值)
 **** String.prototype[@@iterator]( )
+当@@iterator方法被调用时返回一个Iterator对象（27.1.1.2），它能遍历String值的
+编码点，以String值形式返回每个编码点。被调用时执行下列步骤：
+1. 让O是?RequireObjectCoercible(this值)
+2. 让s是?ToString(O)
+3. 让closure是新的捕获了s的无参数AbstractClosure。被调用时，执行下列步骤
+    a. 让position是0
+    b. 让len是s的长度
+    c. 重复，当position < len
+        i. 让cp是!CodePointAt(s, position)
+       ii. 让nextIndex是position + cp.\[\[CodeUnitCount]]
+      iii. 让resultString是s上[position, nextIndex)的子字符串
+       iv. 置position是nextIndex
+        v. 执行?Yield(resultString)
+    d. 返回undefined
+4. 返回!CreateIteratorFromClosure(closure, "%StringIteratorPrototype%",
+   %StringIteratorPrototype%)
+
+本方法的"name"性质值是"[Symbol.iterator]"
 *** Properties of String Instances
+String实例都是奇异对象，有特定的内部方法。String实例继承String原型对象的
+性质。String实例有\[\[StringData]]内部占位。
+
+String实例有"length"性质，和一套可枚举的整数索引性质。
 **** length
+这个String对象表示的String值的元素数量。
+
+一旦String对象被初始化了，这个性质就不变了。属性是{ \[\[Writable]]:false,
+\[\[Enumerable]]:false, \[\[Configurable]]:false }
 *** String Iterator Objects
+StringIterator是对象，表述特定String实例对象的特定遍历器。StringIterator对象
+没有命名的构造范。StringIterator通过调用String实例对象的某些方法来创建。
 **** The %StringIteratorPrototype% Object
+%StringIteratorPrototype%对象：
+. 性质被所有StringIterator对象继承
+. 是基本对象
+. 有\[\[Prototype]]内部占位，值是%IteratorPrototype%
+. 有如下性质：
 ***** %StringIteratorPrototype%.next()
+1. 返回?GeneratorResume(this值, empty, "%StringIteratorPrototype%)
 ***** %StringIteratorPrototype%[@@toStringTag]
+@@toStringTag性质的初始值是"StringIterator"
+
+本性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 ** RegExp (Regular Expression) Objects
+RegExp对象含有一个正则表达式和联结的标记。
+*** 注意 正则表达式的形式和功能都是仿照Perl5编程语言的正则表达式的。
 *** Patterns
 **** SS: Early Errors
 **** SS: CapturingGroupNumber
