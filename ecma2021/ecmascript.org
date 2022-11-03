@@ -7760,11 +7760,11 @@ ECMAScript语法中的非终结符）。被调用时执行下列步骤：
    节点是解析的结果
 3. 否则含有一个或者多个表示解释错误或者EarlyError的SyntaxError对象的List。如果
    有多个错误出现，List中错误的数量和顺序由实现自行定义，但是至少要有一个。
-**** 注意1 考虑到有文本在某个位置有EarlyError，在后面的位置有句法错误。有的
-            实现先执行Parse段，再执行EarlyError段，可能就只报告句法错误，而不
+**** 注意1 考虑到有文本在某个位置有EarlyError，在后面的位置有SyntaxError。有的
+            实现先执行Parse段，再执行EarlyError段，可能就只报告SyntaxError，而不
             报告earlyErrors。有的实现是交替两种活动，可能就会报告EarlyError，而
-            部报告句法错误。还有的实现可能会两者都报告。所有这些行为都是相合
-            的
+            不报告SyntaxError。还有的实现可能会两者都报告。所有这些行为都是
+            允许的
 **** 注意2 条款17
 ** Type of Source Code
 有四种类型ECMAScript代码
@@ -8083,11 +8083,11 @@ UnicodeIDContinue ::
 **** Static Semantics: Early Errors
 IdentifierStart :: \ UnicodeEscapeSequence
 . 如果UnicodeEscapeSequence的SV不是$、_或者被UnicodeIDStart词法码型匹配的
-  Unicode编码点cp的!UTF16EncodeCodePoint(cp)，那这是一个句法错误。
+  Unicode编码点cp的!UTF16EncodeCodePoint(cp)，那这是一个SyntaxError。
 IdentifierPart :: \ UnicodeEscapeSequence
 . 如果UnicodeEscapeSequence的SV不是$、_、!UTF16EncodeCodePoint(<ZWNJ>、
   !UTF16EncodeCodePoint(<ZWJ>)或者被UnicodeIDContinue词法码型匹配的
-  Unicode编码点cp的!UTF16EncodeCodePoint(cp)，那这是一个句法错误。
+  Unicode编码点cp的!UTF16EncodeCodePoint(cp)，那这是一个SyntaxError。
 *** Keywords and Reserved Words 关键词和保留词
 关键词是符合IdentifierName的信标，但是还有句法用途；它会在本文中，使用定宽
 字体，出现在某些句法码型中。ECMAScript关键词包括if、while、async、await等等。
@@ -8492,7 +8492,7 @@ RegularExpressionFlags ::
             序列。一个空正则表达式，使用/(?:)/表示。
 **** Static Semantics: Early Error
 RegularExpressionFlags :: RegularExpressionFlags IdentifierPart
-    . 如果IdentifierPart包含Unicode转义序列，就是一个句法错误。
+    . 如果IdentifierPart包含Unicode转义序列，就是一个SyntaxError。
 **** Static Semantics: BodyText
 RegularExpressionLiteral :: / RegularExpressionBody / RegularExpressionFlags
     . 返回识别为RegularExpressionBody的源文本。
@@ -9090,10 +9090,10 @@ Initializer_[In, Yield, Await] :
 **** 注意2 MethodDefinition定义在15.4
 **** 注意3 在某些背景中，ObjectLiteral用于作为更严格的二级语法的覆盖语法。
             CoverInitializedName码型是这些二级语法的必要覆盖。然而在实际上是
-            期望ObjectLiteral的普通背景里，使用这些码型会导致早期句法错误。
+            期望ObjectLiteral的普通背景里，使用这些码型会导致早期SyntaxError。
 **** Static Semantics: Early Errors 静态语义：早期错误
 PropertyDefinition : MethodDefinition
-. 如果MethodDefinition的HasDirectSuper是true，这存在句法错误。
+. 如果MethodDefinition的HasDirectSuper是true，这存在SyntaxError。
 
 除了描述实际的对象初始化，ObjectLiteral码型还被用作ObjectAssignmentPattern的覆盖
 语法，也可能被识别为CoverParenthesizedExpressionAndArrowParameterList的一部分。当
@@ -9102,7 +9102,7 @@ ObjectLiteral出现在需要ObjectAssignmentPattern的背景中，不要使用�
 CoverCallExpressionAndAsyncArrowHead时也不要使用。
 
 PropertyDefinition : CoverInitializedName
-. 如果代码匹配到了此码型，就投掷一个句法错误
+. 如果代码匹配到了此码型，就投掷一个SyntaxError
 ***** 注意 这种码型存在，所以ObjectLiteral可以作为ObjectAssignmentPattern的覆盖
             语法。不能发生在实际的对象初始化里。
 **** Static Semantics: IsComputedPropertyKey
@@ -9211,7 +9211,7 @@ AsyncMethod : async PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody
 **** Static Semantics:Early Errors
 PrimaryExpression : RegularExpressionLiteral
 . 如果IsValidRegularExpressionLiteral(RegularExpressionLiteral)是false，那么有
-  句法错误。
+  SyntaxError。
 **** Static Semantics: IsValidRegularExpressionLiteral(literal)
 抽象操作IsValidRegularExpressionLiteral接受参数literal。明确其参数是否是一个有效
 的正则表达式字面量。被调用时执行下列步骤：
@@ -10375,19 +10375,19 @@ AssignmentOperator : one of
 *** Static Semantics : Early Errors
 AssignmentExpression : LeftHandSideExpression = AssignmentExpression
 如果LeftHandSideExpression是ObjectLiteral或者ArrayLiteral，应用下列早期错误：
-. 如果LeftHandSideExpression没有覆盖AssignmentPatter，那么有句法错误
+. 如果LeftHandSideExpression没有覆盖AssignmentPatter，那么有SyntaxError
 . AssignmentPattern和其派生的码型适用的早期错误规则也应用到被
   LeftHandSideExpression覆盖的AssignmentPattern上。
 
 如果LeftHandSideExpression不是ObjectLiteral也不是ArrayLiteral，应用下列早期错误：
-. 如果LeftHandSideExpression的AssignmentTargetType不是简单的，那么有句法错误
+. 如果LeftHandSideExpression的AssignmentTargetType不是简单的，那么有SyntaxError
 
 AssignmentExpression :
     LeftHandSideExpression AssignmentOperator AssignmentExpression
     LeftHandSideExpression &&= AssignmentExpression
     LeftHandSideExpression ||= AssignmentExpression
     LeftHandSideExpression ??= AssignmentExpression
-. 如果LeftHandSideExpression的AssignmentTargetType不是简单的，那么有句法错误
+. 如果LeftHandSideExpression的AssignmentTargetType不是简单的，那么有SyntaxError
 *** Runtime Semantics : Evaluation
 AssignmentExpression : LeftHandSideExpression = AssignmentExpression
 1. 如果LeftHandSideExpression不是ObjectLiteral和ArrayLiteral
@@ -10936,12 +10936,12 @@ LexicalBinding_[In, Yield, Await] :
     BindingPattern[?In, ?Yield, ?Await] Initializer[?In, ?Yield, ?Await]
 **** Static Semantics : Early Errors
 LexicalDeclaration : LetOrConst BindingList ;
-. 如果BindingList的BoundNames包含let，那么有句法错误。
-. 如果bindingList的BoundNames包含任何重复实体，那么有句法错误。
+. 如果BindingList的BoundNames包含let，那么有SyntaxError。
+. 如果bindingList的BoundNames包含任何重复实体，那么有SyntaxError。
 
 LexicalBinding : BindingIdentifier Initializer_opt
 . 如果Initializer不存在，而且包含此LxicalBinding的LexicalDeclaration的
-  IsConstantDeclaration时true，那么有句法错误。
+  IsConstantDeclaration时true，那么有SyntaxError。
 **** Runtime Semantics: Evaluation
 LexicalDeclaration : LetOrConst BindingList ;
 1. 让next是评估BindingList的结果
@@ -11211,7 +11211,7 @@ DoWhileStatement_[Yield, Await, Return] :
     do Statement_[?Yield, ?Await, ?Return] while ( Expression_[+In, ?Yield, ?Await] ) ;
 **** Static Semantics: Early Errors
 DoWhileStatement : do Statement while ( Expression ) ;
-. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+. 如果IsLabelledFunction(Statement)是true，那么有SyntaxError
 ***** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
 **** Runtime Semantics: DoWhileLoopEvaluation
 带参数labelSet.
@@ -11230,7 +11230,7 @@ WhileStatement_[Yield, Await, Return] :
     while ( Expression_[+In, ?Yield, ?Await] ) Statement_[?Yield, ?Await, ?Return]
 **** Static Semantics: Early Errors
 WhileStatement : while ( Expression ) Statement
-. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+. 如果IsLabelledFunction(Statement)是true，那么有SyntaxError
 ***** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
 **** Runtime Semantics: DoWhileLoopEvaluation
 带参数labelSet.
@@ -11259,11 +11259,11 @@ ForStatement :
     for ( Expression_opt ; Expression_opt ; Expression_opt ) Statement
     for ( var VariableDeclarationList ; Expression_opt ; Expression_opt ) Statement
     for ( LexcialDeclaration Expression_opt ; Expression_opt ) Statement
-. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+. 如果IsLabelledFunction(Statement)是true，那么有SyntaxError
 ***** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
 ForStatement : for ( LexcialDeclaration Expression_opt : Expression_opt ) Statement
 . 如果LexicalDeclaration的BoundNames的元素出现在Statement的VarDeclaredNames中，
-  那么有句法错误。
+  那么有SyntaxError。
 **** Runtime Semantics: ForLoopEvaluation
 带参数labelSet.
 ForStatement : for ( Expression_opt ; Expression_opt ; Expression_opt ) Statement
@@ -11365,27 +11365,27 @@ ForInOfStatement ：
     for await ( LeftHandSideExpression of AssignmentExpression ) Statement
     for await ( var ForBinding of AssignmentExpression ) Statement
     for await ( ForDeclaration of AssignmentExpression ) Statement
-. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+. 如果IsLabelledFunction(Statement)是true，那么有SyntaxError
 ***** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
 ForInOfStatement :
     for ( LeftHandSideExpression in Expression ) Statement
     for ( LeftHandSideExpression of AssignmentExpression ) Statement
     for await ( LeftHandSideExpression of AssignmentExpression ) Statement
 如果LeftHandSideExpression是ObjectLiteral或者ArrayLiteral，应用下列早期错误规则：
-. 如果LeftHandSideExpression没有覆盖一个AssignmentPattern，那么有句法错误
+. 如果LeftHandSideExpression没有覆盖一个AssignmentPattern，那么有SyntaxError
 . 所有适用AssignmentPattern和其派生码型的规则，也适用于被LeftHandSideExpression
   覆盖AssignmentPattern
 如果LeftHandSideExpression不是ObjectLiteral和ArrayLiteral，应用下列早期错误规则：
-. leftHandSideExpression的AssignmentTargetType不是simple，那么有句法错误。
+. leftHandSideExpression的AssignmentTargetType不是simple，那么有SyntaxError。
 
 ForInOfStatement
     for ( ForDeclaration in Expression ) Statement
     for ( ForDeclaration of AssignmentExpression ) Statement
     for await ( ForDeclaration of AssignmentExpression ) Statement
-. 如果ForDeclaration的BoundNames包含let，那么有句法错误
+. 如果ForDeclaration的BoundNames包含let，那么有SyntaxError
 . 如果ForDeclaration的BoundNames的任何元素也出现在Statement的VarDeclarationNames，
-  那么有句法错误
-. 如果ForDeclaration的BoundNames含有任何重复的元素，那么有句法错误
+  那么有SyntaxError
+. 如果ForDeclaration的BoundNames含有任何重复的元素，那么有SyntaxError
 **** Static Semantics: IsDestructuring
 MemberExpression : PrimaryExpression
 1. 如果PrimaryExpression是ObjectLiteral或者ArrayLiteral，返回true
@@ -11695,7 +11695,7 @@ ContinueStatement:
     continue ;
     continue LabelIdentifier ;
 如果ContinumeStatement不是在IterationStatement内嵌入的，而是直接或者间接的（没有
-穿过函数边界），那么有句法错误
+穿过函数边界），那么有SyntaxError
 *** Runtime Semantics: Evaluation
 ContinueStatement: continue ;
 1. 返回Completion { \[\[Type]]:continue, \[\[Value]]:empty, \[\[Target]]:empty }
@@ -11710,7 +11710,7 @@ BreakStatement_[Yield, Await]
 *** Static Semantics: Early Errors
 BreakStatement: break;
 如果ContinumeStatement不是在IterationStatement内嵌入的，而是直接或者间接的（没有
-穿过函数边界），那么有句法错误
+穿过函数边界），那么有SyntaxError
 *** Runtime Semantics: Evaluation
 ContinueStatement: continue ;
 1. 返回Completion { \[\[Type]]:continue, \[\[Value]]:empty, \[\[Target]]:empty }
@@ -11745,8 +11745,8 @@ WithStatement_[Yield, Await, Return]
           最后这个词法环境恢复为原来样子。
 *** Static Semantics: Early Errors
 WithStatement : with ( Expression )  Statement
-. 如果匹配此码型的代码在严格模式代码里，那么有句法错误
-. 如果IsLabelledFunction(Statement)是true，那么有句法错误
+. 如果匹配此码型的代码在严格模式代码里，那么有SyntaxError
+. 如果IsLabelledFunction(Statement)是true，那么有SyntaxError
 **** 注意 只在B.3.2中的扩展规定被实现了，才需要应用本规则。
 *** Runtime Semantics: Evaluation
 WithStatement : with ( Expression ) Statmenet
@@ -11778,9 +11778,9 @@ DefaultClause_[Yield, Await, Return] :
     default : StatementList_[?Yield, ?Await, ?Return]_opt
 *** Static Semantics: Early Errors
 SwitchStatement : switch ( Expression ) CaseBlock
-. 如果CaseBlock的LexicallyDeclaredNames含有重复的实体，那么有句法错误
+. 如果CaseBlock的LexicallyDeclaredNames含有重复的实体，那么有SyntaxError
 . 如果CaseBlock的LexicallyDeclaredNames有元素出现在CaseBlock的VarDeclaredNames，
-  那么有句法错误
+  那么有SyntaxError
 *** Runtime Semantics: CaseBlockEvaluation
 带参数input
 CaseBlock : { }
@@ -11974,11 +11974,11 @@ CatchParameter_[Await, Return] :
           其CatchParameter被绑定为此异常。
 *** Static Semantics: Early Errors
 Catch : catch ( CatchParameter ) Block
-. 如果CatchParameter的BoundNames含有任何重复的元素，那么有句法错误。
+. 如果CatchParameter的BoundNames含有任何重复的元素，那么有SyntaxError。
 . 如果CatchParameter的BoundNames的任何元素出现在Block的LexicallyDeclaredNames中，
-  那么有句法错误。
+  那么有SyntaxError。
 . 如果CatchParameter的BoundNames的任何元素出现在Block的VarDeclaredNames中，
-  那么有句法错误。
+  那么有SyntaxError。
 **** 注意 在B.3.5为本码型提供了备选语义。
 *** Runtime Sematics: CatchClauseEvaluation
 带参数thrownValue
@@ -12053,11 +12053,11 @@ FormalParameter [Yield, Await]:
     BindingElement [?Yield,?Await]
 *** Static Semantics: Early Errors
 UniqueFormalParameters : FormalParameters
-. 如果FormalParameters的BoundNames含有任何重复的元素，那么是句法错误。
+. 如果FormalParameters的BoundNames含有任何重复的元素，那么是SyntaxError。
 
 FormalParameters : FormalParameterList
 . 如果FormalParameterList的IsSimpleParameteredList是fasle而且FormalParameterList的
-  BoundNames含有任何重复元素，那么是句法错误。
+  BoundNames含有任何重复元素，那么是SyntaxError。
 **** 注意 只有在非严格模式下的用简单参数列表声明的函数，
            其FormalParameterList中可以出现相同的BindingIdentifier
 *** Static Semantics: ContainsExpression
@@ -12253,24 +12253,24 @@ FunctionExpression :
 . 如果匹配到FormalParameters的源代码是严格模式代码，需要应用UniqueFormalParameters : FormalParameters
   的EarlyError的规则
 . 存在BndingIdentifier，而且匹配BindingIdentifier的源码是严格模式代码，如果BindingIdentifier的
-  StringValue是"eval"或者“arguments”，那么有句法错误。
+  StringValue是"eval"或者“arguments”，那么有SyntaxError。
 . 如果FunctionBody的FunctionBodyContainsUseStrict是true而且FormalParameters的IsSimpleParameterList
-  是false，那么是句法错误。
+  是false，那么是SyntaxError。
 . 如果FormalParameters的BoundNames有任何元素出现在FunctionBody的LexicallyDeclaredNames，
-  那么有句法错误。
-. 如果FormalParameters包含SuperProperty是true，那么有句法错误。
-. 如果FunctionBody包含SuperProperty是true，那么有句法错误。
-. 如果FormalParameters包含SuperCall是true，那么有句法错误。
-. 如果FunctionBody包含SuperCall是true，那么有句法错误。
+  那么有SyntaxError。
+. 如果FormalParameters包含SuperProperty是true，那么有SyntaxError。
+. 如果FunctionBody包含SuperProperty是true，那么有SyntaxError。
+. 如果FormalParameters包含SuperCall是true，那么有SyntaxError。
+. 如果FunctionBody包含SuperCall是true，那么有SyntaxError。
 **** 注意 FunctionBody的LexicallyDelcaredNames不包含用var定义的IdentifierBound或者函数声明。
 FunctionBody : FunctionStatementList
-. 如果FunctionStatementList的LexicallyDelcaredNames含有重复的实体，那么是句法错误。
+. 如果FunctionStatementList的LexicallyDelcaredNames含有重复的实体，那么是SyntaxError。
 . 如果FunctionStatementList的LexicallyDelcaredNames的任何元素也出现在FunctionStatementList的
-  VarDeclaredNames，那么是句法错误。
-. 如果FunctionStatementList的带<<>>参数的ContainsDuplicateLabels是true，那么是句法错误。
-. 如果FunctionStatementList的带<<>>参数的ContainsUndefinedBreakTarget是true，那么是句法错误。
+  VarDeclaredNames，那么是SyntaxError。
+. 如果FunctionStatementList的带<<>>参数的ContainsDuplicateLabels是true，那么是SyntaxError。
+. 如果FunctionStatementList的带<<>>参数的ContainsUndefinedBreakTarget是true，那么是SyntaxError。
 . 如果FunctionStatementList的带<<>>和<<>>参数的ContainsUndefinedContinueTarget含有重复的实体，
-  那么是句法错误。
+  那么是SyntaxError。
 *** Static Semantics: FunctionBodyContainsUseStrict
 FunctionBody : FuncitonStatementList
 1. 如果FunctionBody的DrectivePrologue含有UseStrictDirective，返回true。否则返回false。
@@ -12359,14 +12359,14 @@ ArrowFormalParameters_[Yield, Await] :
     ( UniqueFormalParameters_[?Yield, ?Await] )
 *** Static Semantics: Early Errors
 ArrowFunction : ArrowParameters => ConciseBody
-. 如果ArrowParameters含有YieldExpression，那么有句法错误。
-. 如果ArrowParameters含有AwaitExpression，那么有句法错误。
+. 如果ArrowParameters含有YieldExpression，那么有SyntaxError。
+. 如果ArrowParameters含有AwaitExpression，那么有SyntaxError。
 . 如果ConciseBody的ConciseBodyContainsUseStrict是true，且ArrowParameters的IsSimpleParameterList是false，
-  那么有句法错误。
-. 如果ArrowParameters的BoundNames的任何元素也出现在ConciseBody的LexicallyDeclaredNames里，那么有句法错误。
+  那么有SyntaxError。
+. 如果ArrowParameters的BoundNames的任何元素也出现在ConciseBody的LexicallyDeclaredNames里，那么有SyntaxError。
 
 ArrowParameters : CoverParenthesizedExpressionAndArrowParameterList
-. 如果CoverParenthesizedExpressionAndArrowParameterList不是ArrowFormalParameters，那么有句法错误
+. 如果CoverParenthesizedExpressionAndArrowParameterList不是ArrowFormalParameters，那么有SyntaxError
 . 所有ArrowFormalParameters和其派生码型的早期错误规则也适用于
   CoverParenthesizedExpressionAndArrowParameterList的CoveredFormalsList
 *** Static Semantics: ConciseBodyContainsUseSctrict
@@ -12432,16 +12432,16 @@ PropertySetParameterList :
 *** Static Semantics: Early Errors
 MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
 . 如果FunctionBody的FunctionBodyContainsUseStrict是true，而且UniqueFormalParameters的
-  IsSimpleParameterList是false，那么是句法错误
+  IsSimpleParameterList是false，那么是SyntaxError
 . 如果UniqueFormalParameters的BoundNames的元素出现在FunctionBody的LexicallyDeclaredNames中，那么
-  是句法错误
+  是SyntaxError
 
 MethodDefinition : set PropertyName ( PropertySetParameterList ) { FunctionBody }
-. 如果PropertySetParameterList的BoundNames含有任何重复的元素，那么是句法错误
+. 如果PropertySetParameterList的BoundNames含有任何重复的元素，那么是SyntaxError
 . 如果FunctionBody的FunctionBodyContainsUseStrict是true，而且PropertySetParameterList的
-  IsSimpleParameterList是false，那么是句法错误。
+  IsSimpleParameterList是false，那么是SyntaxError。
 . 如果PropertySetParameterList的BoundNames的元素出现在FunctionBody的LexicallyDeclaredNames，
-  那么是句法错误。
+  那么是SyntaxError。
 *** Static Semantics: HasDirectSuper
 MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
 1. 如果UniqueFormalParameters含有SuperCall是true，那么返回true。
@@ -12596,12 +12596,12 @@ YieldExpression_[In, Await]
 **** 注意3 跟生成器对象相关的抽象操作在27.5.3里定义
 *** Static Semantics: Early Errors
 GeneratorMethod : * PropertyName ( UniqueFormalParamters ) { GeneratorBody }
-. 如果GeneratorMethod的HasDirectSuper是true，那么有句法错误。
-. 如果UniqueFormalParameters包含YieldExpression，那么有句法错误
+. 如果GeneratorMethod的HasDirectSuper是true，那么有SyntaxError。
+. 如果UniqueFormalParameters包含YieldExpression，那么有SyntaxError
 . 如果GeneratorBody的FunctionBodyContainsUseStrict是true，而且
-  UniqueFormalParameters的IsSimpleParameterList是false，那么有句法错误
+  UniqueFormalParameters的IsSimpleParameterList是false，那么有SyntaxError
 . 如果UniqueFormalParameters的BoundNames的任何元素也出现在GeneratorBody的
-  LexicallyDeclaredNames里，那么有句法错误。
+  LexicallyDeclaredNames里，那么有SyntaxError。
 
 GeneratorDeclaration :
     function * BindingIdentifier ( FormalParameters ) { GeneratorBody }
@@ -12611,16 +12611,16 @@ GeneratorExpression :
 . 如果FormalParameters匹配的源代码是严格模式代码，则应用
   UniqueFormalParameters : FormalParameters的早期错误规则。
 . 如果BindingIdentifer存在，而且BindingIdentifier匹配的源代码是严格模式代码，
-  则当BindingIdentifier的String值是eval或者arguments时，就是句法错误。
+  则当BindingIdentifier的String值是eval或者arguments时，就是SyntaxError。
 . 如果GeneratorBody的FunctionBodyContainsUseStrict是true，而且FormalParameterList
-  的IsSimpleParameterList是false，那么有句法错误。
+  的IsSimpleParameterList是false，那么有SyntaxError。
 . 如果FormalParameters的BoundName的任何元素也出现在GeneratorBody的
-  LexicallyDeclaredNames里，那么有句法错误
-. 如果FormalParameters包含YieldExpression，那么有句法错误。
-. 如果FormalParameters包含SuperProperty，那么有句法错误。
-. 如果GeneratorBody包含SuperProperty，那么有句法错误。
-. 如果FormalParameters包含SuperCall，那么有句法错误。
-. 如果GeneratorBody包含SuperCall，那么有句法错误。
+  LexicallyDeclaredNames里，那么有SyntaxError
+. 如果FormalParameters包含YieldExpression，那么有SyntaxError。
+. 如果FormalParameters包含SuperProperty，那么有SyntaxError。
+. 如果GeneratorBody包含SuperProperty，那么有SyntaxError。
+. 如果FormalParameters包含SuperCall，那么有SyntaxError。
+. 如果GeneratorBody包含SuperCall，那么有SyntaxError。
 *** Runtime Semantics: EvaluateGeneratorBody
 带参数functionObject和argumentList（List值）
 GeneratorBody : FucntionBody
@@ -12786,13 +12786,13 @@ AsyncGeneratorBody:
 **** 注意2 跟异步生成器对象相关的抽象操作在27.6.3里定义
 *** Static Semantics: Early Errors
 AsyncGeneratorMethod : async * PropertyName ( UniqueFormalParameters ) { AsyncGeneratorBody }
-. 如果AsyncGeneratorMethod的HasDirectSuper是true，那么有句法错误
-. 如果UniqueFormalParameters含有YieldExpression，那么有句法错误
-. 如果UniqueFormalParameters含有AwaitExpression，那么有句法错误
+. 如果AsyncGeneratorMethod的HasDirectSuper是true，那么有SyntaxError
+. 如果UniqueFormalParameters含有YieldExpression，那么有SyntaxError
+. 如果UniqueFormalParameters含有AwaitExpression，那么有SyntaxError
 . 如果AsyncGeneratorBody的FunctionBodyContainsUseStrict是true，而且
-  UniqueFormalParameters的IsSimpleParameterList是false，那么有句法错误。
+  UniqueFormalParameters的IsSimpleParameterList是false，那么有SyntaxError。
 . 如果UniqueFormalParameters的BoundNames的任何元素也出现在AsyncGeneratorBody的
-  LexicallyDeclaredNames里，那么有句法错误。
+  LexicallyDeclaredNames里，那么有SyntaxError。
 
 AsyncGeneratorDeclaration :
     async function * BindingIdentifier ( FormalParameters ) { AsyncGeneratorBody }
@@ -12802,17 +12802,17 @@ AsyncGeneratorExpression :
 . 如果FormalParameters匹配的源代码是严格模式代码，则应用
   UniqueFormalParameters : FormalParameters的早期错误规则。
 . 如果BindingIdentifer存在，而且BindingIdentifier匹配的源代码是严格模式代码，
-  则当BindingIdentifier的String值是eval或者arguments时，就是句法错误。
+  则当BindingIdentifier的String值是eval或者arguments时，就是SyntaxError。
 . 如果AsyncGeneratorBody的FunctionBodyContainsUseStrict是true，而且
-  FormalParameterList的IsSimpleParameterList是false，那么有句法错误。
+  FormalParameterList的IsSimpleParameterList是false，那么有SyntaxError。
 . 如果FormalParameters的BoundName的任何元素也出现在AsyncGeneratorBody的
-  LexicallyDeclaredNames里，那么有句法错误
-. 如果FormalParameters包含YieldExpression，那么有句法错误。
-. 如果FormalParameters包含AwaitExpression，那么有句法错误。
-. 如果FormalParameters包含SuperProperty，那么有句法错误。
-. 如果AsyncGeneratorBody包含SuperProperty，那么有句法错误。
-. 如果FormalParameters包含SuperCall，那么有句法错误。
-. 如果AsyncGeneratorBody包含SuperCall，那么有句法错误。
+  LexicallyDeclaredNames里，那么有SyntaxError
+. 如果FormalParameters包含YieldExpression，那么有SyntaxError。
+. 如果FormalParameters包含AwaitExpression，那么有SyntaxError。
+. 如果FormalParameters包含SuperProperty，那么有SyntaxError。
+. 如果AsyncGeneratorBody包含SuperProperty，那么有SyntaxError。
+. 如果FormalParameters包含SuperCall，那么有SyntaxError。
+. 如果AsyncGeneratorBody包含SuperCall，那么有SyntaxError。
 *** Runtime Semantics: EvaluateAsyncGeneratorBody
 带参数functionObject和argumentList（List值）
 AsyncGeneratorBody : FucntionBody
@@ -12910,24 +12910,24 @@ ClassElement_[Yield, Await] :
 **** 注意 class定义永远是严格模式代码
 *** Static Semantics: Early Errors
 ClassTail : ClassHeritage_opt { ClassBody }
-. 如果ClassHeritage不存在，但是下列算法评估是true，那么有句法错误
+. 如果ClassHeritage不存在，但是下列算法评估是true，那么有SyntaxError
     1. 让constructor是ClassBody的ConstructorMethod
     2. 如果constructor是空，返回false
     3. 返回constructor的HasDirectSuper
 
 ClassBody : ClassElementList
 . 如果ClassElementList的PrototypePropertyNameList含有超过一个constructor，那么
-  有句法错误。
+  有SyntaxError。
 
 ClassElement : MethodDefinition
 . 如果MethodDefinition的PropName不是constructor，而且MethodDeifnition的
-  HasDirectSuper是true，那么有句法错误。
+  HasDirectSuper是true，那么有SyntaxError。
 . 如果MethodDefinition的PropName是constructor，而且MethodDeifnition的
-  SpecialMethod是true，那么有句法错误。
+  SpecialMethod是true，那么有SyntaxError。
 
 ClassElement : static MethodDefinition
-. 如果MethodDefinition的HasDirectSuper是true，那么有句法错误。
-. 如果MethodDefinition的PropName是prototype，那么有句法错误。
+. 如果MethodDefinition的HasDirectSuper是true，那么有SyntaxError。
+. 如果MethodDefinition的PropName是prototype，那么有SyntaxError。
 *** Static Semantics : ClassElementKind
 ClassElemnt : MethodDefinition
 1. 如果MethodDefinition的PropName是constructor，返回ConstructorMethod
@@ -13104,25 +13104,25 @@ AwaitExpression_[Yield] :
               . 在SyncFunctionDeclaration、AsyncFunctionExpression、
                 AsyncGeneratorDeclaration或者AsyncGeneratorExpression的
                 FormalParameters里。不过，在这个位置的AwaitExpression通过
-                静态语义定为句法错误。
+                静态语义定为SyntaxError。
             当Module是句法的目标符，而且缺失[Await]参数，await被解析做一个
-            关键词，从而是句法错误。在Script是句法的目标符，而且缺失[Await]
+            关键词，从而是SyntaxError。在Script是句法的目标符，而且缺失[Await]
             参数时，await可以被解析成一个标识。这包含下列背景：
               . 在AsyncFunctionBody外，或者在AsyncFunctonDeclaration、
                 AsyncFunctionExpression、AsyncGeneratorDeclaration或
                 AsyncGeneratorExpression的FormalParameters外
               . 在FunctionExpression、GeneratorExpression或者AsyncGeneratorExpression
                 的BindingIdentifier里。
-**** 注意2 不同于YieldExpression，缺失AwaitExpression的操作项会是句法错误。
+**** 注意2 不同于YieldExpression，缺失AwaitExpression的操作项会是SyntaxError。
             必须await某个东西。
 *** Static Semantics: Early Errors
 AsyncMethod : async PropertyName ( UniqueFormalParameters ) { AsyncFunctionBody }
 . 如果AsyncFunctionBody的FunctionBodyContainsUseStrict是true，而且
-  UniqueFormalParameters的IsSimpleParameterList是false，那么是句法错误
-. 如果AsyncMethod的HasDirectSuper是true，那么有句法错误
-. 如果UniqueFormalParameters含有AwaitExpression，那么有句法错误
+  UniqueFormalParameters的IsSimpleParameterList是false，那么是SyntaxError
+. 如果AsyncMethod的HasDirectSuper是true，那么有SyntaxError
+. 如果UniqueFormalParameters含有AwaitExpression，那么有SyntaxError
 . 如果UniqueFormalParameters的BoundNames的任何元素也出现在AsyncFunctionBody的
-  LexicallyDeclaredNames里，那么有句法错误。
+  LexicallyDeclaredNames里，那么有SyntaxError。
 
 AsyncFunctionDeclaration :
     async function BindingIdentifier ( FormalParameters ) { AsyncFunctionBody }
@@ -13130,18 +13130,18 @@ AsyncFunctionDeclaration :
 AsyncFunctionExpression :
     async function BindingIdentifier_opt ( FormalParameters ) { AsyncFunctionBody }
 . 如果AsyncFunctionBody的FunctionBodyContainsUseStrict是true，而且
-  FormalParameterList的IsSimpleParameterList是false，那么有句法错误。
-. 如果FormalParameters包含AwaitExpression，那么有句法错误。
+  FormalParameterList的IsSimpleParameterList是false，那么有SyntaxError。
+. 如果FormalParameters包含AwaitExpression，那么有SyntaxError。
 . 如果FormalParameters匹配的源代码是严格模式代码，则应用
   UniqueFormalParameters : FormalParameters的早期错误规则。
 . 如果BindingIdentifer存在，而且BindingIdentifier匹配的源代码是严格模式代码，
-  则当BindingIdentifier的String值是eval或者arguments时，就是句法错误。
+  则当BindingIdentifier的String值是eval或者arguments时，就是SyntaxError。
 . 如果FormalParameters的BoundName的任何元素也出现在AsyncFunctionBody的
-  LexicallyDeclaredNames里，那么有句法错误
-. 如果FormalParameters包含SuperProperty，那么有句法错误。
-. 如果AsyncFunctionBody包含SuperProperty，那么有句法错误。
-. 如果FormalParameters包含SuperCall，那么有句法错误。
-. 如果AsyncFunctionBody包含SuperCall，那么有句法错误。
+  LexicallyDeclaredNames里，那么有SyntaxError
+. 如果FormalParameters包含SuperProperty，那么有SyntaxError。
+. 如果AsyncFunctionBody包含SuperProperty，那么有SyntaxError。
+. 如果FormalParameters包含SuperCall，那么有SyntaxError。
+. 如果AsyncFunctionBody包含SuperCall，那么有SyntaxError。
 *** Runtime Semantics: InstantiateAsyncFunctionObject
 带参数scope
 AsyncFunctionDeclaration : async function BindingIdentifier ( FormalParamters ) { AsyncFunctionBody }
@@ -13236,15 +13236,15 @@ CoverCallExpressionAndAsyncArrowHead_[Yield, Await] :
 *** Static Semantics: Early Errors
 AsynctArrowFunction : async AsyncArrowBindingIdentifier => AsyncConciseBody
 . 如果AsyncArrowBindingIdentifier的BoundNames的任何元素也出现在AsyncConciseBody的
-  LexicallyDeclaredNames里，那么有句法错误。
+  LexicallyDeclaredNames里，那么有SyntaxError。
 
 AsyncArrowFunction : CoverCallExpressionAndAsyncArrowHead => AsyncConciseBody
-. 如果CoverCallExpressionAndAsyncArrowHead含有YieldExpression，那么有句法错误。
-. 如果CoverCallExpressionAndAsyncArrowHead含有AwaitExpression，那么有句法错误。
+. 如果CoverCallExpressionAndAsyncArrowHead含有YieldExpression，那么有SyntaxError。
+. 如果CoverCallExpressionAndAsyncArrowHead含有AwaitExpression，那么有SyntaxError。
 . 如果CoverCallExpressionAndAsyncArrowHead没有覆盖AsyncArrowHead，那么有句法
   错误。
 . 如果CoverCallExpressionAndAsyncArrowHead的BoundNames的任何元素也出现在
-  AsyncConciseBody的LexicallyDeclaredNames里，那么有句法错误。
+  AsyncConciseBody的LexicallyDeclaredNames里，那么有SyntaxError。
 . 如果AsycnConciseBody的AsyncConciseBodyContainsUseStrict是true，且
   CoverCallExpressionAndAsyncArrowHead的IsSimpleParameterList是false，那么有句法
   错误。
@@ -13562,22 +13562,22 @@ ScriptBody :
     StatementList_[~Yield, ~Await, ~Return]
 *** Static Semantics: Early Errors
 Script : ScriptBody
-. 如果ScriptBody的LexicallyDeclaredNames含有重复的实体，那么有句法错误
+. 如果ScriptBody的LexicallyDeclaredNames含有重复的实体，那么有SyntaxError
 . 如果ScriptBody的LexicallyDeclaredNames的元素也出现ScriptBody的VarDeclaredNames，
-  那么有句法错误。
+  那么有SyntaxError。
 
 ScriptBody : StatementList
 . 如果StatementList含有super，而且含有super的源代码不是被directEval处理的eval
-  代码，那么有句法错误。另外关于directEval中super的earlyError规则在
+  代码，那么有SyntaxError。另外关于directEval中super的earlyError规则在
   19.2.1.1中定义。
 . 如果StatementList含有NewTarget，而且含有NewTarget的源代码不是被directEval处理
-  的eval代码，那么有句法错误。另外关于directEval中NewTarget的earlyError规则在
+  的eval代码，那么有SyntaxError。另外关于directEval中NewTarget的earlyError规则在
   19.2.1.1中定义
-. 如果StatementList带参数<< >>的ContainsDuplicateLabels是true，那么有句法错误。
+. 如果StatementList带参数<< >>的ContainsDuplicateLabels是true，那么有SyntaxError。
 . 如果StatementList带参数<< >>的ContainsUndefinedBreakTarget是true，那么有句法
   错误。
 . 如果StatementList带参数<< >>和<< >>的ContainsUndefinedContinueTarget是true，那么
-  有句法错误。
+  有SyntaxError。
 *** Static Semantics: IsStrict
 Script : ScriptBody_opt
 1. 如果ScriptBody存在而且ScriptBody的DirectivePrologue含有UseStrictDirective，
@@ -13710,21 +13710,21 @@ ModuleItem :
 *** Module Semantics
 **** Static Semantics: Early Errors
 ModuleBody : ModuleItemList
-. 如果ModuleItemList的LexicallyDeclaredNames含有重复实体，那么有句法错误。
+. 如果ModuleItemList的LexicallyDeclaredNames含有重复实体，那么有SyntaxError。
 . 如果ModuleItemList的LexicallyDeclaredNames的元素也出现在ModuleItemList的
-  VarDeclaredNames，那么有句法错误。
-. 如果ModuleItemList的ExportedNames含有任何重复的实体，那么有句法错误。
+  VarDeclaredNames，那么有SyntaxError。
+. 如果ModuleItemList的ExportedNames含有任何重复的实体，那么有SyntaxError。
 . 如果ModuleItemList的ExportedBindings的任何元素没有出现在ModuelItemList
-  的VarDeclaredNames，也没有出现在LexicallyDeclaredNames，那么有句法错误。
-. 如果ModuleIemtList含有super，那么有句法错误
-. 如果ModuleItemList含有NewTarget，那么有句法错误
-. 如果ModuleItemList带参数<< >>的ContainsDuplicateLabels是true，那么有句法错误。
+  的VarDeclaredNames，也没有出现在LexicallyDeclaredNames，那么有SyntaxError。
+. 如果ModuleIemtList含有super，那么有SyntaxError
+. 如果ModuleItemList含有NewTarget，那么有SyntaxError
+. 如果ModuleItemList带参数<< >>的ContainsDuplicateLabels是true，那么有SyntaxError。
 . 如果ModuleItemList带参数<< >>的ContainsUndefinedBreakTarget是true，那么有句法
   错误。
 . 如果ModuleItemList带参数<< >>和<< >>的ContainsUndefinedContinueTarget是true，那么
-  有句法错误。
+  有SyntaxError。
 ***** 注意 ExportedNames的重复规则暗示了在一个ModuleBody里出现多次
-            export default这种ExportDeclaration是句法错误。另外关于混淆或者重复
+            export default这种ExportDeclaration是SyntaxError。另外关于混淆或者重复
             声明的错误条件在评估Module之前的模块链接时进行检查。如果任何检测
             到任何错误那么不评估Module。
 **** Static Semantics: ImportedLcoalNames( importEntries )
@@ -14356,7 +14356,7 @@ ImportedBinding :
     BindingIdentifier_[~Yield, ~Await]
 **** Static Semantics: Early Errors
 ModuleItem : ImportDeclaration
-. 如果ImportDeclaration的BoundNames里包含任何重复实体，那么有句法错误。
+. 如果ImportDeclaration的BoundNames里包含任何重复实体，那么有SyntaxError。
 **** Static Semantics: ImportEntries
 Module : [empty]
 1. 返回新的空列表
@@ -14450,7 +14450,7 @@ ExportSepcifier
 ExportDeclaration : export NamedExports ;
 . 遍历NamedExports的ReferencedBindings里IdentifierName记作n：如果n的字符串值是
   某个ReservedWord，或者是"implements"、"interface"、"let"、"package"、"private"、
-  "protected"、"public"或"static"，那么有句法错误。
+  "protected"、"public"或"static"，那么有SyntaxError。
 ***** 注意 上述规则意味着NamedExports的ReferencedBindings的每个元素都被看作是
             IdentifierReference
 **** Static Semantics: ExportedBindings
@@ -18648,7 +18648,7 @@ StringIterator是对象，表述特定String实例对象的特定遍历器。Str
 . 有\[\[Prototype]]内部占位，值是%IteratorPrototype%
 . 有如下性质：
 ***** %StringIteratorPrototype%.next()
-1. 返回?GeneratorResume(this值, empty, "%StringIteratorPrototype%)
+1. 返回?GeneratorResume(this值, empty, "%StringIteratorPrototype%")
 ***** %StringIteratorPrototype%[@@toStringTag]
 @@toStringTag性质的初始值是"StringIterator"
 
@@ -18658,12 +18658,192 @@ StringIterator是对象，表述特定String实例对象的特定遍历器。Str
 RegExp对象含有一个正则表达式和联结的标记。
 *** 注意 正则表达式的形式和功能都是仿照Perl5编程语言的正则表达式的。
 *** Patterns
-**** SS: Early Errors
-**** SS: CapturingGroupNumber
-**** SS: IsCharacterClass
-**** SS: CharacterValue
-**** SS: SourceText
-**** SS: CapturingGroupName
+RegExp构造范将随后的语法应用到输入的模式String。如果语法不能将这个String翻译
+成Pattern的展开式，那就有错误。
+**** Syntax
+Pattern_[U, N] ::
+    Disjunction_[?U, ?N]
+Disjunction_[U, N] ::
+    Alernative_[?U, ?N]
+    Alernative_[?U, ?N] | Disjunction_[?U, ?N]
+Alernative_[U, N] ::
+    [empty]
+    Alernative_[?U, ?N] Term_[?U, ?N]
+Term_[U, N] ::
+    Assertion_[?U, ?N]
+    Atom_[?U, ?N]
+    Attom_[?U, ?N] Quantifier
+Assertion_[U, N] ::
+    ^
+    $
+    \ b
+    \ B
+    ( ? = Disjunction_[?U, ?N] )
+    ( ? ! Disjunction_[?U, ?N] )
+    ( ? <= Disjunction_[?U, ?N] )
+    ( ? <! Disjunction_[?U, ?N] )
+Quantifier ::
+    QuantifierPrefix
+    QuantifierPrefix ?
+QuantifierPrefix ::
+    *
+    \+
+    ?
+    { DecimalDigits_[~Sep] }
+    { DecimalDigits_[~Sep] , }
+    { DecimalDigits_[~Sep] , DecimalDigits_[~Sep] }
+Atom_[U, N] ::
+    PatternCharacter
+    .
+    \ AtomEscape_[?U, ?N]
+    CharacterClass_[?U]
+    ( GroupSpecifier_[?U, ?N] Disjunction_[?U, ?N] )
+    ( ? : Disjunction_[?U, ?N] )
+SyntaxCharacter :: one of
+    ^ $ \ . * + ? ( ) [ ] { } |
+PatternCharacter ::
+    SourceCharacter不是SyntaxCharacter
+AtomEscape_[U, N] ::
+    DecimalEscape
+    CharacterClassEscape_[?U]
+    CharacterEscape_[?U]
+    [+N] k GroupName_[?U]
+CharacterEscape_[U] ::
+    [empty]
+    ControlEscape
+    c ControlLetter
+    0 [lookahead ∉ DecimalDigit]
+    HexEscapedSequence
+    RegExpUnicodeEscapeSequence_[?U]
+    IdentityEscape_[?U]
+ControlEscape :: one of
+    f n r t v
+ConrolLetter :: one of
+    a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N
+    O P Q R S T U V W X Y Z
+GroupSpecifier_[U] ::
+    [empty]
+    ? GroupName_[?U]
+RegExpIdentifierName_[U] ::
+    RegExpIdentifierStart_[?U]
+    RegExpIdentifierName_[?U] RegExpIdentifierPart_[?U]
+RegExpIdentifierStart_[U] ::
+    UnicodeIDStart
+    $
+    \-
+    \ RegExpUnicodeEscapeSequence_[+U]
+    [~U] UnicodeLeadSurrogate UnicodeTailSurrogate
+RegExpIdentifierPart_[U] ::
+    UnicodeIDContinue
+    $
+    \ RegExpUnicodeEscapeSequence_[+U]
+    [~U] UnicodeLeadSurrogate UnicodeTailSurrogate
+    <ZWNJ>
+    <ZWJ>
+RegExpUnicodeEscapeSequence_[U] ::
+    [empty]
+    [~U] u HexLeadSurrogate \u HexTrailSurrogate
+    [~U] u HexLeadSurrogate
+    [~U] u HexTrailSurrogate
+    [~U] u HexNonSurrogate
+    [~U] u Hex4Digits
+    [~U] u{ CodePoint }
+UnicodeLeadSurrogate ::
+    在0xD800到0xDBFF之间的任意Unicode编码点
+UnicodeTailSurrogate ::
+    在0xDC00到0xDFFF之间的任意Unicode编码点
+
+每个\u HexTrailSurrogate，如果联结的u HexLeadSurrogate不明确，那么就联结到
+最近的u HexLeadSurrogate，否则此u HexLeadSurrogate不会有\u HexTrailSurrogate
+
+HexLeadSurrogate ::
+    Hex4Digits 但须此Hex4Digits的MV在[0xD800, 0xDBFF]内
+HexTrailSurrogate ::
+    Hex4Digits 但须此Hex4Digits的MV在[0xDC00, 0xDFFF]内
+HexNonSurrogate ::
+    Hex4Digits 但须此Hex4Digits的MV不在[0xD800, 0xDFFF]内
+IdentifyEscape_[U] ::
+    [+U]SyntaxCharacter
+    [+U]/
+    [~U]SourceCharacter 但不是UnicodeIDContinue
+DecimalEscape ::
+    NonZeroDigit DecimalDigits_[~Sep]_opt [lookahead ∉ DecimalDigit]
+CharacterClassEscape_[U] ::
+    d
+    D
+    s
+    S
+    w
+    W
+    [+U]p{ UnicodePropertyValueExpression }
+    [+U]P{ UnicodePropertyValueExpression }
+UnicodePropertyValueExpression ::
+    UnicodePropertyName = UnicodePropertyValue
+    LoneUnicodePropertyNameOrValue
+UnicodePropertyName ::
+    UnicodePropertyNameCharacters
+UnicodePropertyNameCharacters ::
+    UnicodePropertyNameCharacter UnicodePropertyNameCharacters_opt
+UnicodePropertyValue ::
+    UnicodePropertyValueCharacters
+LoneUnicodePropertyNameOrValue ::
+    UnicodePropertyValueCharacters
+UnicodePropertyValueCharacters ::
+    UnicodePropertyValueCharacter UnicodePropertyValueCharacters_opt
+UnicodePropertyValueCharacter::
+    UnicodePropertyNameCharacter
+    DecimalDigit
+UnicodePropertyNameCharacter ::
+    ControlLetter
+    \-
+CharacterClass_[U] ::
+    [ [lookahead ≠ ^] ClassRanges_[?U] ]
+    [ ^ ClassRanges_[?U] ]
+ClassRanges_[U] ::
+    [empty]
+    NonemptyClassRanges_[?U]
+NonemptyClassRanges_[U] ::
+    ClassAtom_[?U]
+    ClassAtom_[?U] NonemptyClassRangesNoDash_[?U]
+    ClassAtom_[?U] \- CalssAtom_[?U] ClassRanges_[?U]
+NonemptyClassRangesNoDash_[U] ::
+    ClassAtom_[?U]
+    ClassAtomNoDash_[?U] NonemptyClassRangesNoDash_[?U]
+    ClassAtomNoDash_[?U] \- CalssAtom_[?U] ClassRanges_[?U]
+ClassAtom_[U] ::
+    \-
+    ClassAtomNoDash_[?U]
+ClassAtomNoDash_[U] ::
+    SourceCharacter 但须不是 \ ] -
+    \ ClassEscape_[?U]
+ClassEscape_[U] ::
+    b
+    [+U]-
+    CharacterClassEscape_[?U]
+    CharacterEscape_[?U]
+***** 注意 本节的一些码型在B.1.4提供了备选定义。    
+**** Static Semantics: Early Errors
+***** 注意 本节在B.1.4.1中有修复
+Pattern :: Disjunction
+. 如果NcapturingParens >= 2^32 -1，那么有SyntaxError
+. 如果Pattern含有多个GroupSpecifier其包含RegExpIdentifierName有相同的
+  CapturingGroupName，那么有SyntaxError
+
+QuantifierPrefix :: { DecimalDigits , DecimalDigits }
+. 如果第一个DecimalDigits的MV大于第二个DecimalDigits的MV，那么有SyntaxError
+
+AtomEscape :: k GroupName
+. 如果所在Pattern找不到GroupSpecifier，其包含的RegExpIdentifierName的
+  CapturingGroupName与本码型GroupName的RegExpIdentifierName的CapturingGroupName相等，
+  那么有SyntaxError
+AtomEscape :: DecimalEscape
+. 如果DecimalEscape的CapturingGroupNumber比NcapturingParens（22.2.2.1）大，那么有
+  SyntaxError
+**** Static Semantics: CapturingGroupNumber
+**** Static Semantics: IsCharacterClass
+**** Static Semantics: CharacterValue
+**** Static Semantics: SourceText
+**** Static Semantics: CapturingGroupName
 *** Pattern Semantics
 **** Notation
 **** Pattern
@@ -18697,7 +18877,7 @@ RegExp对象含有一个正则表达式和联结的标记。
 **** Abstract Operations for the RegExp Cosntructor
 ***** RegExpAlloc( newTarget )
 ***** RegExpInitialize( obj, patter, flags )
-***** SS: ParsePattern( patternText, u )
+***** Static Semantics: ParsePattern( patternText, u )
 ***** RegExpCreate( P, F )
 ***** EscapeRegExpPattern( P, F )
 *** Properties of the RegExp Constructor
