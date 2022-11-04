@@ -18839,14 +18839,216 @@ AtomEscape :: k GroupName
 AtomEscape :: DecimalEscape
 . 如果DecimalEscape的CapturingGroupNumber比NcapturingParens（22.2.2.1）大，那么有
   SyntaxError
+
+NonemptyClassRanges :: ClassAtom - ClassAtom ClassRanges
+. 如果第一个ClassAtom的IsCharacterClass是true，或者第二个ClassAtom的
+  IsCharacterClass是true，那么是SyntaxError
+. 如果第一个ClassAtom的IsCharacterClass是false，而且第二个ClassAtom的
+  IsCharacterClass是false，但是第一个ClassAtom的CharacterValue大于第二个ClassAtom
+  的CharacterValue，那么是SyntaxError
+
+NonemptyClassRangesNoDash :: ClassAtomNoDash - ClassAtom ClassRanges
+. 如果ClassAtomNoDash的IsCharacterClass是true，或者ClassAtom的IsCharacterClass
+  是true，那么是SyntaxError
+. 如果ClassAtomNoDash的IsCharacterClass是false，而且ClassAtom的IsCharacterClass
+  是false，但是ClassAtomNoDash的CharacterValue大于ClassAtom的CharacterValue，那么
+  是SyntaxError
+
+RegExpIdentifierStart_[U] :: \ RegExpUnicodeEscapeSequence_[+U]
+. 如果RegExpUnicodeEscapeSequence的CharacterValue不是"S" "_"或者不符合UnicodeIDStart
+  文法码型，那么是SyntaxError
+
+RegExpIdentifierStart_[U] :: UnicodeLeadSurrogate UnicodeTrailSurrogate
+. 如果在UnicodeLeadSurrogate和UnicodeTrailSurrogate匹配的编码点上执行
+  UTF16SurrogatePairToCodePoint的结果匹配不到UnicodeIDStart文法码型，那么是
+  SyntaxError
+
+RegExpIdentifierPart_[U] :: \ RegExpUnicodeEscapeSequence_[+U]
+. 如果RegExpUnicodeEscapeSequence的CharacterValue不是"S"、"_"、<ZWNJ>、<ZWJ>或者不符
+  合UnicodeIDContinue文法码型，那么是SyntaxError
+
+RegExpIdentifierPart_[U] :: UnicodeLeadSurrogate UnicodeTrailSurrogate
+. 如果在UnicodeLeadSurrogate和UnicodeTrailSurrogate匹配的编码点上执行
+  UTF16SurrogatePairToCodePoint的结果匹配不到UnicodeIDContinue文法码型，那么是
+  SyntaxError
+
+UnicodePropertyValueExpression :: UnicodePropertyName = UnicodePropertyValue
+. 如果UnicodePropertyName的源文本的Unicode编码点列表对应不到按照表56的
+  "性质名称和别名"所列内容的编码点列表，那么是SyntaxError。
+. 如果UnicodePropertyValue的源文本的Unicode编码点列表对应不到按照表58或表59根据
+  UnicodePropertyName的源文本的Unicode性质或者性质别名对应在"性质值和别名"所列
+  内容的编码点列表，那么是SyntaxError。
+
+UnicodePropertyValueExpression :: LoneUnicodePropertyNameOrValue
+. 如果LoneUnicodePropertyNameOrValue的源文本的Unicode编码点列表对应不到按照表58
+  的"性质值和别名"所列内容的编码点列表，或者对应不到按照表57的"性质值和
+  别名"所列内容的编码点列表，那么是SyntaxError。
 **** Static Semantics: CapturingGroupNumber
+***** 注意 本节在B.1.4.1进行了修正。
+DecimalEscape :: NonZeroDigit
+1. 返回NonZeroDigit的MV
+
+DecimalEscape :: NonZeroDigit DecimalDigits
+1. 让n是DecimalDigits的编码点数量
+2. 返回((NonZeroDigit的MV)* 10^2 加上DecimalDigits的MV)
+
+NonZeroDigit的MV、DecimalDigits的MV在12.8.3中进行了定义。   
 **** Static Semantics: IsCharacterClass
+***** 注意 本节在B.1.4.2进行了修正。
+ClassAtom :: -
+ClassAtomNoDash :: SourceCharacter 不是 \ ] -
+ClassEscape :: b
+ClassEscape :: -
+ClassEscape :: CharacterEscape
+1. 返回false
+
+ClassEscape :: CharacterClassEscape
+1. 返回true
 **** Static Semantics: CharacterValue
+***** 注意1 本节在B.1.4.3进行了修正。
+ClassAtom :: -
+1. 返回U+002D（HYPHEN-MINUS）编码点值
+
+ClassAtomNoDash :: SourceCharacter 不是 \ ] -
+1. 让ch是SourceCharacter匹配的编码点
+2. 返回ch的编码点值
+   
+ClassEscape :: b
+1. 返回U+0008（BACKSPACE）的编码点值
+
+ClassEscape :: -
+1. 返回U+002D（HYPHEN-MINUS）编码点值
+
+ClassEscape :: ControlEscape
+1. 根据表55返回对应的编码点值
+
+表55
+| ControlEscape | 编码点值 | 编码点 | Unicode名称           | 符号 |
+| t             |        9 | U+0009 | CHARACTER TABULATION  | <HT> |
+| n             |       10 | U+000A | LINE FEED（LF）       | <LF> |
+| v             |       11 | U+000B | LINE TABULATION       | <VT> |
+| f             |       12 | U+000C | FORM FEED（FF）       | <FF> |
+| r             |       13 | U+000D | CARRIAGE RETURN（CR） | <CR> |
+
+CharacterEscape :: c ControlLetter
+1. 让ch是ControlLetter匹配的编码点
+2. 让i是ch的编码点值
+3. 返回i除以32的余数
+
+CharacterEscape :: 0 [lookahead ∉ DecimalDigit]
+1. 返回U+0000（NULL）的编码点值
+***** 注意2 \0表示<NUL>字符，因此后面不能跟随数字。
+
+CharacterEscape :: HexEscapeSequence
+1. 返回HexEscapeSequence的MV
+
+RegExpUnicodeEscapeSequence :: u HexLeadSurrogate \u HexTrailSurrogate
+1. 让lead是HexLeadSurrogate的CharacterValue
+2. 让trail是HexTrailSurrogate的CharaterValue
+3. 让cp是UTF16SurrogatePairToCodePoint(lead, trail)
+4. 返回cp的编码点值
+
+RegExpUnicodeEscapeSequence :: u Hex4Digits
+1. 返回Hex4Digits的MV
+
+RegExpUnicodeEscapeSequence :: u{ CodePoint }
+1. 返回CodePoint的MV
+
+HexLeadSurrogate :: Hex4Digits
+HexTrailSurrogate :: Hex4Digits
+HexNonSurrogate :: Hex4Digits
+1. 返回Hex4Digits的MV
+
+CharacterEscape :: IdentityEscape
+1. 让ch是IdentityEscape匹配的编码点
+2. 返回ch的编码点值
 **** Static Semantics: SourceText
+UnicodePropertyNameCharacters ::
+    UnicodePropertyNameCharacter UnicodePropertyNameCharacters_opt
+UnicodePropertyValueCharacters ::
+    UnicodePropertyValueCharacter UnicodePropertyValueCharacters_opt
+1. 返回码型对应的源文本依次对应的Unicode编码点组成的列表。
 **** Static Semantics: CapturingGroupName
+RegExpIdentifieryName_[U] ::
+    RegExpIdentifierStart_[?U]
+    RegExpIdentifierName_[?U] RegExpIdentifieryPart_[?U]
+1. 让idText是RegExpIdentifierName匹配的源文本。
+2. 让idTextUnescaped是将idText中\RegExpUnicodeEscapeSequence替换为
+   RegExpUnicodeEscapeSequence表述的编码点
+3. 返回!CodePointsToString(idTextUnescaped)
 *** Pattern Semantics
+**** 注意1 本节在B.1.4.4进行了修正。
+正则表达式范式按照下述过程准换为AbstractClosure。鼓励实现使用更有效的算法，
+但要结果相同。AbstractClosure作为RegExp对象的\[\[RegExpMatched]]内部占位的值。
+
+要么是BMP范式，要么是Unicode范式，依据是否有u标记。BMP范式是匹配码型的字符
+串翻译成的Unicode的16位二进制数的编码点值都在Basic Multilingual Plane。
+Unicode范式匹配码型的字符串翻译成UTF-16编码点。在BMP范式行为的背景里，
+"字符"意味着16位二进制数的Unicode BMP编码点。而在Unicode范式行为的背景里，
+"字符"意味着UTF-16编码的编码点（6.1.4）。两种背景里，"字符值"意味对应编码点
+的数字值。
+
+Pattern的句法与语义按照Pattern的源码是其SourceCharacter列表的方式定义的，其中
+每个SourceCharacter对应一个Unicode编码点。如果BMP返回含有了non-BMP
+SourceCharacter，整个范式用UTF-16编码，然后用编码单元作为列表的元素。
+**** 注意2 例如，源文本的某个范式是单个non-BMP字符U+1D11E（MUSICAL SYMBOL G
+            CLEF）。翻译为Unicode范式，它是只有一个元素（字符）的列表，元素
+            是编码点0x1D11E。然而如果翻译成BMP范式，它先按照UTF-16编码，产生
+            的列表有两个元素，分别是编码单元0xD834和0xDD1E。
+
+            范式以ECMAScript String值形式传递给RegExp构造范，non-BMP字符会以
+            UTF-16进行编码。例如，单个字符MUSICAL SYMBOL G CLEF范式，被翻译成
+            String值，含有两个元素，长度是2，依次是0xD834和0xDD1E。因此BMP
+            范式含有两个范式字符，不需要在这个字符串上进一步翻译。然而，
+            如果是Unicode范式，因为是含有一个编码点U+1D11E的列表，需要使用
+            UTF16SurrogatePairToCodePoint处理列表。
+
+            实现可能不会实际进行UTF-16转换，但是本规范的语义要求范式匹配的
+            结果是按照翻译后匹配的。
 **** Notation
+下方给出别名的描述：
+. Input是被正则表达式范式匹配的String值的字符构成的列表。每个字符要么是
+  编码单元，要么是编码点，依赖于范式调用方式。
+. InputLength是Input里字符的数量
+. 记法Input[n]意味着Input的第n个字符，n在[0, InputLength)范围上。
+. NcapturingParens 是范式里左捕括号的数量（诡异的描述）（就是 Atom :: (
+  GroupSpecifier Disjunction ) ParseNode的数量）。左捕括号是被Atom :: (
+  GroupSpecifier Disjunction )码型的(终止符匹配到的(范式字符。
+. DotAll是true，如果RegExp对象的\[\[OriginalFlags]]内部占位含有"s"，否则是false。
+. IgnoreCase是true，如果RegExp对象的\[\[OriginalFlags]]内部占位含有"i"，
+  否则是false。
+. Multiline是true，如果RegExp对象的\[\[OriginalFlags]]内部占位含有"m"，
+  否则是false。
+. Unicode是true，如果RegExp对象的\[\[OriginalFlags]]内部占位含有"u"，
+  否则是false。
+. WordCharacters是63个"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
+  字符的集合B（在Unicode Basic Latin块里的字母、数字和U+005F（LOW LINE））和其他
+  能够Canonicalize到B的字符的集合C的并集。除非Unicode和IgnoreCase都是true，不然
+  WordCharacters的就是B的63个字符。
+
+此外，下方描述使用了下方的内部数据结构：
+. CharSet是字符集合。如果Unicode标记是true，"全部字符"意味着CharSet包含所有
+  编码点，否则"全部字符"意味着CharSet包含全部编码单元。
+. State是有序对(endIndex, captures)，其中endIndex是整数，captures是NcapturingParens
+  值的列表。State用于描述正则表达式匹配算法的部门匹配的状态。endIndex是范式
+  在input上最大匹配的最后一个字符的索引加1，而captures持有捕获括号的结果。
+  captures的第n个元素要么是第n个捕获括号含有的值的字符列表，要么是undefined，
+  此是第n个捕获括号还没有到达。因为会向后寻找，很多State会在匹配过程的任
+  何时刻可用。
+. MatchResult是State或者是表明匹配失败的特殊信号failure。
+. Continuation是AbstarctClosure，接受一个State参数，返回一个MatchResult。
+  Continuation试图匹配模式在input上剩余的部分（由闭包捕获的值来明确），即从
+  参数State的中间状态开始。如果匹配成功，Continuation返回抵达的最终状态；如果
+  匹配失败了，返回failure。
+. Matcher是AbstractClosure，接受两个参数State和Continuation，返回MatchResult。
+  Matcher试图使用在Input上用范式的中间范式（由闭包捕获的值来明确）去匹配，
+  即从参数State的中间状态开始。参数Continuation应该是匹配范式剩余部分的闭包。
+  在匹配范式的子范式以得到新的State后，Matcher随后在此新的State上调用
+  Continuation，来检测剩余的范式能否匹配。如果可以，Matcher返回被Continuation
+  返回的State；如果不行，Matcher试图在其选择点上尝试不同的选择，不断调用
+  Continuation，直到成功或者全部可能被耗尽。
 **** Pattern
+码型 Patter :: Disjunction 按照如下评估：
 **** Disjunction
 **** Alternative
 **** Term
