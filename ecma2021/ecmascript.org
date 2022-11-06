@@ -37,7 +37,7 @@ octect 8个连续的二进制位。至于大小端，如果没有明确说明，
 指用有限精度数字描述准确数字的处理过程。
 ** 活 artefact
 人工造物
-** 圈（juan`）
+** 圈（juan）
 表示scope
 ** \*\*#N
 表示名称为N的值的\*\*，例如绑定#N，表示名称为N的值的绑定。
@@ -19049,14 +19049,313 @@ SourceCharacter，整个范式用UTF-16编码，然后用编码单元作为列�
   Continuation，直到成功或者全部可能被耗尽。
 **** Pattern
 码型 Patter :: Disjunction 按照如下评估：
+1. 带1作为direction参数评估Disjunction获得Matcher m。
+2. 返回新的AbstractClosure，带有参数(str, index)，捕获了m，并在调用是执行以下步骤：
+    a. Assert：Type(str)是String
+    b. Assert：index是非负整数，且小于等于str的长度。
+    c. 如果Unicode是true，让Input是!StringToCdoePoint(str)。否则让Input是str编码单元
+       组成的列表。Input会被22.2.2的算法全程用到。Input的每个元素被认为是一个字符。
+    d. 让InputLength是Input含有字符的数量。也被被22.2.2的算法全程用到。
+    e. 让listIndex是str上index处元素在Input里字符的索引。
+    f. 让c是新的Continuation带参数(y)，没有任何捕获，并执行下列步骤
+        i. Assert：y是State
+       ii. 返回y。
+    g. 让cap是NcapturingParens个undefined值的列表，从1索引到NcapturingParens
+    h. 让x是State(listInex, cap)
+    i. 返回m(x, c)
+***** 注意 Patter评估（编译）成一个AbstractClosure值。RegExpBuiltiinExec在String
+          以及之上的偏移进行此过程，确定范式能否匹配String从偏移处开始的子字符串，而且
+          如果匹配，就是捕获的括号的值。22.2.2的算法被设计成在编译范式的时候投掷SyntaxError；
+          因此，一旦范式成功编译，并将结果AbstractClosure应用到String上时，不会投掷
+          异常（除了实现定义的会在任意地方发生的异常，比如内存溢出）。
 **** Disjunction
+带参数direction
+
+码型 Disjunction :: Alternative 如下评估：
+1. 带参数direction评估Alternative得到Matcher m 。
+2. 返回 m 。
+
+码型 Disjunction :: Alternative | Disjunction 如下评估：
+1. 带参数direction评估Alternative得到Matcher m1 。
+2. 带参数direction评估Disjunction得到Matcher m2 。
+3. 返回新的带参数(x, c)的Matcher，捕获了m1和m2，在被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让r是m1(x, c)
+    d. 如果r不是failure，返回r
+    e. 返回m2(x, c)
+***** 注意 "|"作为正则表达式操作符时分隔两个备选。范式先尝试匹配左侧的Alternative（被后续
+           正则表达式跟随）；如果它失败了，会尝试右侧Disjunction（被后续正则表达式跟随）。
+           如果左侧Alternative、右侧Disjunction和后续表达式都有选择点，后续表达式的选择
+           点在左侧Alternative移动到下一个选择点之前进行验证。如果左侧Alternative的选择点
+           被耗尽了，尝试用右侧的Disjunction代替左侧的Alternative。范式上任何部分里被｜
+           忽略的捕获括号产生undefined值，而不是String。因此，例如：
+           /a|ab/.exec("abc")
+           返回结果”a“，而不是”ab“，更多的，
+           /((a)|(ab))((c)|(bc))/.exec("abc")
+           返回数组
+           ["abc", "a", "a", undefined, "bc", undefined, "bc"]
+           而不是
+           ["abc", "ab", undefined, "ab", "c", "c", undefined]
+           在两个备选里的尝试顺序与direction值无关。
 **** Alternative
+带参数direction
+
+码型 Alternative :: [empty] 如下评估：
+1. 返回新的带参数(x,c)的Matcher，没有捕获变量，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 返回c(x)
+
+码型 Alternative :: alternative Term 如下评估：
+1. 带参数direction评估Alternative得到Matcher m1 。
+2. 带参数direction评估Term得到Matcher m2 。
+3. 如果direction == 1，那么
+    a. 返回新的带参数(x, c)的Matcher，捕获了m1和m2，在被调用时执行下列步骤：
+        i. Assert：x是State
+       ii. Assert：c是Continuation
+      iii. 让d是新的带参数(y)的Continuation，捕获了c和m2，被调用时执行下列步骤：
+            1. Assert：y是State
+            2. 返回m2(y,c)
+       iv. 返回m1(x, d)
+4. 否则
+    a. Assert：direction是-1
+    b. 返回新的带参数(x, c)的Matcher，捕获了m1和m2，在被调用时执行下列步骤：
+        i. Assert：x是State
+       ii. Assert：c是Continuation
+      iii. 让d是新的带参数(y)的Continuation，捕获了c和m1，被调用时执行下列步骤：
+            1. Assert：y是State
+            2. 返回m1(y,c)
+       iv. 返回m2(x, d)
+***** 注意 连续的Term试图同事匹配input上连续的部分。当direction==1时，如果左侧Alternative、
+          右侧Term和后续正则表达式都有选择点，在后续表达式的选择点在右侧Term移动到下一个选择
+          点之前进行验证，右侧Term的选择点在左侧Alternative移动到下一个选择点之前进行验证。
+          当direction == -1时，评估Alternative和Term的顺序相反。
+
 **** Term
+带参数direction
+
+码型 Term :: Assertion 如下评估：
+1. 返回评估Assertion的结果Matcher
+***** 这里的结果Matcher与direction无关
+码型 Term :: Atom 如下评估：
+1. 返回带参数direction评估Atom的结果Matcher
+
+码型 Term :: Atom Quantifier 如下评估：
+1. 带参数direction评估Atom得到Matcher m
+2. 评估Quantifier得到三个结果：非负整数min，非负整数（或者+∞）max和Boolean greedy
+3. Assert：min <= max
+4. 让parenIndex是在整个正则表达式里出现在本Term左侧的左捕获括号数量。这就是先于或者包含
+   本Term的 Atom :: ( GroupSpecifier Disjunction ) 解析节点的数量
+5. 让parenCount是在Atom中左捕获括号的苏亮。这就是Atom圈闭的
+   Atom :: ( GroupSpecifier Disjunction ) 解析节点的数量
+6. 返回带参数(x, c)的Matcher，捕获了m、min、max、greedy、parenIndex、parenCount，被
+   调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 返回!RepeatMatcher(m, min, max, greedy, x, c, parenIndex, parenCount)
 ***** RepeatMatcher(m, min, max, greedy, x, c, parenIndex, parenCount)
+抽象操作RepeatMatcher接受参数m（Matcher）、min（非负整数）、max（非负整数，或者+∞）、
+greedy（Boolean）、x（State）、c（Continuation）、parenIndex（非负整数）和parenCount（
+非负整数）。被调用时执行下列步骤：
+1. 如果max == 0，返回c(x)
+2. 让d带参数(y)的Continuation，捕获了m、min、max、greedy、x、c、parenIndex和parenCount。
+   被调用时执行下列步骤：
+    a. Assert：y是State
+    b. 如果min==0而且y的endIndex == x的endIndex，返回failure
+    c. 如果min==0，让min2是0，否则让min2是min-1
+    d. 如果max是+∞，让max2是+∞，否则让max2是max-1
+    e. 返回!RepeatMatcher(m, min2, max2, greedy, y, c, parenIndex, parencount)
+3. 让cap是x的captures列表的副本。
+4. 遍历(parenIndex, parenIndex + parenCount]内的整数，记作k，置cap[k]是undefined
+5. 让e是x的endIndex
+6. 让xr是State(e, cap)
+7. 如果min != 0，返回 m(xr, d)
+8. 如果greedy是false，那么
+    a. 让z是c(x)
+    b. 如果z不是failure，返回z
+    c. 返回 m(xr, d)
+9. 让z是m(xr, d)
+10. 如果z不是failure，返回z
+11. 返回c(x)
+****** 注意1 注意跟随Quantifier的Atom按照Quantifier规定的次数进行重复。Quantifier可能是
+            不贪婪的，此时Atom范式以尽可能少的重复进行匹配，尽管能匹配后续；也可能是贪婪的，
+            此时如果能匹配后续，Atom范式尽可能多的重复进行匹配。使用Atom范式重复，而不是输
+            入字符序列来匹配，这样重复不同的Atom可以匹配不同的输入子字符串。
+****** 注意2 如果Atom和后续正则表达式都有选择点，Atom先匹配尽可能多（或少，如果是非贪婪的）的
+            重复。在后续表达式的选择点在Atom最后一个重复里准备移动到下一个选择点之前进行验证。
+            而在Atom第n次（最后的）重复的选择点是在第n-1次重复里准备移动到下一个选择点之前
+            进行验证；可能有的点会多重复或者少重复Atom；他们都在Atom第n-1次重复里移动到下一
+            个选择点之前被消耗完（重申：无论是尽可能多还是尽可能少）。以此类推。
+
+            比较
+            /a[a-z]{2,4}/.exec("abcdefghi")
+            会返回"abcde"，而
+            /a[a-z]{2,4}?/.exec("abcdefghi")
+            返回"abc"
+
+            在比如
+            /(aa|aabaac|ba|b|c)*/.exec("aabaac")
+            按照上述选择点顺序，会返回数组
+            ["aaba", "ba"]
+            而不是下方的
+            ["aabaac", "aabaac"]
+            ["aabaac", "c"]
+
+            上述的选择顺序允许正则表达式计算两个数字的最大公约数（一元记法表述）。比如计算
+            10和15的最大公约数：
+            "aaaaaaaaaa,aaaaaaaaaaaaaaa".replace(/^(a+)\1*,\1+$/, "$1")
+            返回一元记法的最大公约数"aaaaa"
+****** 注意3 RepeatMatcher的步骤4，在每次Atom重复的时候，清除了Atom捕获的内容。可以下述
+            正则表示里看到此行为
+            /(z)((a+)?(b+)?(c))*/.exec("zaacbbbcac")
+            会返回
+            ["zaacbbbcac","z","ac","a",undefined,"c"]
+            而不是
+            ["zaacbbbcac","z","ac","a","bbb","c"]
+            因为在外层*的遍历清除了计次Atom内捕获的String，这里包括2、3、4和5的捕获String。
+            （它们都是最后一次匹配捕获的内容）。
+****** 注意4 RepeatMatcher步骤2.b里，一旦满足了最小重复次数，匹配空字符串的Atom扩展式都不
+            在参与重复。以阻止正则表达式在如下范式中陷入无限循环：
+            /(a*)*/.exec("b")
+            或者复杂一些的
+            /(a*)b\1+/.exec("baaaaac")
+            这回返回
+            ["b", ""]
 **** Assertion
+码型 Assertion :: ^ 如下评估
+1. 返回带参数(x,c)的新Matcher，没有捕获，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让e是x的endIndex
+    d. 如果e是0，或者如果Multiline是true且Input[e-1]是LineTerminator，那么
+        i. 返回c(x)
+    e. 返回failure
+***** 注意 即使范式使用了y标记，^仍然只匹配Input的开始，或者（如果Multiline是true）匹配
+          行的开始。
+
+码型 Assertion :: $ 如下评估
+1. 返回带参数(x,c)的新Matcher，没有捕获，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让e是x的endIndex
+    d. 如果e是InputLength，或者如果Multiline是true且Input[e1]是LineTerminator，那么
+        i. 返回c(x)
+    e. 返回failure
+
+码型 Assertion :: \ b 如下评估
+1. 返回带参数(x,c)的新Matcher，没有捕获，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让e是x的endIndex
+    d. 让a是!IsWordChar(e-1)
+    e. 让b是!IsWordChar(e)
+    f. 如果a是true而b是false，或者a是false而b是true，返回c(x)
+    g. 返回failure
+
+码型 Assertion :: \ B 如下评估
+1. 返回带参数(x,c)的新Matcher，没有捕获，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让e是x的endIndex
+    d. 让a是!IsWordChar(e-1)
+    e. 让b是!IsWordChar(e)
+    f. 如果a是true且b是true，或者a是false且b是false，返回c(x)
+    g. 返回failure
+
+码型 Assertion :: ( ? = Disjunction) 如下评估
+1. 以1为参数direction评估Disjunction得到Matcher m。
+2. 返回带参数(x,c)的新Matcher，捕获m，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让d是带参数(y)的新Continuation，没有捕获，被调用时执行下列步骤：
+        i. Assert：y是State
+       ii. 返回y
+    d. 让r是m(x,d)
+    e. 如果r是failure，返回failure
+    f. 让y是r的State
+    g. 让cap是y的captures列表
+    h. 让xe是x的endIndex
+    i. 让z是State(xe, cap)
+    j. 返回c(z)
+
+码型 Assertion :: ( ? ! Disjunction) 如下评估
+1. 以1为参数direction评估Disjunction得到Matcher m。
+2. 返回带参数(x,c)的新Matcher，捕获m，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让d是带参数(y)的新Continuation，没有捕获，被调用时执行下列步骤：
+        i. Assert：y是State
+       ii. 返回y
+    d. 让r是m(x,d)
+    e. 如果r不是failure，返回failure
+    f. 返回c(x)
+
+码型 Assertion :: ( ? <= Disjunction) 如下评估
+1. 以-1为参数direction评估Disjunction得到Matcher m。
+2. 返回带参数(x,c)的新Matcher，捕获m，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让d是带参数(y)的新Continuation，没有捕获，被调用时执行下列步骤：
+        i. Assert：y是State
+       ii. 返回y
+    d. 让r是m(x,d)
+    e. 如果r是failure，返回failure
+    f. 让y是r的State
+    g. 让cap是y的captures列表
+    h. 让xe是x的endIndex
+    i. 让z是State(xe, cap)
+    j. 返回c(z)
+
+码型 Assertion :: ( ? <! Disjunction) 如下评估
+1. 以-1为参数direction评估Disjunction得到Matcher m。
+2. 返回带参数(x,c)的新Matcher，捕获m，被调用时执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让d是带参数(y)的新Continuation，没有捕获，被调用时执行下列步骤：
+        i. Assert：y是State
+       ii. 返回y
+    d. 让r是m(x,d)
+    e. 如果r不是failure，返回failure
+    f. 返回c(x)
 ***** IsWordChar( e )
+抽象操作IsWorkChar接受参数e（整数）。被调用时执行下列步骤：
+1. 如果e== -1，或者e是InputLength，返回false
+2. 让c是Input[e]的字符
+3. 如果c在WordCharacters里，返回true
+4. 返回false
 **** Quantifier
+码型 Quantifier :: QuntifierPrefix 如下评估
+1. 评估QuantifierPrefix或者两个结果：整数min和整数（或者+∞)max
+2. 返回结果:min max 和 true
+
+码型 Quantifier :: QuntifierPrefix? 如下评估
+1. 评估QuantifierPrefix或者两个结果：整数min和整数（或者+∞)max
+2. 返回结果:min max 和 false
+
+码型 QuantifierPrefix :: * 如下评估
+1. 返回结果：0 和 +∞
+
+码型 QuantifierPrefix :: + 如下评估
+1. 返回结果：1 和 +∞
+
+码型 QuantifierPrefix :: ? 如下评估
+1. 返回结果：0 和 1
+
+码型 QuantifierPrefix :: { DecimalDigits } 如下评估
+1. 让i是DecimalDigits的MV（12.8.3）
+2. 返回结果：i 和 i
+
+码型 QuantifierPrefix :: { DecimalDigits , } 如下评估
+1. 让i是DecimalDigits的MV（12.8.3）
+2. 返回结果：i 和 +∞
+
+码型 QuantifierPrefix :: { DecimalDigits , DecimalDigits } 如下评估
+1. 让i是第一个DecimalDigits的MV（12.8.3）
+1. 让j是第二个DecimalDigits的MV（12.8.3）
+2. 返回结果：i 和 j
 **** Atom
+带参数direction。
 ***** CharacterSetMatcher( A, invert, direction )
 ***** Canonicalize( ch )
 ***** UnicodeMatchProperty( p )
