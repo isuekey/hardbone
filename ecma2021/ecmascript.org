@@ -1,3 +1,6 @@
+* 写在最前面
+失之毫厘，谬以千里。
+本文仅作参考。以原本规范为准。
 * 待办
 将来会使用LaTex进行处理。
 * 约定 
@@ -20005,11 +20008,74 @@ greedy（Boolean）、x（State）、c（Continuation）、parenIndex（非负�
 1. 评估DecimalEscape获得整数n
 2. Assert：n <= NcapturingParens
 3. 返回!BackreferenceMatcher(n, direction)
-***** 注意
+
+码型 AtomEscape :: CharacterEscape 如下评估：
+1. 评估CharacterEscape获得字符ch
+2. 让A是只有字符ch的CharSet
+3. 返回!CharacterSetMatcher(A, false, direction)
+
+码型 AtomEscape :: CharacterClassEscape 如下评估：
+1. 评估CharacterClassEscape获得CharSet A.
+2. 返回!CharacterSetMatch(A, false, direction)
+***** 注意 以\跟随非0数字n形式的转义序列匹配到第n个捕获括号（22.2.2.1）的结
+            果。如果正则表达式的捕获括号数量不足n，那么有错误。如果正则表达
+            式有不少于n个捕获括号，但是第n个捕获是undefined，因为没有捕获到，
+            那么这个反向引用总是成功。
+
+码型 AtomEscape :: K GroupName 如下评估：
+1. 搜索包含此码型的范式，找到GroupSpecifier实例，含有有CapturingGroupName的
+   RegExpIdentifierName，其CapturingGroupName与含在GroupName里的RegExpIdentifierName
+   的CapturingGroupName相等。
+2. Assert：只找到一个GroupSpecifier
+3. 让parenIndex是在整个正则表达式里出现在找到的GroupSpecifier左侧的左捕获括
+   号数量。这就是先于或者包含本GroupSpecifier的 Atom :: ( GroupSpecifier
+   Disjunction ) 解析节点的数量，包括紧围其的Atom。
+4. 返回!BackreferenceMatcher(parenIndex, direction)
 ***** BackreferenceMatcher( n, direction )
+抽象操作BackreferenceMatcher接受参数n（正整数）和direction（1或者-1）。被调用时
+执行下列步骤：
+1. Assert：n >= 1
+2. 返回带参数(x, c)的新Matcher，捕获n和direction，被调用时执行执行下列步骤：
+    a. Assert：x是State
+    b. Assert：c是Continuation
+    c. 让cap是x的captures列表
+    d. 让s是cap[n]
+    e. 如果s是undefined，返回c(x)
+    f. 让e是x的endIndex
+    g. 让len是s中元素的数量
+    h. 让f是e + direction * len
+    i. 如果f < 0 或者 f > InputLength，返回failure
+    j. 让g是min(e, f)
+    k. 如果[0, len)上有整数i使得Canonicalize(s[i])与Canonicalize(Input[g+i])的字
+       符值不同，返回failure
+    l. 让y是State(f, cap)
+    m. 返回c(y)
 **** CharacterEscape
+CharacterEscape码型如下评估：
+
+CharacterEscape ::
+    ControlEscape
+    c ControlLetter
+    0 [lookahead ∉ DecimalDigit]
+    HexEscapeSequence
+    RegExpUnicodeEscapeSequence
+    IdentifierEscape
+1. 让cv是CharacterEscape的字符值
+2. 返回字符值是cv的字符
 **** DecimalEscape
+DecimalEscape码型如下评估：
+
+DecimalEscape :: NonZeroDigit ZeroDigits_opt
+1. 返回DecimalEscape的CapturingGroupNumber
+***** 注意 如果\跟随了首位不是0的数字n，那么这个转义序列被认为是一个反向
+            引用。如果n大于整个表达式左捕获括号的数量，那是错误。
 **** CharacterClassEscape
+码型 CharacterClassEscape :: d 如下评估：
+1. 返回由表示[0,9]整数的字符组成的CharSet。
+
+码型 CharacterClassEscape :: D 如下评估：
+1. 返回评估CharacterClassEscape :: d得到的CharSet的余集。
+
 **** CharacterClass
 **** ClassRanges
 **** NonemptyClassRanges
@@ -20057,20 +20123,75 @@ greedy（Boolean）、x（State）、c（Continuation）、parenIndex（非负�
 **** The %RegExpStringIteratorPrototype% Object
 ***** %RegExpStringIteratorPrototype%.next()
 ***** %RegExpStringIteratorPrototype%[@@toStringTag]
-* Indexed Collections
-* Keyed Collections
-* Structured Data
-**
-* Managing Memory
-* Control Abstraction Objects
-* Reflection
-* Memory Model
-* A Grammer Summary
-* B Additional ECMAScript Features for Web Browsers
-* C The Strict Mode of ECMAScript
-* D Host Layering Points
-* E Corrections and Clarifications in ECMAScript 2015 with Possible Compatibility Impact
-* F Additions and Changes That Introduce Incompatibility with Prior Editions
-* G Colophon
-* H Bibliography
+* Indexed Collections 633-689
+* Keyed Collections 689-708
+* Structured Data 708-743
+* Managing Memory 743-748
+* Control Abstraction Objects 748-794
+* Reflection 794-799
+* Memory Model 799-812
+* A Grammer Summary 812-841
+* B Additional ECMAScript Features for Web Browsers 841-866
+* C The Strict Mode of ECMAScript 866-867
+* D Host Layering Points 867-868
+* E Corrections and Clarifications in ECMAScript 2015 with Possible Compatibility Impact 869-869
+* F Additions and Changes That Introduce Incompatibility with Prior Editions 869-872
+* G Colophon 873-873
+* H Bibliography 873-873
 * I CopyRight & Software License
+Ecma International
+873Rue du Rhone 114
+CH-1204 Geneva
+Tel: +41 22 849 6000
+Fax: +41 22 849 6001
+Web: https://ecma-international.org/
+** Copyright Notice
+© 2021 Ecma International
+This document may be copied, published and distributed to others, and certain derivative works of it may be
+prepared, copied, published, and distributed, in whole or in part, provided that the above copyright notice and this
+Copyright License and Disclaimer are included on all such copies and derivative works. The only derivative works
+that are permissible under this Copyright License and Disclaimer are:
+(i) works which incorporate all or portion of this document for the purpose of providing commentary or explanation
+(such as an annotated version of the document),
+(ii) works which incorporate all or portion of this document for the purpose of incorporating features that provide
+accessibility,
+(iii) translations of this document into languages other than English and into different formats and
+(iv) works by making use of this specification in standard conformant products by implementing (e.g. by copy and
+paste wholly or partly) the functionality therein.
+However, the content of this document itself may not be modified in any way, including by removing the copyright
+notice or references to Ecma International, except as required to translate it into languages other than English or into a
+different format.
+The official version of an Ecma International document is the English language version on the Ecma International
+website. In the event of discrepancies between a translated version and the official version, the official version shall
+govern.
+The limited permissions granted above are perpetual and will not be revoked by Ecma International or its successors
+or assigns.
+This document and the information contained herein is provided on an "AS IS" basis and ECMA INTERNATIONAL
+DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY
+THAT THE USE OF THE INFORMATION HEREIN WILL NOT INFRINGE ANY OWNERSHIP RIGHTS OR ANY
+IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+** Software License
+All Software contained in this document ("Software") is protected by copyright and is being made available under the
+"BSD License", included below. This Software may be subject to third party rights (rights from parties other than Ecma
+International), including patent rights, and no licenses under such third party rights are granted under this license
+874even if the third party concerned is a member of Ecma International. SEE THE ECMA CODE OF CONDUCT IN
+PATENT MATTERS AVAILABLE AT https://ecma-international.org/memento/codeofconduct.htm FOR
+INFORMATION REGARDING THE LICENSING OF PATENT CLAIMS THAT ARE REQUIRED TO IMPLEMENT
+ECMA INTERNATIONAL STANDARDS.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+following conditions are met:
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the
+following disclaimer in the documentation and/or other materials provided with the distribution.
+3. Neither the name of the authors nor Ecma International may be used to endorse or promote products derived
+from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE ECMA INTERNATIONAL "AS IS" AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ECMA
+INTERNATIONAL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
