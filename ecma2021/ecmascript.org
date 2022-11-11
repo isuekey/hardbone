@@ -20154,6 +20154,21 @@ DecimalEscape :: NonZeroDigit ZeroDigits_opt
 6. Assert：i <= j
 7. 返回[i,j]上整数值对应字符值的全部字符组成的CharSet
 **** NonemptyClassRangesNoDash
+码型 NonemptyClassRangesNoDash :: ClassAtom 如下评估：
+1. 返回评估ClassAtom的结果CharSet
+
+码型 NonemptyClassRangesNoDash :: ClassAtomNoDash NoemptyClassRangesNoDash 如下评估：
+1. 评估ClassAtomNoDash的获得CharSet A
+2. 评估NonemptyClassRangesNoDash的获得CharSet B
+3. 返回CharSet A和B的并集
+
+码型 NonemptyClassRangesNoDash :: ClassAtomNoDash - ClassAtom ClassRanges 如下评估：
+1. 评估第一个ClassAtomNoDash获得CharSet A
+2. 评估第二个ClassAtom获得CharSet B
+3. 评估ClassRanges获得CharSet C
+4. 让D是!CharacterRange(A, B)
+5. 返回CharSet C和D的并集
+***** 注意1
 **** ClassAtom
 **** ClassAtomNoDash
 **** ClassEscape
