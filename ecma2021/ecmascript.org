@@ -20074,12 +20074,85 @@ DecimalEscape :: NonZeroDigit ZeroDigits_opt
 1. 返回由表示[0,9]整数的字符组成的CharSet。
 
 码型 CharacterClassEscape :: D 如下评估：
-1. 返回评估CharacterClassEscape :: d得到的CharSet的余集。
+1. 返回由不在评估CharacterClassEscape :: d得到的CharSet的字符构成的CharSet。
 
+码型 CharacterClassEscape :: s 如下评估：
+1. 返回由符合右手侧WhiteSpace或者LineTerminator码型的编码点的字符构成的
+   CharSet。
+
+码型 CharacterClassEscape :: S 如下评估：
+1. 返回由不在评估CharacterClassEscape :: s得到的CharSet的字符构成的CharSet。
+
+码型 CharacterClassEscape :: w 如下评估：
+1. 返回WordCharacters
+
+码型 CharacterClassEscape :: W 如下评估：
+1. 返回由不在评估CharacterClassEscape :: w得到的CharSet的字符构成的CharSet。
+
+码型 CharacterClassEscape :: p{UnicodePropertyValueExpression} 如下评估：
+1. 返回由在UnicodePropertyValueExpression确定的CharSet的编码点构成的CharSet。
+
+码型 CharacterClassEscape :: P{UnicodePropertyValueExpression} 如下评估：
+1. 返回由不在UnicodePropertyValueExpression确定的CharSet的编码点构成的CharSet。
+   
+码型 UnicodePropertyValueExpression :: UnicodePropertyName = UnicodePropertyValue如下
+评估：
+1. 让ps是UnicodePropertyName的SourceText
+2. 让p是!UnicodeMatchProperty(ps)
+3. Assert：p是列在表56"Property name and alias"里的Unicode性质名或别名
+4. 让vs是UnicodePropertyValue的SourceText
+5. 让v是!UnicodeMatchPropertyValue(p, vs)
+6. 返回Y由全部的字符数据定义包含性质p和值v的Unicode编码点构成的CharSet。
+
+码型 UnicodePropertyValueExpression :: LoneUnicodePropertyNameOrValue 如下评估：
+1. 让s是LoneUnicodePropertyNameOrValue的SourceText
+2. 如果!UnicodeMatchPropertyValue(General_Category, s)是与列在表58"Property value and
+   alias"中的Unicode通用分类或者通用分类别名一致的Unicode编码点列表，那么
+   a. 返回由全部的字符数据定义包含性质"General_Category"和值s的Unicode编码点
+      构成的CharSet。
+3. 让p是!UnicodeMatchProperty(s)
+4. Assert：p是列在表57"Property name and alias"里的二进制Unicode性质名或二进制
+   性质别名。
+5. 返回全部的字符数据定义包含性质p和值"True"的Unicode编码点构成的CharSet。
 **** CharacterClass
+码型 CharacterClass :: [ ClassRanges ] 如下评估：
+1. 评估ClassRanges获得CharSet A
+2. 返回结果A和false（是否取反）
+
+码型 CharacterClass :: [ ^ ClassRanges ] 如下评估：
+1. 评估ClassRanges获得CharSet A
+2. 返回结果A和true（是否取反）
 **** ClassRanges
+码型 ClassRanges :: [empty] 如下评估：
+1. 返回空的CharSet
+
+码型 ClassRanges :: NonemptyClassRanges 如下评估：
+1. 返回评估NoemptyClassRanges的结果CharSet
 **** NonemptyClassRanges
+码型 NonemptyClassRanges :: ClassAtom 如下评估：
+1. 返回评估ClassAtom的结果CharSet
+
+码型 NonemptyClassRanges :: ClassAtom NoemptyClassRangesNoDash 如下评估：
+1. 评估ClassAtom的获得CharSet A
+2. 评估NonemptyClassRangesNoDash的获得CharSet B
+3. 返回CharSet A和B的并集
+
+码型 NonemptyClassRanges :: ClassAtom - ClassAtom ClassRanges 如下评估：
+1. 评估第一个ClassAtom获得CharSet A
+2. 评估第二个ClassAtom获得CharSet B
+3. 评估ClassRanges获得CharSet C
+4. 让D是!CharacterRange(A, B)
+5. 返回CharSet C和D的并集
 ***** CharacterRange( A, B )
+抽象操作CharacterRanges接受参数A（CharSet）和B（CharSet）。被调用时执行下列
+背景：
+1. Assert：A和B各只有一个字符
+2. 让a是CharSet A中的字符
+3. 让b是CharSet B中的字符
+4. 让i是字符a的字符值
+5. 让j是字符b的字符值
+6. Assert：i <= j
+7. 返回[i,j]上整数值对应字符值的全部字符组成的CharSet
 **** NonemptyClassRangesNoDash
 **** ClassAtom
 **** ClassAtomNoDash
