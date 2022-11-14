@@ -20168,26 +20168,219 @@ DecimalEscape :: NonZeroDigit ZeroDigits_opt
 3. 评估ClassRanges获得CharSet C
 4. 让D是!CharacterRange(A, B)
 5. 返回CharSet C和D的并集
-***** 注意1
+***** 注意1 ClassRanges可以被解释成单个ClassAtom或者由-分隔的两个
+             ClassAtom。在第二种ClassRanges里包含了在两个ClassAtom及之间的
+             全部字符；如果有个ClassAtom不是表示单个字符（比如：\w），或
+             者第一个ClassAtom的字符值大于第二个ClassAtom的字符值，那么是
+             错误。
+***** 注意2 即使范式忽略大小写，本例两端的字符在明确范围时也是区分大
+             小的。因此，例如，范式/[E-F]/i只匹配E、F、e和f，而范式/[E-f]/i会
+             匹配全部Unicode Basic Latin块上的大小写子母，以及符号[、\、]、^、
+             _和`。
+***** 注意3 -字符会被当作字母或者则标识范围。当是ClassRanges的首尾字符时，或
+             者当作范围规范的开始或者结束限制，或者紧随某个范围规则时，会被
+             当作字母。
 **** ClassAtom
+码型 ClassAtom :: - 如下评估
+1. 返回只有字符-即U+002D（HYPHEN-MINUS）的CharSet。
+
+码型 ClassAtom :: ClassAtomNoDash 如下评估
+1. 返回评估ClassAtomNoDash的结果CharSet
 **** ClassAtomNoDash
+码型 ClassAtomNoDash :: 不是\、]和-的SourceCharacter 如下评估
+1. 返回匹配SourceCharacter字符的CharSet。
+
+码型 ClassAtomNoDash :: \ ClassEscape 如下评估
+1. 返回评估ClassEscape的结果CharSet
 **** ClassEscape
+码型ClassEscape如下评估：
+
+ClassEscape :: b
+ClassEscape :: -
+ClassEscape :: CharacterEscape
+1. 让cv是本ClassEscape的字符值
+2. 让c是cv对应的字符
+3. 返回只含有c的CharSet
+
+ClassEscape :: CharacterClassEscape
+1. 返回评估CharacterClassEscape的结果Character
+***** 注意 ClassAtom可以使用除了\b、\B和反向引用外的任意转义序列。在
+            CharacterClass内部，\b意味着退格字符，而\B和反向引用会报错。在
+            ClassAtom内使用反向引用会引起错误。
 *** The RegExp Constructor
+RegExp构造范：
+. 是%RegExp%
+. 是全局对象"RegExp"性质的初始值
+. 在被当作函数而不是构造范进行调用时创建并初始化新的RegExp对象。因此函数
+  调用RegExp(...)与对象创建表达式new RegExp(...)在参数相同时等价。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承regExp的特定行为，必须含有super调用，以使用RegExp构造范创建和初始
+  化拥有必需内部占位的子类实例。
 **** RegExp( pattern, flags )
+被调用时执行下列步骤：
+1. 让patternIsRegExp时?IsRegExp(pattern)
+2. 如果NewTarget是undefined，那么
+    a. 让newTarget是活跃函数对象
+    b. 如果patternIsRegExp是true，而且flags是undefined，那么
+        i. 让patternConstructor是?Get(pattern, "constructor")
+       ii. 如果SameValue(newTarget, patternConstructor)是true，返回pattern
+3. 否则，让newTarget是NewTarget
+4. 如果Type(pattern)是Object而且patter有\[\[RegExpMatcher]]内部占位，那么
+    a. 让P是pattern.\[\[OriginalSource]]
+    b. 如果flags是undefined，让F是pattern.\[\[OriginalFlags]]
+    c. 否则，让F是flags
+5. 否则如果patternIsRegExp是true，那么
+    a. 让P是?Get(pattern, "source")
+    b. 如果flags是undefined，那么
+        i. 让F是?Get(pattern,"flags")
+    c. 否则让F是flags
+6. 否则
+    a. 让P是pattern
+    b. 让F是flags
+7. 让O是?RegExpAlloc(newTarget)
+8. 返回?RegExpInitialize(O, P, F)
+***** 注意 如果范式是字符串文法，通常字符串在被RegExp处理前，其转义序列已经
+            被替换掉。如果范式必须要含有被RegExp识别的转义序列，任何U+005C（
+            REVERSE SOLIDUS）编码点必须被用字符串文法转义过，以阻止其在字符串
+            文法优化内容时被移除。
 **** Abstract Operations for the RegExp Cosntructor
 ***** RegExpAlloc( newTarget )
-***** RegExpInitialize( obj, patter, flags )
+抽象操作RegExpAlloc接受参数newTarget。被调用时执行下列步骤：
+1. 让obj是?OrdinaryCreateFromConstructor(newTarget, "%RegExp.prototype%", <<
+   \[\[RegExpMatcher]], \[\[OriginalSource]], \[\[OriginalFlags]] >> )。
+2. 执行!DefinePropertyOrThrow(obj, 'lastIndex', PropertyDescriptor{ \[\[Writable]]:true,
+   \[\[Enumerable]]:false, \[\[Configurable]]:false, })
+3. 返回obj
+***** RegExpInitialize( obj, pattern, flags )
+抽象操作RegExpInitialize接受参数obj、pattern和flags。被调用时执行下列步骤：
+1. 如果pattern是undefined，让P是空字符串
+2. 否则，让P是?ToString(pattern)
+3. 如果flags是undefined，让F是空字符串
+4. 否则，让F是?ToString(flags)
+5. 如果F含有任何"g"、"i"、"m"、"s"、"u"和"y"之外的字符，或者相同编码点出现两
+   次，投掷SyntaxError异常
+6. 如果F含有"u"，让u是true，否则让u是false
+7. 如果u是true，那么
+    a. 让patterText是!StringToCodePoints(P)
+    b. 让patternCharacters是patternText的编码点构成的列表
+8. 否则
+    a. 让patternText是P的每个16位元素不使用UTF-16解码，直接翻译成UnicodeBMP编码
+       点的结果
+    b. 让patternCharacters是P的编码点构成的列表
+9. 让parseResult是ParsePattern(patternText, u)
+10. 如果parseResult不是SyntaxError的空列表，投掷SyntaxError异常
+11. Assert：parseResult是按Pattern的ParseNode
+12. 置obj.\[\[OriginalSource]]是P
+13. 置obj.\[\[OriginalFlags]]是F
+14. 置obj.\[\[RegExpMatcher]]是AbstractClosure，会以patternCharacters作为范式
+    SourceCharacter值的列表，和F作为标记参数，应用22.2.2语法，评估parseResult。
+15. 执行?Set(obj, "lastIndex", +0_F, true)
+16. 返回obj
 ***** Static Semantics: ParsePattern( patternText, u )
+抽象操作ParsePattern接受参数patternText（Unicode编码点序列）和u（Boolean）。被
+调用时执行下列步骤：
+1. 如果u是true，那么
+    a. 让parseResult是ParseText(patternText, Pattern_[+U, +N])
+2. 否则
+    a. 让parseResult是ParseText(patternText, Pattern_[~U, ~N])
+    b. 如果parseResult是ParseNode，而且parseResult含有GroupName，那么
+        i. 置parseResult是parseText(patternText, Pattern_[~U, +N])
+3. 返回parseResult
 ***** RegExpCreate( P, F )
+抽象操作RegExpCreate接受参数P和F。被调用时执行下列步骤：
+1. 让obj是?RegExpAlloc(%RegExp%)
+2. 返回?RegExpInitialize(obj, P, F)
 ***** EscapeRegExpPattern( P, F )
+抽象操作EscapeRegExpPattern接受参数P和F。被调用时执行下列步骤：
+1. 让S是形式为与P相等的Pattern_[~U]（如果F含有"u"，那么为Pattern_[+U]），翻译
+   为UTF-16的Unicode编码点（6.1.4）的字符串，每个编码点按照随后的描述转义。
+   S可能不会于P相等；然而从将S作为Pattern_[~U]（如果F含有"u"，那么为
+   Pattern_[+U]）评估得到的AbstractClosure必须与构造出的对象的\[\[RegExpMatcher]]
+   内部占位的AbstractClosure的行为一致。本抽象操作是P和F的函数，相同参数，
+   相同结果。
+2. 出现在范式里的编码点"/"或者任何LineTerminator，应当在S中进行转义，以确保
+   "/"、S、"/"和F的字符串拼接能够被解析（在合适的文法背景里）成
+   RegularExpressionLiteral，行为与构造处的正则表达式一致。例如，如果P是"/"，
+   那么S应当是"\/"或者"\u002F"，或者其他可能，但不能是"/"，因为被跟随F///的
+   会被解析为SingleLineComment，而不是RegularExpressionLiteral。如果P是空字符串，
+   本规范会让S是"(?:)"
+3. 返回S
 *** Properties of the RegExp Constructor
+RegExp构造范
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
 **** RegExp.prototype
+RegExp.prototype的初始值是RegExp原型对象
+
+此性质有属性{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 **** get RegExp[@@species]
+RegExp[@@species]是访问性质，对应的set访问函数是undefined。它的get访问函数被
+调用时，执行如下步骤：
+1. 返回this值
+
+本函数的"name"性质值是"get[Symbol.species]"
+***** 注意 RegExp原型方法通常使用它们的this值的构造范来创建派生对象。然而
+            子类的构造范可以通过重新定义@@species性质重写此行为。
 *** Properties of the RegExp Prototype Object
+RegExp原型对象
+. 是%RegExp.prototype%
+. 是基本对象
+. 不是RegExp实例，没有\[\[RegExpMatcher]]内部占位或RegExp实例上的其他内部占位。
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+**** 注意 RegExp原型对象没有自己的"valueOf"性质；它从Object原型对象上继承
+           "valueOf"性质
 **** RegExp.prototype.constructor
+RegExp.prototype.constructor的初始值是%RegExp%
 **** RegExp.prototype.exec( string )
+执行正则表达式匹配string，以数组返回匹配的结果，如果string不匹配，返回null。
+
+ToString(string)得到的String上搜索正则表达式时，执行如下步骤：
+1. 让R是this值
+2. 执行?RequireInternalSlot(R, \[\[RegExpMatcher]])
+3. 让S是?ToString(string)
+4. 返回?RegExpBuiltinExec(R, S)
 ***** RegExpExec( R, S )
+抽象操作RegExpExec接受参数R和S。被调用时执行下列步骤：
+1. Assert：Type(R)是Object
+2. Assert：Type(S)是String
+3. 让exec是?Get(R, "exec")
+4. 如果IsCallable(exec)是true，那么
+    a. 让result是?Call(exec, R, << S >>)
+    b. 如果Type(result)不是Object或者Null，投掷TypeError异常
+    c. 返回result
+5. 执行?RequireInternalSlot(R, \[\[RegExpMatcher]])
+6. 返回?RegExpBuiltinExec(R, S)
+****** 注意 如果在本算法里没有找到可调用的"exec"性质，那么就尝试使用内建的
+             RegExp匹配算法。这为之前版本的代码提供了兼容行为，就是使用正则
+             表达式的内建算法而不是调用动态性质"exec"
 ***** RegExpBuiltinExec( R, S )
+抽象操作RegExpBuiltinExec接受参数R和S。被调用时执行下列步骤：
+1. Assert：R是已经初始化的RegExp实例
+2. Assert：Type(S)是String
+3. 让length是S里编码单元的数量
+4. 让lastIndex是R(?ToLength(?Get(R,"lastIndex")))
+5. 
+6. 
+7. 
+8. 
+9. 
+10. 
+11. 
+12. 
+13. 
+14. 
+15. 
+16. 
+17. 
+18. 
+19. 
+20. 
+21. 
+22. 
+23. 
+24. 
+25. 
 ***** AdvanceStringIndex( S, index, unicode )
 **** RegExp.prototype.dotAll
 **** RegExp.prototype.flags
