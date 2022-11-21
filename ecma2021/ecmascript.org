@@ -2822,7 +2822,7 @@ key+value).被调用时执行下列步骤
 *** CreateListIteratorRecord(list)
 抽象操作CrateListIteratorRecord接受参数list。创建Iterator(27.1.1.2)对象记录，
 其next方法返回list上连续的元素。被调用时执行下列步骤：
-1. 让closure是新的没有因素的AbstrctClosure，捕获list，被调用时执行下列步骤：
+1. 让closure是新的没有参数的AbstrctClosure，捕获list，被调用时执行下列步骤：
     a. 遍历list的每个元素E，运行
         i. 执行?Yield(E)
     b. 返回undefined
@@ -15550,7 +15550,7 @@ Object.prototype.constructor的初始值是%Object%
     c. 如果SameValue(O, V)是true，返回true
 ***** 注意 步骤1和步骤2的的顺序用于保留在之前版本的规范中当V不是对象
             且this值是undefined或者null时的行为。
-**** Object.prototype.propertyIsEnummerable(V)
+**** Object.prototype.propertyIsEnumerable(V)
 当propertyIsEnumerable方法被带参数O调用时，执行下列步骤：
 1. 让P是?ToPropertyKey(V)
 2. 让O是?ToObject(this值)
@@ -20360,51 +20360,462 @@ ToString(string)得到的String上搜索正则表达式时，执行如下步骤�
 2. Assert：Type(S)是String
 3. 让length是S里编码单元的数量
 4. 让lastIndex是R(?ToLength(?Get(R,"lastIndex")))
-5. 
-6. 
-7. 
-8. 
-9. 
-10. 
-11. 
-12. 
-13. 
-14. 
-15. 
-16. 
-17. 
-18. 
-19. 
-20. 
-21. 
-22. 
-23. 
-24. 
-25. 
+5. 让flags是R.\[\[OriginalFlags]]
+6. 如果flags含有"g"，让global是true；否则让global是false
+7. 如果flags含有"y"，让sticky是true；否则让sticky是false
+8. 如果global是true，而且sticky是false，置lastIndex是0
+9. 让matcher是R.\[\[RegExpMatcher]].
+10. 如果flags含有"u"，让fullUnicode是true；否则让fullUnicode是false
+11. 让matchSuccessed是false
+12. 重复，当matchSuccessed是false
+    a. 如果lastIndex > length，那么
+        i. 如果global是true或者sticky是true，那么
+            1. 执行?Set(R, "lastIndex", +0_F, true)
+       ii. 返回null
+    b. 让r是matcher(S, lastIndex)
+    c. 如果r是failure，那么
+        i. 如果sticky是true，那么
+            1. 执行?Set(R, "lastIndex", +0_F, true)
+            2. 返回null
+       ii. 置lastIndex是AdvanceStringIndex(S, lastIndex, fullUnicode)
+    d. 否则
+        i. Assert：r是state
+       ii. 置matchSuccessed是true。
+13. 让e是r的endIndex值
+14. 如果fullUnicode是true，那么
+    a. e就是从S中派生的Input字符列表里被matcher匹配到的索引。让eUTF是在S中
+       对应Input中e的最小索引。如果e大于等于Input的元素数量，那么eUTF是S中
+       的编码单元数量。
+    b. 置e是eUTF
+15. 如果global是true或者sticky是true，那么
+    a. 执行?Set(R, "lastIndex", F(e), true)
+16. 让n是r中captures列表的元素数量（22.2.2.1中NcapturingParens）
+17. Assert：n<2^32-1
+18. 让A是!ArrayCreate(n+1)
+19. Assert：A的"index"性质值是n+1
+20. 执行!CreateDataPropertyOrThrow(A, "index", F(lastIndex))
+21. 执行!CreateDataPropertyOrThrow(A, "index", S)
+22. 让matchedSubstr是S上从lastIndex到e的子字符串
+23. 执行!CreateDataPropertyOrThrow(A, "0", matchedSubstr)
+24. 如果R含有GroupName，那么
+    a. 让groups是!OrdinaryObjectCreate(null)
+25. 否则
+    a. 让groups是undefined
+26. 执行!CreateDataPropertyOrThrow(A, "groups", groups)
+27. 遍历[1,n]上的整数，记作i，做
+    a. 让capturel是r中captures列表的第i个元素
+    b. 如果capturel是undefined，让capturedValue是undefined
+    c. 否则如果fullUnicode是true，那么
+        i. Assert：capturel是编码点的列表
+       ii. 让capturedValue是!CodePointsToString(capturel)
+    d. 否则
+        i. Assert：fullUnicode是false
+       ii. Assert：capturel是编码点的列表
+      iii. 让capturedValue是capturel含有的编码单元构成的String值。
+    e. 执行!CreateDataPropertyOrThrow(A, !ToString(F(i)), capturedValue)
+    f. 如果R中第i个捕获被定义了GroupName，那么
+        i. 让s是RegExpIdentifierName对应的CapturingGroupName
+       ii. 执行!CreateDataPropertyOrThrow(groups, s, capturedValue)
+28. 返回A
 ***** AdvanceStringIndex( S, index, unicode )
+抽象操作AdvanceStringIndex接受参数S(String)、index（非负整数）和
+unicode（Boolean）。被调用时执行下列步骤：
+1. Assert：index<=2^53-1
+2. 如果unicode是false，返回index + 1
+3. 让length是S里编码单元的数量
+4. 如果index+1 >= length，返回index+1
+5. 让cp是!CodePointAt(S, index)
+6. 返回index+cp.\[\[CodeUnitCount]]
 **** RegExp.prototype.dotAll
+RegExp.prototype.dotAll是访问性质，其set访问函数是undefined。这个get访问函数
+被调用时执行步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 如果R没有\[\[OriginalFlags]]内部占位，那么
+    a. 如果SameValue(R, %RegExp.prototype%)是true，返回undefined
+    b. 否则，投掷TypeError异常
+4. 让flags是R.\[\[OriginalFlags]]
+5. 如果flags含有编码单元0x0073（LATIN SMALL LETTER S），返回true
+6. 返回false
 **** RegExp.prototype.flags
+RegExp.prototype.flags是访问性质，其set访问函数是undefined。这个get访问函数
+被调用时执行步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 让result是空String
+4. 让global是!ToBoolean(?Get(R, "global"))
+5. 如果global是true，附加0x0067（LATIN SMALL LETTER G）为reuslt的最后一个编码
+   单元。
+6. 让ignoreCase是!ToBoolean(?Get(R,"ignoreCase"))
+7. 如果ignoreCase是true，附加0x0069（LATIN SMALL LETTER I）为reuslt的最后一个编码
+   单元。
+8. 让multiline是!ToBoolean(?Get(R,"multiline"))
+9. 如果multiline是true，附加0x006D（LATIN SMALL LETTER M）为reuslt的最后一个编码
+   单元。
+10. 让dotAll是!ToBoolean(?Get(R,"dotAll"))
+11. 如果dotAll是true，附加0x0073（LATIN SMALL LETTER S）为reuslt的最后一个编码
+    单元。
+12. 让unicode是!ToBoolean(?Get(R,"unicode"))
+13. 如果unicode是true，附加0x0075（LATIN SMALL LETTER U）为reuslt的最后一个编码
+    单元。
+14. 让sticky是!ToBoolean(?Get(R,"sticky"))
+15. 如果sticy是true，附加0x0079（LATIN SMALL LETTER Y）为reuslt的最后一个编码
+    单元。
+16. 返回result
 **** RegExp.prototype.global
+RegExp.prototype.global是访问性质，其set访问函数是undefined。这个get访问函数
+被调用时执行步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 如果R没有\[\[OriginalFlags]]内部占位，那么
+    a. 如果SameValue(R, %RegExp.prototype%)是true，返回undefined
+    b. 否则，投掷TypeError异常
+4. 让flags是R.\[\[OriginalFlags]]
+5. 如果flags含有编码单元0x0067（LATIN SMALL LETTER G），返回true
+6. 返回false
 **** RegExp.prototype.ignoreCase
+RegExp.prototype.ignoreCase是访问性质，其set访问函数是undefined。这个get访问函数
+被调用时执行步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 如果R没有\[\[OriginalFlags]]内部占位，那么
+    a. 如果SameValue(R, %RegExp.prototype%)是true，返回undefined
+    b. 否则，投掷TypeError异常
+4. 让flags是R.\[\[OriginalFlags]]
+5. 如果flags含有编码单元0x0079（LATIN SMALL LETTER I），返回true
+6. 返回false
 **** RegExp.prototype[@@match]( string )
+当带参数string调用@@match方法时，执行如下步骤：
+1. 让rx是this值
+2. 如果Type(rx)不是Object，投掷TypeError异常
+3. 让S是?ToString(string)
+4. 让global是!ToBoolean(?Get(rx, "global"))
+5. 如果global是false，那么
+    a. 返回?RegExpExec(rx, S)
+6. 否则
+    a. Assert：global是true
+    b. 让fullUnicode是!ToBoolean(?Get(rx, "unicode"))
+    c. 执行?Set(rx, "lastIndex", +0_F, true)
+    d. 让A是!ArrayCreate(0)
+    e. 让n是0
+    f. 重复
+        i. 让result是?RegExpExec(rx, S)
+       ii. 如果result是null，那么
+            1. 如果n==0，返回null
+            2. 返回A
+      iii. 否则
+            1. 让matchStr是?ToString(?Get(result, "0"))
+            2. 执行!CreateDataPropertyOrThrow(A, !ToString(F(n)), matchStr)
+            3. 如果matchStr是空字符串，那么
+                a. 让thisIndex是R(?ToLength(?Get(rx, "lastIndex")))
+                b. 让nextIndex是AdvanceStringIndex(S, thisIndex, fullUnicode)
+                c. 执行?Set(rx, "lastIndex", F(nextIndex), true)
+            4. 值n是n+1
+
+本函数的"name"性质是"[Symbol.match]"
+***** 注意 @@match性质被用在IsRegExp抽象操作里以识别对象有基本的正则表达式
+            行为。缺失@@match性质或者其性质不能强制为true，表明对象不是用作
+            正则表达式对象。
 **** RegExp.prototype[@@matchAll]( string )
+当带参数string调用@@matchAll方法时，执行如下步骤：
+1. 让rx是this值
+2. 如果Type(rx)不是Object，投掷TypeError异常
+3. 让S是?ToString(string)
+4. 让C是?SpeciesConstructor(R, %RegExp%)
+5. 让flags是?ToString(?Get(R, "flags"))
+6. 让matcher是?Construct(C, << R, flags >>)
+7. 让lastIndex是?ToLength(?Get(R, "lastIndex"))
+8. 执行?Set(matcher, "lastIndex", lastIndex, true)
+9. 如果flags含有"g"，让global是true
+10. 否则，让global是false
+11. 如果flags含有"u"，让fullUnicode是true
+12. 否则，让fullUnicode是false
+13. 返回!CreateRegExpStringIterator(matcher, S, global, fullUnicode)
+
+本函数的"name"性质是"[Symbol.matchAll]"
 **** RegExp.prototype.multiple
+RegExp.prototype.multiple是访问性质，其set访问函数是undefined。这个get访问函数
+被调用时执行步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 如果R没有\[\[OriginalFlags]]内部占位，那么
+    a. 如果SameValue(R, %RegExp.prototype%)是true，返回undefined
+    b. 否则，投掷TypeError异常
+4. 让flags是R.\[\[OriginalFlags]]
+5. 如果flags含有编码单元0x006D（LATIN SMALL LETTER M），返回true
+6. 返回false
 **** RegExp.prototype[@@replace]( string. replaceValue )
+当带参数string和replaceValue调用@@replace方法时，执行如下步骤：
+1. 让rx是this值
+2. 如果Type(rx)不是Object，投掷TypeError异常
+3. 让S是?ToString(string)
+4. 让lengthS是S中编码单元的数量
+5. 让functionalReplace是IsCallable(replaceValue)
+6. 如果functionReplace是false，那么
+    a. 置replaceValue是?ToString(replaceValue)
+7. 让global是!ToBoolean(?Get(rx, "global"))
+8. 如果global是true，那么
+    a. 让fullUnicode是!ToBoolean(?Get(rx, "unicode"))
+    b. 执行?Set(rx, "lastIndex", +0_F, true)
+9. 让results是新的空列表
+10. 让done是false
+11. 重复，当done是false时
+    a. 让reuslt是?RegExpExec(rx, S)
+    b. 如果result是null，置done是true。
+    c. 否则
+        i. 附加result到results的末端
+       ii. 如果global是false，置done是true
+      iii. 否则
+            1. 让matcher是?ToString(?Get(result, "0"))
+            2. 如果matchStr是空String，那么
+                a. 让thisIndex是R(?ToLength(?Get(rx, "lastIndex")))
+                b. 让nextIndex是AdvanceStringIndex(S, thisIndex, fullUnicode)
+                c. 执行?Set(rx, "lastIndex", F(nextIndex), true)
+12. 让accumulatedResult是空字符串
+13. 让nextSourcePosition是0
+14. 遍历results的元素记作result，做
+    a. 让resultLength是?LengthOfArrayLike(result)
+    b. 让nCaptures是max(resultLength - 1, 0)
+    c. 让matched是?ToString(?Get(result, "0"))
+    d. 让matchLength是matched的编码单元数量
+    e. 让position是?ToIntegerOrInfinity(?Get(result, "index"))
+    f. 置position是将position局限在0和lengthS的结果
+    g. 让n是1
+    h. 让captures是新的空列表
+    i. 重复，当n <= nCaptures
+        i. 让capN是?Get(result, !ToString(F(n)))
+       ii. 如果capN不是undefined，那么
+            1. 置capN是?ToString(capN)
+      iii. 附加capN为captures的末元素
+       iv. 置n是n+1
+    j. 让namedCaptures是?Get(result,"groups")
+    k. 如果functionalReplace是true，那么
+        i. 让repalcerArgs是 << matched >>
+       ii. 按照顺序将captures的元素依次附加到replacerArgs的末端
+      iii. 附加F(position)和S到replaceArgs
+       iv. 如果namedCaptures不是undefined，那么
+            1. 附加namedCaptures作为replacerArgs的末元素
+        v. 让replValue是?Call(replaceValue, undefined, replacerArgs)
+       vi. 让replacement是?ToString(replValue)
+    l. 否则
+        i. 如果namedCaptures不是undefined，那么
+            1. 置namedCaptures是?ToObject(namedCaptures)
+       ii. 让replacement是?GetSubstitution(matched, S, position, captures,
+           namedCaptures, replaceValue)
+    m. 如果position >= nextSourcePosition，那么
+        i. 注意：position不能普通的反向移动。如果这样做了，这就是错误行为
+           标识，比如RegExp子类有访问属性修改了全局标识或者rx的其他特征。
+           次时对应的替换就可能被忽略了。
+       ii. 置accumulatedResult是accumulatedResult、S上[nextSourcePosition,position)处
+           的子字符串、和replacement的字符串拼接
+      iii. 置nextSourcePosition是position + matchLength
+15. 如果nextSourcePosition >= lengthS，返回accumulatedResult
+16. 返回accumulatedResult、和S从nextSourcePosition的子字符串的字符串拼接。
+
+本函数的"name"性质是"[Symbol.replace]"
 **** RegExp.prototype[@@search]( string )
+当带参数string调用@@matchAll方法时，执行如下步骤：
+1. 让rx是this值
+2. 如果Type(rx)不是Object，投掷TypeError异常
+3. 让S是?ToString(string)
+4. 让previousLastIndex是?Get(rx, "lastIndex")
+5. 如果SameValue(previousLastIndex, +0_F)是fasle，那么
+    a. 执行?Set(rx, "lastIndex", +0_F, true)
+6. 让result是?RegExpExec(rx, S)
+7. 让currentLastIndex是?Get(rx, "lastIndex")
+8. 如果SameValue(currentLastIndex, previousLastIndex)是false，那么
+    a. 执行?Set(rx, "lastIndex", previousLastIndex, true)
+9. 如果result是null，返回-1_F
+10. 返回?Get(result, "index")
+
+本函数的"name"性质是"[Symbol.search]"
+***** 注意 本RegExp对象的"lastIndex"和"global"性质在进行search时被忽略了。但是
+            保持"lastIndex"不变。
 **** RegExp.prototype.source
+RegExp.prototype.source是访问性质，其set访问函数是undefined。这个get访问函数
+被调用时执行步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 如果R没有\[\[OriginalSource]]内部占位，那么
+    a. 如果SameValue(R, %RegExp.prototype%)是true，返回"(?:)"
+    b. 否则，投掷TypeError异常
+4. Assert：R有\[\[OriginalFlags]]内部占位
+5. 让src是R.\[\[OriginalSource]]
+6. 让flags是R.\[\[OriginalFlags]]
+7. 返回EscapeRegExpPattern(src, flags)
 **** RegExp.prototype[@@split]( string, limit )
+***** 注意1 返回数组，存储的元素是string转换出的String上的子字符串。子字符串
+             有this正则表达式值从左到右搜索的结果决定；匹配的内容不出现在
+             返回的数足利，但是用于拆分String值。
+
+             this可能是空正则表达式，或者是匹配任意空字符串的正则表达式。此
+             时正则表达式不匹配输入String的两端的空子字符串，也不匹配前一个
+             分隔结果的末端。（比如，如果正则表达式匹配空字符串，String按照
+             编码单元拆分；结果数组的长度等于String的长度，每个子字符串包含
+             一个编码单元）只有在String上从给定索引的第一次匹配才考虑，即使
+             反向检索会在那索引处取出一个非空字符串。（比如，
+             /a*?/[Symbol.split]("ab")的评估结果会是["a", "b"]，而
+             /a*/[Symbol.split]("ab")的评估结果会是["", "b"]。
+
+             如果string（或者转换出的String）是空String，结果依赖于正则表达式
+             能否匹配空字符串。如果可以，结果是空数组。其他情况时，结果是只
+             包含一个空字符串的数组。
+
+             如果正则表达式包含捕获括号，那么separator每次匹配到关于捕获括号
+             的结果（包含undefined的结果），都被接入到输出的结果里
+
+             /<(\/)?([^<>]+)>/[Symbol.split]("A<B>bold</B>and<CODE>coded</CODE>")
+             评估出的结果是数组
+             ["A", undefined, "B", "bold", "/", "B", "and", undefined, "CODE", coded,
+             "/", "CODE", ""]
+
+             如果limit不是undefined，那么输出的数组元素数量不能超过limited。
+             
+当调用@@split方法时，执行如下步骤：
+1. 让rx是this值
+2. 如果Type(rx)不是Object，投掷TypeError异常
+3. 让S是?ToString(string)
+4. 让C是?SpeciesConstructor(rx, %RegExp%)
+5. 让flags是?ToString(?Get(rx, "flags"))
+6. 如果flags含有"u"，让unicodeMatching是true，
+7. 否则，让unicodeMatching是false。
+8. 如果flags含有"y"，让newFlags是flags，
+9. 否则，让newFlags是flags与"y"的字符串拼接。
+10. 让splitter是?Constructor(C, << rx, newFlags >>)
+11. 让A是!ArrayCreate(0)
+12. 让lengthA是0
+13. 如果limit是undefined，让lim是2^32-1，否则让lim是R(?ToUint32(limit))
+14. 如果lim是0，返回A
+15. 让size是S的长度
+16. 如果size是0，那么
+    a. 让z是?RegExpExec(splitter, S)
+    b. 如果z不是null，返回A
+    c. 执行!CrateDataPropertyOrThrow(A, "0", S)
+    d. 返回A
+17. 让p是0
+18. 让q是p
+19. 重复，当q<size时
+    a. 执行?Set(splitter, "lastIndex", F(q), true)
+    b. 让z是?RegExpExec(splitter, S)
+    c. 如果z是null，置q是AdvanceStringIndex(S, q, unicodeMatching)
+    d. 否则
+        i. 让e是R(?ToLength(?Get(splitter, "lastIndex")))
+       ii. 置e是min(e, size)
+      iii. 如果e==p，置q是AdvanceStringIndex(S, q, unicodeMatching)
+       iv. 否则
+            1. 让T是S上[p,q)的子字符串
+            2. 执行!CreateDataPropertyOrThrow(A, !ToString(F(lengthA)), T)
+            3. 置lengthA是lengthA + 1
+            4. 如果lengthA == lim，返回A
+            5. 置p是e
+            6. 让numberOfCaptures是?LengthOfArrayLike(z)
+            7. 置numberOfCaptures是max(numberOfCaptures - 1, 0)
+            8. 让i是1
+            9. 重复，当i <= numberOfCaptures
+                a. 让nextCapture是?Get(z, !ToString(F(i)))
+                b. 执行!CreateDataPropertyOrThrow(A, !ToString(F(lengthA)), nextCapture)
+                c. 置i是i+1
+                d. 置lengthA是lengthA + 1
+                e. 如果lengthA == lim， 返回A
+           10. 置q是p
+20. 让T是S上[p,size)的子字符串
+21. 执行!CreateDataPropertyOrThrow(A, !ToString(F(lengthA)), T)
+22. 返回A
+
+本函数的"name"性质是"[Symbol.split]"
+***** 注意2 @@split方法忽略了本RegExp对象的"global"和"sticky"性质。
 **** RegExp.prototype.sticky
+RegExp.prototype.sticky是访问性质，其set访问函数是undefined。这个get访问函数
+被调用时执行步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 如果R没有\[\[OriginalFlags]]内部占位，那么
+    a. 如果SameValue(R, %RegExp.prototype%)是true，返回undefined
+    b. 否则，投掷TypeError异常
+4. 让flags是R.\[\[OriginalFlags]]
+5. 如果flags含有编码单元0x0079（LATIN SMALL LETTER Y），返回true
+6. 返回false
 **** RegExp.prototype.test( S )
+被调用时执行下列步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 让string是?ToString(S)
+4. 让match是?RegExpExec(R, string)
+5. 如果match不是是null，返回true；否则返回false。
 **** RegExp.prototype.toString( )
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 让pattern是?ToString(?Get(R, "source"))
+4. 让flags是?ToString(?Get(R, "flags"))
+5. 让result是"/"、pattern、"/"、和flags的字符串拼接
+6. 返回result
+***** 注意 返回的String是RegularExpressionLiteral形式的，评估其得到的RegExp对象
+            具有与this值形同的行为。
 **** RegExp.prototype.unicode
+RegExp.prototype.unicode是访问性质，其set访问函数是undefined。这个get访问函数
+被调用时执行步骤：
+1. 让R是this值
+2. 如果Type(R)不是Object，投掷TypeError异常
+3. 如果R没有\[\[OriginalFlags]]内部占位，那么
+    a. 如果SameValue(R, %RegExp.prototype%)是true，返回undefined
+    b. 否则，投掷TypeError异常
+4. 让flags是R.\[\[OriginalFlags]]
+5. 如果flags含有编码单元0x0075（LATIN SMALL LETTER U），返回true
+6. 返回false
 *** Properties of RegExp Instances
+RegExp实例是基本对象，继承了RegExp原型对象的性质。RegExp实例有内部占位：
+\[\[RexExpMatcher]]、\[\[OriginalSource]]、\[\[OriginalFlags]]。内部占位
+\[\[RexExpMatcher]]的值是表述RegExp对象的Pattern的AbstractClosure。
+**** 注意 在ECMAScript 2015之前的版本里，RegExp实例被规定为有自己的数据性质：
+           "source"、"global"、"ignoreCase"、和"multiline"。现在这些性质被规定为
+           RegExp.prototype上的访问性质。
+RegExp实例有如下性质
 **** lastIndex
+"lastIndex"性质值规定了下一次匹配时在String上的开始索引。强制是整数类
+型（22.2.5.2.2）。有属性 { \[\[Writable]]:ture, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 *** RegExp String Iterator Objects
+RegExpStringIterator是对象，用于表述在指定String实例上的特定遍历器，匹配指定
+的RegExp实例对象。RegExpStringIterator没有命名的构造范。RegExpStringIterator是
+用RegExp实例的某些方法创建的。
 **** CreateRegExpStringIterator( R, S, global, fullUnicode )
+抽象操作CreateRegExpStringIterator接受参数R、S、global和fullUnicode。被调用时
+执行如下步骤：
+1. Assert：Type(S)是String
+2. Assert：Type(global)是Boolean
+3. Assert：Type(fullUnicode)是Boolean
+4. 让closure是新的没有参数的AbstrctClosure，捕获R、S、global和fullUnicode，被调
+   用时执行下列步骤：
+    a. 重复
+        i. 让match是?RegExpExec(R, S)
+       ii. 如果match是null，返回undefined
+      iii. 如果global是false，那么
+            1. 执行?Yield(match)
+            2. 返回undefined
+       iv. 让matchStr是?ToString(?Get(match, "0"))
+        v. 如果matchString是空字符串，那么
+            1. 让thisIndex是R(?ToLength(?Get(R, "lastIndex")))
+            2. 让nextIndex是!AdvanceStringIndex(S, thisIndex, fullUnicode)
+            3. 执行?Set(R, "lastIndex", F(nextIndex), true)
+       vi. 执行?Yield(match)
+5. 返回!CreateIteratorFromClosure(closure, "%RegExpStringIteratorPrototype%",
+   %RegExpStringIteratorPrototype%)
 **** The %RegExpStringIteratorPrototype% Object
+%RegExpStringIteratorPrototype%对象
+. 有被所有RegExpStringIterator对象继承的性质
+. 是基本对象
+. 有\[\[Prototype]]内部占位，其值是%IteratorPrototype%
+. 有如下性质：
 ***** %RegExpStringIteratorPrototype%.next()
+1. 返回?GeneratorResume(this值, empty, "RegExpStringIteratorPrototype%")
 ***** %RegExpStringIteratorPrototype%[@@toStringTag]
-* Indexed Collections 633-689
+@@toStringTag的初始值是"RegExp String Iterator"
+
+本性质有属性{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
+* Indexed Collections
+Array对象是奇异对象，对某些类别的性质名有特殊处理。这种特殊处理见于10.4.2。
+** Array Objects
+Array构造范：
 * Keyed Collections 689-708
 * Structured Data 708-743
 * Managing Memory 743-748
