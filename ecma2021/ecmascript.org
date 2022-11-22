@@ -1,9 +1,18 @@
 * 写在最前面
+:PROPERTIES:
+:UNNUMBERED: 1
+:END:
 失之毫厘，谬以千里。
-本文仅作参考。以原本规范为准。
+本文仅作参考。请以原本规范为准。
 * 待办
+:PROPERTIES:
+:UNNUMBERED: 1
+:END:
 将来会使用LaTex进行处理。
 * 约定 
+:PROPERTIES:
+:UNNUMBERED: 1
+:END:
 ** 若干
 表示一个或者多个
 ** 有限
@@ -723,7 +732,8 @@ fromIndex（非负整数）。被调用时按照下列步骤执行：
     a. 让candidate是substring of string from i to i+searchLen
     b. 如果candidate与searchValue有相同的编码序列，返回i
 8. 返回 -1
-**** 注意。如果searchValue而且fromIndex不大于string的长度时返回fromIndex。这用
+**** 注意 如果searchValue而且fromIndex不大于string的长度时返回fromIndex。这用
+
 空String可以在string的任何位置被找到。
 **** 如果fromIndex > string的长度，算法返回-1
 *** Symbol类型
@@ -5615,7 +5625,10 @@ AgentRecord和ExecutingThread。除了ExecutionThread，其他组成是施动者
 agent的ExecutingThread在agent的独立于其他agent的执行背景上执行一个job，除了
 ExecutingThread会被多个agent用作ExecutingThread外，前提是共用这个线程的agent有
 一个\[\[CanBlock]]是true的AgentRecord
-*** 注意 例如有些网页浏览器在多个无关的浏览窗口中共用一个执行线程
+*** 注意1 例如有些网页浏览器在多个无关的浏览窗口中共用一个执行线程
+:PROPERTIES:
+:UNNUMBERED: 3
+:END:
 当agent的ExecutingThread执行jobs，这个agent就是job代码的SurroundingAgent。代码
 使用SurroundingAgent访问其含有的规范级别的执行对象：RunningExecutionContext、
 ExecutionContextStack和其他AgentRecord的字段。
@@ -15580,7 +15593,7 @@ Object.prototype.constructor的初始值是%Object%
 5. 如果isArray是true，让builtTag是"Array"
 6. 否则如果O有\[\[ParameterMap]]内部占位，让builtTag是"Arguments"
 7. 否则如果O有\[\[Call]]内部方法，让builtTag是"Function"
-8. 否则如果O有\[\[ErrorData\]\]内部占位，让builtTag是"Error"
+8. 否则如果O有\[\[ErrorData]]内部占位，让builtTag是"Error"
 9. 否则如果O有\[\[BooleanData]]内部占位，让builtTag是"Boolean"
 10. 否则如果O有\[\[NumberData]]内部占位，让builtTag是"Number"
 11. 否则如果O有\[\[StringData]]内部占位，让builtTag是"String"
@@ -18048,7 +18061,7 @@ String原型对象：
 4. 让size是S的length
 5. 如果position < 0或者position >= size，返回空字符串
 6. 返回String值，长度为1，含有S的一个编码单元，也就是position处的编码单元。
-***** 注意2 chartAt函数试图支持泛型，不要求this值是String对象。
+***** 注意2 charAt函数试图支持泛型，不要求this值是String对象。
                         因此可以被传递给任意对象，作为其的方法。
 **** String.prototype.charCodeAt( pos )
 ***** 注意1 返回Number值（小于2^16的非负整数），值是在this值转换出
@@ -18824,7 +18837,7 @@ ClassEscape_[U] ::
     [+U]-
     CharacterClassEscape_[?U]
     CharacterEscape_[?U]
-***** 注意 本节的一些码型在B.1.4提供了备选定义。    
+***** 注意 本节的一些码型在B.1.4提供了备选定义。
 **** Static Semantics: Early Errors
 ***** 注意 本节在B.1.4.1中有修复
 Pattern :: Disjunction
@@ -20815,7 +20828,291 @@ RegExpStringIterator是对象，用于表述在指定String实例上的特定遍
 * Indexed Collections
 Array对象是奇异对象，对某些类别的性质名有特殊处理。这种特殊处理见于10.4.2。
 ** Array Objects
+*** The Array Constructor
 Array构造范：
+. 是%Array%
+. 全局对象上"Array"性质的初始值
+. 被当作构造范调用时，创建并初始化新的Array奇异对象
+. 当作函数而不是构造范是，也创建并初始化新的Array奇异对象。因此函数调用
+  Array(...)与对象创建表达式new Array(...)，在形同参数时，等价。
+. 是函数，不同数量和类型的参数，行为不同
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承Array的奇异行为，必须含有super调用，以使用Array构造范初始化一
+  个Array的子类实例。然而，大多数Array.prototype的方法都是泛型的，不依赖于this
+  值是否是Array奇异对象。
+. "length"性质是1_F
+**** Array(...values)
+当Array函数被调用时，执行下列步骤：
+1. 如果NewTarget是undefined，让newTarget是活跃函数对象，否则让newTarget
+   是NewTarget
+2. 让proto是?GetPrototypeFromConstructor(newTarget, "%Array.prototype%")
+3. 让numberOfArgs是values的元素数量
+4. 如果numberOfArgs是0，那么
+    a. 返回!ArrayCreate(0, proto)
+5. 否则如果numberOfArgs是1，那么
+    a. 让len是values[0]
+    b. 让array是!ArrayCreate(0, proto)
+    c. 如果Type(len)不是Number，那么
+        i. 执行!CreateDataPropertyOrThrow(array, "0", len)
+       ii. 让intLen是1_F
+    d. 否则
+        i. 让intLen是!ToUint32(len)
+       ii. 如果intLen与len不相同，投掷TypeError异常
+    e. 执行!Set(array, "length", intLen, true)
+    f. 返回array
+6. 否则
+    a. Assert：numberOfArgs >= 2
+    b. 让array是?ArrayCreate(numberOfArgs, proto)
+    c. 让k是0
+    d. 重复，当k < numberOfArgs
+        i. 让Pk是!ToString(F(k))
+       ii. 让itemK是values[k]
+      iii. 执行!CreateDataPropertyOrThrow(array, Pk, itemK)
+       iv. 置k是k+1
+    e. Assert：array的"length"性质值的数学值是numberOfArgs
+    f. 返回array
+*** Properties of the Array Constructor
+Array构造范
+. 有\[\[Prototype]]内部占位，其值是%Function.prototype%
+. 有如下性质：
+**** Array.from ( items [ , mapfn [ , thisArg ] ] )
+当from方法被带参数items和可选参数mapfn和thisArg调用时，执行下列步骤：
+1. 让C是this值
+2. 如果mapfn是undefined，让mapping是false
+3. 否则，
+    a. 如果IsCallable(mapfn)是false，投掷TypeError异常
+    b. 让mapping是true
+4. 让usingIterator是?GetMethod(items, @@iterator)
+5. 如果usingIterator不是undefined，那么
+    a. 如果IsConstructor(C)是true，那么
+        i. 让A是?Constructor(C)
+    b. 否则
+        i. 让A是!ArrayCreate(0)
+    c. 让iteratorRecord是?GetIterator(items, sync, usingIterator)
+    d. 让k是0
+    e. 重复
+        i. 如果k >= 2^53-1，那么
+            1. 让error是ThrowCompletion(新建的TypeError对象)
+            2. 返回?IteratorClose(iteratorRecord, error)
+       ii. 让Pk是!ToString(F(k))
+      iii. 让next是?IteratorStep(iteratorRecord)
+       iv. 如果next是false，那么
+            1. 执行?Set(A, "length", F(k), true)
+            2. 返回A
+        v. 让nextValue是?IteratorValue(next)
+       vi. 如果mapping是true，那么
+            1. 让mappedValue是Call(mapfn, thisArg, << nextValue, F(k) >>)
+            2. 如果mappedValue是意外完结，
+               返回?IteratorClose(iteratorRecord, mappedValue)
+            3. 置mappedValue是mappedValue.\[\[Value]]
+      vii. 否则，让mappedValue是nextValue
+     viii. 让defineStatus是CreateDataPropertyOrThrow(A, Pk, mappedValue)
+       ix. 如果defineStatus是意外完结，
+           返回?IteratorClose(iteratorRecord, defineStatus)
+        x. 置k是k+1
+6. 注意：items不是Iterable，所以假设是像数组的对象。
+7. 让arrayLike是!ToObject(items)
+8. 让len是?LengthOfArrayLike(arrayLike)
+9. 如果IsConstructor(C)是true，那么
+    a. 让A是?Constructor(C, << F(len) >>)
+10. 否则
+    a. 让A是?ArrayCreate(len)
+11. 让k是0
+12. 重复，当k < len时
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(arrayLike, Pk)
+    c. 如果mapping是true，那么
+        i. 让mappedValue是?Call(mapfn, thisArg, << kValue, F(k) >>)
+    d. 否则，让mappedValue是kValue
+    e. 执行?CreateDataPropertyOrThrow(A, Pk, mappedValue)
+    f. 置k是k+1
+13. 执行?Set(A, "length", F(len， true）
+14. 返回A
+***** 注意 from函数试图是泛型方法；不要求this值是Array构造范。因此其他接受
+            单个数字参数的构造范，可以继承或者转录此方法。
+**** Array.isArray ( arg )
+isArray函数接受参数arg，被调用时执行下列步骤：
+1. 返回?IsArray(arg)
+**** Array.of ( ...items )
+当of方法被带可数个参数调用时，执行下列步骤：
+1. 让len是items的元素数量
+2. 让lenNumber是F(len)
+3. 让C是this值
+4. 如果IsConstructor(C)是true，那么
+    a. 让A是?Constructor(C, << lenNumber >>)
+5. 否则
+    a. 让A是?ArrayCreate(len)
+6. 让k是0
+7. 重复，当k < len是，
+    a. 让kValue是items[k]
+    b. 让Pk是!ToString(F(k))
+    c. 执行?CreateDataPropertyOrThrow(A, Pk, kValue)
+    d. 置k是k+1
+8. 执行?Set(A, "length", lenNumber, true)
+9. 返回A
+***** 注意 of函数试图是泛型方法；不要求this值是Array构造范。因此其他接受
+            单个数字参数的构造范，可以继承或者转录此方法。
+**** Array.prototype
+Array.prototype的值是Array原型对象
+
+此性质有属性{\[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:false}
+**** get Array[ @@species ]
+Array[@@species]是访问性质，其set访问函数是undefined。这个get访问函数被调用时
+执行下列步骤：
+1. 返回this值
+
+此函数的"name"性质值是"get[Symbol.species]"
+***** 注意 Array原型的方法一般用它们的this值的构造范来创建派生对象。然而子
+            类的构造范可能会通过重新定义@@species性质来重写这个默认行为。
+*** Properties of the Array Prototype Object
+Array原型对象
+. 是%Array.prototype%
+. 是Array奇异对象，而且有规定的内部方法。
+. 有length性质，初始值是+0_F，其属性是{\[\[Writable]]:true, \[\[Enumerable]]:fasle,
+  \[\[Configurable]]:false, }
+. 有\[\[Prototype]]内部占位，其值是%Object.prototype%
+
+**** 注意 Array原型对象被规定为Array奇异对象，确保兼容按照ECMAScript2015之
+           前版本创建的ECMAScript代码兼容。
+**** Array.prototype.concat ( ...items )
+当concat方法被带可数个参数调用时，返回一个含有本对象的元素跟随传入参数
+元素的的数组。
+
+执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让A是?ArraySpeciesCreate(O, 0)
+3. 让n是0
+4. 推O到items的头部。
+5. 遍历items的元素记作E，做
+    a. 让spreadable是?IsConcatSpreadable(E)
+    b. 如果spreadable是true，那么
+        i. 让k是0
+       ii. 让len是?LengthOfArrayLike(E)
+      iii. 如果n + len > 2^53 -1，投掷TypeError异常
+       iv. 重复，当k < len时
+            1. 让P是!ToString(F(k))
+            2. 让exists是?HasProperty(E, P)
+            3. 如果exists是true，那么
+                a. 让subElement是?Get(E, P)
+                b. 执行?CreateDataPropertyOrThrow(A, !ToString(F(n)), subElement)
+            4. 置n是n+1
+            5. 置k是k+1
+    c. 否则
+        i. 注意：E是被作为单个元素加入，而不是展开
+       ii. 如果n >= 2^53 - 1，投掷TypeError异常
+      iii. 执行?CreateDataPropertyOrThrow(A, !ToString(F(n)), E)
+       iv. 置n是n+1
+6. 执行?Set(A, "length", F(n), true)
+7. 返回A
+
+concat方法"length"性质是1_F
+***** 注意1 
+***** 注意2
+***** IsConcatSpreadable ( O )
+**** Array.prototype.constructor
+**** Array.prototype.copyWithin ( target, start [ , end ] )
+**** Array.prototype.entries ( )
+**** Array.prototype.every ( callbackfn [ , thisArg ] )
+**** Array.prototype.fill ( value [ , start [ , end ] ] )
+**** Array.prototype.filter ( callbackfn [ , thisArg ] )
+**** Array.prototype.find ( predicate [ , thisArg ] )
+**** Array.prototype.findIndex ( predicate [ , thisArg ] )
+**** Array.prototype.flat ( [ depth ] )
+***** FlattenIntoArray ( target, source, sourceLen, start, depth [ , mapperFunction, thisArg ] )
+**** Array.prototype.flatMap ( mapperFunction [ , thisArg ] )
+**** Array.prototype.forEach ( callbackfn [ , thisArg ] )
+**** Array.prototype.includes ( searchElement [ , fromIndex ] )
+**** Array.prototype.indexOf ( searchElement [ , fromIndex ] )
+**** Array.prototype.join ( separator )
+**** Array.prototype.keys ( )
+**** Array.prototype.lastIndexOf ( searchElement [ , fromIndex ] )
+**** Array.prototype.map ( callbackfn [ , thisArg ] )
+**** Array.prototype.pop ( )
+**** Array.prototype.push ( ...items )
+**** Array.prototype.reduce ( callbackfn [ , initialValue ] )
+**** Array.prototype.reduceRight ( callbackfn [ , initialValue ] )
+**** Array.prototype.reverse ( )
+**** Array.prototype.shift ( )
+**** Array.prototype.slice ( start, end )
+**** Array.prototype.some ( callbackfn [ , thisArg ] )
+**** Array.prototype.sort ( comparefn )
+***** SortCompare ( x, y )
+**** Array.prototype.splice ( start, deleteCount, ...items )
+**** Array.prototype.toLocaleString ( [ reserved1 [ , reserved2 ] ] )
+**** Array.prototype.toString ( )
+**** Array.prototype.unshift ( ...items )
+**** Array.prototype.values ( )
+**** Array.prototype [ @@iterator ] ( )
+**** Array.prototype [ @@unscopables ]
+*** Properties of Array Instances
+**** length
+*** Array Iterator Objects
+**** CreateArrayIterator ( array, kind )
+**** The %ArrayIteratorPrototype% Object
+***** %ArrayIteratorPrototype%.next ( )
+***** %ArrayIteratorPrototype% [ @@toStringTag ]
+** TypedArray Objects
+*** The %TypedArray% Intrinsic Object
+**** %TypedArray% ( )
+*** Properties of the %TypedArray% Intrinsic Object
+**** %TypedArray%.from ( source [ , mapfn [ , thisArg ] ] )
+**** %TypedArray%.of ( ...items )
+**** %TypedArray%.prototype
+**** get %TypedArray% [ @@species ]
+*** Properties of the %TypedArray% Prototype Object
+**** get %TypedArray%.prototype.buffer
+**** get %TypedArray%.prototype.byteLength
+**** get %TypedArray%.prototype.byteOffset
+**** %TypedArray%.prototype.constructor
+**** %TypedArray%.prototype.copyWithin ( target, start [ , end ] )
+**** %TypedArray%.prototype.entries ( )
+**** %TypedArray%.prototype.every ( callbackfn [ , thisArg ] )
+**** %TypedArray%.prototype.fill ( value [ , start [ , end ] ] )
+**** %TypedArray%.prototype.filter ( callbackfn [ , thisArg ] )
+**** %TypedArray%.prototype.find ( predicate [ , thisArg ] )
+**** %TypedArray%.prototype.findIndex ( predicate [ , thisArg ] )
+**** %TypedArray%.prototype.forEach ( callbackfn [ , thisArg ] )
+**** %TypedArray%.prototype.includes ( searchElement [ , fromIndex ] )
+**** %TypedArray%.prototype.indexOf ( searchElement [ , fromIndex ] )
+**** %TypedArray%.prototype.join ( separator )
+**** %TypedArray%.prototype.keys ( )
+**** %TypedArray%.prototype.lastIndexOf ( searchElement [ , fromIndex ] )
+**** get %TypedArray%.prototype.length
+**** %TypedArray%.prototype.map ( callbackfn [ , thisArg ] )
+**** %TypedArray%.prototype.reduce ( callbackfn [ , initialValue ] )
+**** %TypedArray%.prototype.reduceRight ( callbackfn [ , initialValue ] )
+**** %TypedArray%.prototype.reverse ( )
+**** %TypedArray%.prototype.set ( source [ , offset ] )
+***** SetTypedArrayFromTypedArray ( target, targetOffset, source )
+***** SetTypedArrayFromArrayLike ( target, targetOffset, source )
+**** %TypedArray%.prototype.slice ( start, end )
+**** %TypedArray%.prototype.some ( callbackfn [ , thisArg ] )
+**** %TypedArray%.prototype.sort ( comparefn )
+**** %TypedArray%.prototype.subarray ( begin, end )
+**** %TypedArray%.prototype.toLocaleString ( [ reserved1 [ , reserved2 ] ] )
+**** %TypedArray%.prototype.toString ( )
+**** %TypedArray%.prototype.values ( )
+**** %TypedArray%.prototype [ @@iterator ] ( )
+**** get %TypedArray%.prototype [ @@toStringTag ]
+*** Abstract Operations for TypedArray Objects
+**** TypedArraySpeciesCreate ( exemplar, argumentList )
+**** TypedArrayCreate ( constructor, argumentList )
+**** ValidateTypedArray ( O )
+*** The TypedArray Constructors
+**** TypedArray ( ...args )
+***** AllocateTypedArray ( constructorName, newTarget, defaultProto [ , length ] )
+***** InitializeTypedArrayFromTypedArray ( O, srcArray )
+***** InitializeTypedArrayFromArrayBuffer ( O, buffer, byteOffset, length )
+***** InitializeTypedArrayFromList ( O, values )
+***** InitializeTypedArrayFromArrayLike ( O, arrayLike )
+***** AllocateTypedArrayBuffer ( O, length )
+*** Properties of the TypedArray Constructors
+**** TypedArray.BYTES_PER_ELEMENT
+**** TypedArray.prototype
+*** Properties of the TypedArray Prototype Objects
+**** TypedArray.prototype.BYTES_PER_ELEMENT
+**** TypedArray.prototype.constructor
+*** Properties of TypedArray Instances
 * Keyed Collections 689-708
 * Structured Data 708-743
 * Managing Memory 743-748
