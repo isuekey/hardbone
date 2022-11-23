@@ -18273,7 +18273,7 @@ localeCompare方法，如果被看作是有两个参数this和that的函数的�
 ****** 注意2 参数fillString默认是" "（只含有一个编码单元0x0020 SPACE
                          的字符串）
 **** String.prototype.repeat( count )
-被带调用时执行下列步骤：
+被调用时执行下列步骤：
 1. 让O是?RequrieObjectCoercible(this值）
 2. 让S是?ToString(O)
 3. 让n是?ToIntegerOrInfinity(count)
@@ -21006,37 +21006,792 @@ Array原型对象
 7. 返回A
 
 concat方法"length"性质是1_F
-***** 注意1 
-***** 注意2
+***** 注意1 在步骤6显示的设置"length"性质是有必要的，确保在结果Array的末端
+             元素不存在时，这个值是正确的。
+***** 注意2 concat函数试图是泛型的；不需要this值是Array对象。因此可以转录给
+             其他对象作为方法。
 ***** IsConcatSpreadable ( O )
+抽象操作IsConcatSpreadable接受参数O。被调用时执行下列步骤：
+1. 如果Type(O)不是Object，返回false
+2. 让spreadable是?Get(O, @@isConcatSpreadable)
+3. 如果spreadable不是undefined，返回!ToBoolean(spreadable)
+4. 返回?IsArray(O)
 **** Array.prototype.constructor
+Array.prototype.constructor的初始值是%Array%
 **** Array.prototype.copyWithin ( target, start [ , end ] )
+copyWithin方法接受参数target、start和end
+***** 注意1 让length是this值的length性质值。end参数是可选的，默认是length。如果
+             target是负数，被当作是length + target。如果start是负数，被当作是
+             length + start。如果end是负数，被当作是length + end。
+执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 让relativeTarget是?ToIntegerOrInfinity(target)
+4. 如果relativeTarget是-∞，让to是0
+5. 否则如果relativeTarget < 0，让to是max(len + relativeTarget, 0)
+6. 否则，让to是min(relativeTarget, len)
+7. 让relativeStart是?ToIntegerOrInfinity(start)
+8. 如果relativeStart是-∞，让from是0
+9. 否则如果relativeStart < 0，让from是max(len + relativeStart, 0)
+10. 否则，让from是min(relativeStart, len)
+11. 如果end是undefined，让relativeEnd是len；否则，让relativeEnd
+    是?ToIntegerOrInfinity(end)
+12. 如果relativeEnd是-∞，让final是0
+13. 否则如果relativeEnd < 0，让final是max(len + relativeEnd, 0)
+14. 否则，让final是min(relativeEnd, len)
+15. 让count是min(final - from, len - to)
+16. 如果from < to而且to < from + count，那么
+    a. 让direction是-1
+    b. 置from是from + count - 1
+    c. 置to是to + count - 1
+17. 否则
+    a. 让direction是1
+18. 重复，当count > 0
+    a. 让fromKey是!ToString(F(from))
+    b. 让toKey是!ToString(F(to))
+    c. 让fromPresent是?HasProperty(O, fromKey)
+    d. 如果fromPresent是true，那么
+        i. 让fromVal是?Get(O, fromKey)
+       ii. 执行?Set(O, toKey, fromVal, true)
+    e. 否则
+        i. Assert：fromPresent是false
+       ii. 执行?DeletePropertyOrThrow(O, toKey)
+    f. 置from是from+direction
+    g. 置to是to+direction
+    h. 置count是count-1
+19. 返回O
+***** 注意2 copyWithin函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.entries ( )
+执行如下步骤：
+1. 让O是?ToObject(this值)
+2. 返回CreateArrayIterator(O, key+value)
 **** Array.prototype.every ( callbackfn [ , thisArg ] )
+***** 注意1 callbackfn应当是接受三个参数，并返回能够强制转换为Boolean的值的
+             函数。every按照升序给数组里存在元素上调用一次callbackfn，直到某
+             次返回false。如果有callbackfn返回false，every立即返回false。否则，
+             如果所有元素都返回true，every会返回true。只有当元素确实存在时，才
+             会调用callbackfn；不会应用到缺失元素上。
+
+             如果提供了thisArg，会被当作调用callbackfn的this值。如果没有提供，
+             使用undefined。
+
+             传递给callbackfn三个参数：元素值，元素索引和遍历的对象。
+
+             every没有直接修改传递给callbackfn的对象，但它可能会被callbackfn
+             修改。
+
+             在every第一次调用callbackfn之前就确定了元素的范围。在every开始调用
+             之后附加到数组的元素不会被callbackfn访问到。如果数组上已有元素发
+             生变动，传递给callbackfn的值是every访问它时的值；在every开始后，
+             传递给callbackfn之前，被删除的元素，不会被访问到。every的行为像数
+             学中的术语"元素都符合"。因此空数组，会返回true。
+当every带被带参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让k是0
+5. 重复，当k < len，
+   a. 让Pk是!ToString(F(k))
+   b. 让kPresent是?HasProperty(O, Pk)
+   c. 如果kPresent是true，那么
+       i. 让kValue是?Get(O, Pk)
+      ii. 让testResult是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
+     iii. 如果testResult是false，返回false
+   d. 置k是k+1
+6. 返回true
+***** 注意2 every函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.fill ( value [ , start [ , end ] ] )
+fill方法接受参数value、start和end
+***** 注意1 让length是this值的length性质值。start和恩的参数是可选的，分别
+             默认是0和length。如果start是负数，被当作是length + start。如果end
+             是负数，被当作是length + end。
+执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 让relativeStart是?ToIntegerOrInfinity(start)
+4. 如果relativeStart是-∞，让k是0
+5. 否则如果relativeStart < 0，让k是max(len + relativeStart, 0)
+6. 否则，让k是min(relativeStart, len)
+7. 如果end是undefined，让relativeEnd是len；否则，让relativeEnd
+   是?ToIntegerOrInfinity(end)
+8. 如果relativeEnd是-∞，让final是0
+9. 否则如果relativeEnd < 0，让final是max(len + relativeEnd, 0)
+10. 否则，让final是min(relativeEnd, len)
+11. 重复，当 k < final
+    a. 让Pk是!ToString(F(k))
+    b. 执行?Set(O, Pk, value, true)
+    c. 置k是k+1
+12. 返回O
+***** 注意2 fill函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.filter ( callbackfn [ , thisArg ] )
+***** 注意1 callbackfn应当是接受三个参数，并返回能够强制转换为Boolean的值的
+             函数。filter按照升序给数组里存在元素上调用一次callbackfn，返回
+             一个有callbackfn返回值是true的元素构成的新数组。只有当元素确实
+             存在时，才会调用callbackfn；不会应用到缺失元素上。
+
+             如果提供了thisArg，会被当作调用callbackfn的this值。如果没有提供，
+             使用undefined。
+
+             传递给callbackfn三个参数：元素值，元素索引和遍历的对象。
+
+             filter没有直接修改传递给callbackfn的对象，但它可能会被callbackfn
+             修改。
+
+             在filter第一次调用callbackfn之前就确定了元素的范围。在filter开始
+             调用之后附加到数组的元素不会被callbackfn访问到。如果数组上已有
+             元素发生变动，传递给callbackfn的值是filter访问它时的值；在filter
+             开始后，传递给callbackfn之前，被删除的元素，不会被访问到。
+当filter带被带参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让A是?ArraySpeciesCreate(O, 0)
+5. 让k是0
+6. 让to是0
+7. 重复，当k < len，
+   a. 让Pk是!ToString(F(k))
+   b. 让kPresent是?HasProperty(O, Pk)
+   c. 如果kPresent是true，那么
+       i. 让kValue是?Get(O, Pk)
+      ii. 让selected是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
+     iii. 如果selected是true，那么
+           1. 执行?CreateDataPropertyOrThrow(A, !ToString(F(to)), kValue)
+           2. 置to是to+1
+   d. 置k是k+1
+8. 返回A
+***** 注意2 filter函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.find ( predicate [ , thisArg ] )
+find方法接受一或二个参数，predicate和thisArg
+***** 注意1 predicate应当是接受三个参数，并返回能够强制转换为Boolean的值的
+             函数。find按照升序给数组里存在元素上调用一次predicate，直到某次
+             predicate返回值是true。如果发现此种元素，find立即返回该元素值。
+             否则，find返回undefined。
+
+             如果提供了thisArg，会被当作调用predicate的this值。如果没有提供，
+             使用undefined。
+
+             传递给predicate三个参数：元素值，元素索引和遍历的对象。
+
+             find没有直接修改传递给predicate的对象，但它可能会被predicate
+             修改。
+
+             在find第一次调用predicate之前就确定了元素的范围。在find开始
+             调用之后附加到数组的元素不会被predicate访问到。如果数组上已有
+             元素发生变动，传递给predicate的值是find访问它时的值；在find
+             开始后，传递给predicate之前，被删除的元素，无法访问到，
+             会把undefinded传给predicate。
+当find带被带参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让k是0
+5. 重复，当k < len，
+   a. 让Pk是!ToString(F(k))
+   b. 让kValue是?Get(O, Pk)
+   c. 让testResult是!ToBoolean(?Call(predicate, thisArg, << kValue, F(k), O>> ))
+   d. 如果testResult是true，返回kValue
+   e. 置k是k+1
+6. 返回undefined
+***** 注意2 find函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.findIndex ( predicate [ , thisArg ] )
+***** 注意1 predicate应当是接受三个参数，并返回能够强制转换为Boolean的值的
+             函数。findIndex按照升序给数组里存在元素上调用一次predicate，直到
+             某次predicate返回值是true。如果发现此种元素，findIndex立即返回该元
+             素的索引。否则，find返回-1。
+
+             如果提供了thisArg，会被当作调用predicate的this值。如果没有提供，
+             使用undefined。
+
+             传递给predicate三个参数：元素值，元素索引和遍历的对象。
+
+             findIndex没有直接修改传递给predicate的对象，但它可能会被predicate
+             修改。
+
+             在findIndex第一次调用predicate之前就确定了元素的范围。在findIndex
+             开始调用之后附加到数组的元素不会被predicate访问到。如果数组上已
+             有元素发生变动，传递给predicate的值是findIndex访问它时的值；在
+             findIndex开始后，传递给predicate之前，被删除的元素，无法访问到，
+             会把undefinded传给predicate。
+当findIndex带被带一或二个参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让k是0
+5. 重复，当k < len，
+   a. 让Pk是!ToString(F(k))
+   b. 让kValue是?Get(O, Pk)
+   c. 让testResult是!ToBoolean(?Call(predicate, thisArg, << kValue, F(k), O>> ))
+   d. 如果testResult是true，返回F(k)
+   e. 置k是k+1
+6. 返回-1_F
+***** 注意2 findIndex函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.flat ( [ depth ] )
+当flat方法被带零或者一个参数调用时，执行如下步骤：
+1. 让O是?ToObejct(this值)
+2. 让sourceLen是?LengthOfArrayLike(O)
+3. 让depthNum是1
+4. 如果depth不是undefined，那么
+    a. 置depthNum是?ToIntegerOrInfinity(depth)
+    b. 如果depthNum < 0，置depthNum是0
+5. 让A是?ArraySpeciesCreate(O, 0)
+6. 执行?FlattenIntoArray(A, O, sourceLen, 0, depthNum)
+7. 返回A
 ***** FlattenIntoArray ( target, source, sourceLen, start, depth [ , mapperFunction, thisArg ] )
+抽象操作FlattenIntoArray接受参数target、source、sourceLen（非负整数），start（非
+负整数）、depth（非负整数或者+∞）和可选参数mapperFunction与thisArg。被调用时
+执行下列步骤：
+1. Assert：Type(target)是Object
+2. Assert：Type(source)是Object
+3. Assert：如果mapperFunction存在，那么!IsCallable(mapperFunction)是true，thisArg存
+   在，且depth是1
+4. 让targetIndex是start
+5. 让sourceIndex是+0_F
+6. 重复，当R(sourceIndex) < sourceLen
+    a. 让P是!ToString(sourceIndex)
+    b. 让exists是?HasProperty(source, P)
+    c. 如果exists是true，那么
+        i. 让element是?Get(source, P)
+       ii. 如果mapperFunction存在，那么
+            1. 置element是?Call(mapperFunction, thisArg, << element, sourceIndex,
+               source >> )
+      iii. 让shouldFlatten是false
+       iv. 如果depth > 0，那么
+            1. 置shouldFlatten是?IsArray(element)
+        v. 如果shouldFlatten是true
+            1. 如果depth是+∞，让newDepth是+∞
+            2. 否则让newDepth是depth - 1
+            3. 让elementLen是?LengthOfArrayLike(element)
+            4. 置targetIndex是?FlattenIntoArray(target, element, elementLen,
+               targetIndex, newDepth)
+       vi. 否则
+            1. 如果targetIndex >= 2^53 - 1，投掷TypeError异常
+            2. 执行?CreateDataPropertyOrThrow(target, !ToString(F(targetIndex)), element)
+            3. 置targetIndex是targetIndex + 1
+    d. 置sourceIndex是sourceIndex + 1_F
+7. 返回targetIndex
 **** Array.prototype.flatMap ( mapperFunction [ , thisArg ] )
+当flat方法被带一个或者两个参数调用时，执行如下步骤：
+1. 让O是?ToObejct(this值)
+2. 让sourceLen是?LengthOfArrayLike(O)
+3. 如果!IsCallable(mapperFunction)是false，投掷TypeError异常
+4. 让A是?ArraySpeciesCreate(O, 0)
+5. 执行?FlattenIntoArray(A, O, sourceLen, 0, 1, mapperFunction, thisArg)
+6. 返回A
 **** Array.prototype.forEach ( callbackfn [ , thisArg ] )
+***** 注意1 callbackfn应当是接受三个参数，并返回能够强制转换为Boolean的值的
+             函数。forEach按照升序给数组里存在元素上调用一次callbackfn，只有
+             当元素确实存在时，才会调用callbackfn；不会应用到缺失元素上。
+
+             如果提供了thisArg，会被当作调用callbackfn的this值。如果没有提供，
+             使用undefined。
+
+             传递给callbackfn三个参数：元素值，元素索引和遍历的对象。
+
+             forEach没有直接修改传递给callbackfn的对象，但它可能会被callbackfn
+             修改。
+
+             在forEach第一次调用callbackfn之前就确定了元素的范围。在forEach开始
+             调用之后附加到数组的元素不会被callbackfn访问到。如果数组上已有
+             元素发生变动，传递给callbackfn的值是forEach访问它时的值；在forEach
+             开始后，传递给callbackfn之前，被删除的元素，不会被访问到。
+当forEach带被带参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让k是0
+5. 重复，当k < len，
+    a. 让Pk是!ToString(F(k))
+    b. 让kPresent是?HasProperty(O, Pk)
+    c. 如果kPresent是true，那么
+        i. 让kValue是?Get(O, Pk)
+       ii. 执行?Call(callbackfn, thisArg, << kValue, F(k), O >>)
+    d. 置k是k+1
+6. 返回undefined
+***** 注意2 forEach函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.includes ( searchElement [ , fromIndex ] )
+***** 注意1 includes按照升序，使用SameValueZero算法，比较searchElement和数组上
+             的元素，如果存在元素使SameValueZero成立，返回true；否则返回false。
+
+             可选参数fromIndex，默认是+0_F（此时搜索整个数组）。如果他大于等于
+             数组的长度，返回false，此时不会搜索数组。如果小于+0_F，当作从数
+             组末端计算的偏移。如果计算结果小于0，仍然是搜索整个数组。
+当includes带被带参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果len是0,返回false
+4. 让n是?ToIntegerOrInfinity(fromIndex)
+5. Assert:如果fromIndex是undefined，那么n是0
+6. 如果n是+∞，返回false
+7. 否则如果n是-∞，置n是0
+8. 如果n >= 0，那么
+    a. 让k是n
+9. 否则
+    a. 让k是len + n
+    b. 如果k<0,置k是0
+10. 重复，当k<len
+    a. 让elementK是?Get(O, !ToString(F(k)))
+    b. 如果SameValueZero(searchElement, elementK)是ture，返回true
+    c. 置k是k+1
+11. 返回false
+***** 注意2 includes函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
+***** 注意3 includes函数试图与相似方法indexOf在两个方面不同。首先，他使用
+             SameValueZero算法，而不是Strict Equality Comparison，允许检测NaN元素。
+             第二，他不略过缺失元素，而是当作undefined。
 **** Array.prototype.indexOf ( searchElement [ , fromIndex ] )
+***** 注意1 indexOf按照升序，使用StrictEqualityComparison算法，比较searchElement和
+             数组上的元素，如果存在若干元素符合，返回其最小的索引；否则
+             返回-1_F
+
+             可选参数fromIndex，默认是+0_F（此时搜索整个数组）。如果他大于等于
+             数组的长度，返回-1_F，此时不会搜索数组。如果小于+0_F，当作从数
+             组末端计算的偏移。如果计算结果小于+0_F，仍然是搜索整个数组。
+当indexOf带被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果len是0,返回-1_F
+4. 让n是?ToIntegerOrInfinity(fromIndex)
+5. Assert:如果fromIndex是undefined，那么n是0
+6. 如果n是+∞，返回-1_F
+7. 否则如果n是-∞，置n是0
+8. 如果n >= 0，那么
+    a. 让k是n
+9. 否则
+    a. 让k是len + n
+    b. 如果k<0,置k是0
+10. 重复，当k<len
+    a. 让kPresent是?HasProperty(O, !ToString(F(k)))
+    b. 如果kPresent是true，那么
+        i. 让elementK是?Get(O, !ToString(F(k)))
+       ii. 让same是执行StrictEqualityComparison searchElement \=\=\= elementK
+      iii. 如果same是true，返回F(k)
+    c. 置k是k+1
+11. 返回-1_F
+***** 注意2 indexOf函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.join ( separator )
+***** 注意1 join将数组元素转换为字符串，这些字符串，间隔这separator，构成字符
+             串拼接。如果没有提供separator，使用逗号代替。
+
+当join带被带一个参数，separator，调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果separator是undefinde，让sep是但元素字符串","
+4. 否则，让sep是?ToString(separator)
+5. 让R是空字符串
+6. 让k是0
+7. 重复，当k<len
+    a. 如果k>0,置R是R和sep的字符串拼接
+    b. 让element是?Get(O, !ToString(F(k)))
+    c. 如果element是undefined或者null，让next是空字符串，否则让next是
+       ?ToString(element)
+    d. 置R是R和next的字符串拼接
+    e. 置k是k+1
+8. 返回R
+***** 注意2 join函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.keys ( )
+执行如下步骤：
+1. 让O是?ToObject(this值)
+2. 返回CreateArrayIterator(O, key)
 **** Array.prototype.lastIndexOf ( searchElement [ , fromIndex ] )
+***** 注意1 lastIndexOf按照降序，使用StrictEqualityComparison算法，比较
+             searchElement和数组上的元素，如果存在若干元素符合，返回其
+             最大的索引；否则返回-1_F
+
+             可选参数fromIndex，默认是数组长度（此时搜索整个数组）。如果
+             他大于等于数组的长度，搜索整个数组。如果小于+0_F，当作从数
+             组末端计算的偏移。如果计算结果小于+0_F，返回-1_F。
+当lastIndexOf带被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果len是0,返回-1_F
+4. 如果fromIndex存在，那么让n是?ToIntegerOrInfinity(fromIndex)；否则让n是len-1
+5. 如果n是-∞，返回-1_F
+6. 如果n >= 0，那么
+    a. 让k是min(n, len-1)
+7. 否则
+    a. 让k是len + n
+8. 重复，当k >= 0
+    a. 让kPresent是?HasProperty(O, !ToString(F(k)))
+    b. 如果kPresent是true，那么
+        i. 让elementK是?Get(O, !ToString(F(k)))
+       ii. 让same是执行StrictEqualityComparison searchElement \=\=\= elementK
+      iii. 如果same是true，返回F(k)
+    c. 置k是k-1
+9. 返回-1_F
+***** 注意2 lastIndexOf函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.map ( callbackfn [ , thisArg ] )
+***** 注意1 callbackfn应当是接受三个参数，map按照升序给数组里存在元素上调用
+             一次callbackfn，返回一个含有返回元素构成的新数组。只有当元素确实
+             存在时，才会调用callbackfn；不会应用到缺失元素上。
+
+             如果提供了thisArg，会被当作调用callbackfn的this值。如果没有提供，
+             使用undefined。
+
+             传递给callbackfn三个参数：元素值，元素索引和遍历的对象。
+
+             map没有直接修改传递给callbackfn的对象，但它可能会被callbackfn
+             修改。
+
+             在map第一次调用callbackfn之前就确定了元素的范围。在map开始
+             调用之后附加到数组的元素不会被callbackfn访问到。如果数组上已有
+             元素发生变动，传递给callbackfn的值是map访问它时的值；在map
+             开始后，传递给callbackfn之前，被删除的元素，不会被访问到。
+当map被带参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让A是?ArraySpeciesCreate(O, len)
+5. 让k是0
+6. 重复，当k < len，
+    a. 让Pk是!ToString(F(k))
+    b. 让kPresent是?HasProperty(O, Pk)
+    c. 如果kPresent是true，那么
+        i. 让kValue是?Get(O, Pk)
+       ii. 让mappedValue是?Call(callbackfn, thisArg, << kValue, F(k), O >>)
+      iii. 执行?CreateDataPropertyOrThrow(A, Pk, mappedValue)
+    d. 置k是k+1
+7. 返回A
+***** 注意2 map函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.pop ( )
+***** 注意1 数组的最后一个元素被从数组里移除，并返回。
+当pop被调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果len == 0，那么
+    a. 执行?Set(O, "length", +0_F, true)
+    b. 返回undefined
+4. 否则
+    a. Assert：len > 0
+    b. 让newLen是F(len - 1)
+    c. 让index是!ToString(newLen)
+    d. 让element是?Get(O, index)
+    e. 执行?DeletePropertyOrThrow(O, index)
+    f. 执行?Set(O, "length", newLen, true)
+    g. 返回element
+***** 注意2 pop函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.push ( ...items )
+***** 注意1 参数按照出现顺序附加到数组的末端。返回数组变更后的长度值。
+当push被带可数参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 让argCount是items的元素数量
+4. 如果len+argCount > 2^53-1，投掷RangeError异常
+5. 遍历items的元素记作E，作
+    a. 执行?Set(O, !ToString(F(len)), E, true)
+    b. 置len是len+1
+6. 执行?Set(O, "length", F(len), true)
+7. 返回F(len)
+
+push方法的"length"性质是1_F。
+***** 注意2 push函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.reduce ( callbackfn [ , initialValue ] )
+***** 注意1 callbackfn应当是接受四个参数，reduce按照升序给数组里第一个元素
+             后的元素调用一次callbackfn。
+
+             callbackfn被带四个参数调用：previousValue（上一次callback返回的
+             值）、currentValue（当前元素的值），currentIndex和遍历的对象。第一
+             次调用callbackfn是，previousValue和currentValue有两种取值方式。
+             如果调用reduce时提供了initialValue，那么previousValue将是
+             initialValue，而currentValue是数组的第一个元素。如果没有提供
+             initialValue，那么previousValue是数组的第一个元素，而currentValue是
+             第二个。如果数组没有元素，也没有提供initialValue，会投掷TypeError
+             异常。
+
+             reduce没有直接修改传递给callbackfn的对象，但它可能会被callbackfn
+             修改。
+
+             在reduce第一次调用callbackfn之前就确定了元素的范围。在reduce开始
+             调用之后附加到数组的元素不会被callbackfn访问到。如果数组上已有
+             元素发生变动，传递给callbackfn的值是reduce访问它时的值；在reduce
+             开始后，传递给callbackfn之前，被删除的元素，不会被访问到。
+当reduce被带一两个参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 如果len==0而且没有initialValue，投掷TypeError异常
+5. 让k是0
+6. 让accumulator是undefined
+7. 如果initialValue存在，那么
+    a. 置accumulator是initialValue
+8. 否则
+    a. 让kPresent是false
+    b. 重复，当kPresent是false，且k < len时
+        i. 让Pk是!ToString(F(k))
+       ii. 置kPresent是?HasProperty(O, Pk)
+      iii. 如果kPresent是true，那么
+            1. 置accumulator是?Get(O, Pk)
+       iv. 置k是k+1
+    c. 如果kPresent是false，投掷TypeError异常
+9. 重复，当k < len，
+    a. 让Pk是!ToString(F(k))
+    b. 让kPresent是?HasProperty(O, Pk)
+    c. 如果kPresent是true，那么
+        i. 让kValue是?Get(O, Pk)
+       ii. 置accumulator是?Call(callbackfn, undefined, << accumulator, kValue, F(k), O >>)
+    d. 置k是k+1
+10. 返回accumulator
+***** 注意2 reduce函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.reduceRight ( callbackfn [ , initialValue ] )
+***** 注意1 callbackfn应当是接受四个参数，reduceRight按照降序方向将数组里
+             第一个元素后的元素调用一次callbackfn。
+
+             callbackfn被带四个参数调用：previousValue（上一次callback返回的
+             值）、currentValue（当前元素的值），currentIndex和遍历的对象。第一
+             次调用callbackfn是，previousValue和currentValue有两种取值方式。
+             如果调用reduceRight时提供了initialValue，那么previousValue将是
+             initialValue，而currentValue是数组的最后一个元素。如果没有提供
+             initialValue，那么previousValue是数组的最后一个元素，而currentValue是
+             倒数第二个。如果数组没有元素，也没有提供initialValue，会投掷
+             TypeError异常。
+
+             reduceRight没有直接修改传递给callbackfn的对象，但它可能会被
+             callbackfn修改。
+
+             在reduceRight第一次调用callbackfn之前就确定了元素的范围。在
+             reduceRight开始调用之后附加到数组的元素不会被callbackfn访问到。
+             如果数组上已有元素发生变动，传递给callbackfn的值是reduceRight访
+             问它时的值；在reduceRight开始后，传递给callbackfn之前，被删除的元
+             素，不会被访问到。
+当reduceRight被带一两个参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 如果len==0而且没有initialValue，投掷TypeError异常
+5. 让k是len-1
+6. 让accumulator是undefined
+7. 如果initialValue存在，那么
+    a. 置accumulator是initialValue
+8. 否则
+    a. 让kPresent是false
+    b. 重复，当kPresent是false，且k >= 0时
+        i. 让Pk是!ToString(F(k))
+       ii. 置kPresent是?HasProperty(O, Pk)
+      iii. 如果kPresent是true，那么
+            1. 置accumulator是?Get(O, Pk)
+       iv. 置k是k-1
+    c. 如果kPresent是false，投掷TypeError异常
+9. 重复，当k >= 0，
+    a. 让Pk是!ToString(F(k))
+    b. 让kPresent是?HasProperty(O, Pk)
+    c. 如果kPresent是true，那么
+        i. 让kValue是?Get(O, Pk)
+       ii. 置accumulator是?Call(callbackfn, undefined, << accumulator, kValue, F(k), O >>)
+    d. 置k是k-1
+10. 返回accumulator
+***** 注意2 reduceRight函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.reverse ( )
+***** 注意1 数组的元素按照反序重新排布。返回被调用的对象。
+当reverse被调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 让middle是floor(len / 2)
+4. 让lower是0
+5. 重复，当lower != millde时
+    a. 让upper是len - lower - 1
+    b. 让upperP是!ToString(F(upper))
+    c. 让lowerP是!ToString(F(lower))
+    d. 让lowerExists是?HasProperty(O, lowerP)
+    e. 如果lowerExists是true，那么
+        i. 让lowerValue是?Get(O, lowerP)
+    f. 让upperExists是?HasProperty(O, upperP)
+    g. 如果upperExists是true，那么
+        i. 让upperValue是?Get(O, upperP)
+    h. 如果lowerExists是true，而且upperExists是true，那么
+        i. 执行?Set(O, lowerP, upperValue, true)
+       ii. 执行?Set(O, upperP, lowerValue, true)
+    i. 否则如果lowerExists是false，而且upperExists是true，那么
+        i. 执行?Set(O, lowerP, upperValue, true)
+       ii. 执行?DeletePropertyOrThrow(O, upperP)
+    j. 否则如果lowerExists是true，而且upperExists是false，那么
+        i. 执行?DeletePropertyOrThrow(O, lowerP)
+       ii. 执行?Set(O, upperP, lowerValue, true)
+    k. 否则
+        i. Assert：lowerExists和upperExists都是false
+       ii. 无需操作
+    l. 置lower是lower+1
+6. 返回O
+***** 注意2 reverse函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.shift ( )
+***** 注意1 数组的第一个元素被从数组里移除，并返回这个元素。
+当shift被调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果len == 0，那么
+    a. 执行?Set(O, "length", +0_F, true)
+    b. 返回undefined
+4. 让first是?Get(O, "0")
+5. 让k是1。
+6. 重复，当k < len时
+    a. 让from是!ToString(F(k))
+    b. 让to是!ToString(F(k-1))
+    c. 让fromPresent是?HasProperty(O, from)
+    d. 如果fromPresent是true，那么
+        i. 让fromValue是?Get(O, from)
+       ii. 执行?Set(O, to, formValue, true)
+    e. 否则
+        i. Assert：fromPresent是false
+       ii. 执行?DeletePropertyOrThrow(O, to)
+    f. 置k是k+1
+7. 执行?DeletePropertyOrThrow(O, !ToString(F(len-1)))
+8. 执行?Set(O, "length", F(len-1), true)
+9. 返回first
+***** 注意2 shift函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.slice ( start, end )
+***** 注意1 让slice接受两个参数，start和end，返回数组上[start,end)的元素
+             组成的新数组。length是this值的length性质值。end参数如果
+             是undefined，默认是length。如果start是负数，被当作是length + start。
+             如果end是负数，被当作是length + end。
+执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 让relativeStart是?ToIntegerOrInfinity(start)
+4. 如果relativeStart是-∞，让k是0
+5. 否则如果relativeStart < 0，让k是max(len + relativeStart, 0)
+6. 否则，让k是min(relativeStart, len)
+7. 如果end是undefined，让relativeEnd是len；否则，让relativeEnd
+   是?ToIntegerOrInfinity(end)
+8. 如果relativeEnd是-∞，让final是0
+9. 否则如果relativeEnd < 0，让final是max(len + relativeEnd, 0)
+10. 否则，让final是min(relativeEnd, len)
+11. 让count是max(final - k, 0)
+12. 让A是?ArraySpeciesCreate(O, count)
+13. 让n是0
+14. 重复，当k > final时
+    a. 让Pk是!ToString(F(k))
+    b. 让kPresent是?HasProperty(O, Pk)
+    c. 如果kPresent是true，那么
+        i. 让kValue是?Get(O, Pk)
+       ii. 执行?CreateDataPropertyOrThrow(O, !ToString(F(n)), kValue)
+    d. 置k是k+1
+    h. 置n是n+1
+15. 执行?Set(A, "length", F(n), true)
+16. 返回A
+***** 注意2 在步骤15处显式的设置Array的"length"性质在之前的ECMAScript版本里
+             是有必要的，确保在返回的数组里尾部元素不存在的情况下，其值
+             正确。从ES2015之后的版本，设置"length"不再必要，因为结果Array被
+             初始化了合适的长度，即便是空数组。但是需要兼容之前的版本。
+***** 注意3 slice函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.some ( callbackfn [ , thisArg ] )
+***** 注意1 callbackfn应当是接受三个参数，并返回能够强制转换为Boolean的值的
+             函数。some按照升序给数组里存在元素上调用一次callbackfn，直到某
+             次返回true。如果有callbackfn返回true，some立即返回true。否则，
+             some会返回false。只有当元素确实存在时，才会调用callbackfn；
+             不会应用到缺失元素上。
+
+             如果提供了thisArg，会被当作调用callbackfn的this值。如果没有提供，
+             使用undefined。
+
+             传递给callbackfn三个参数：元素值，元素索引和遍历的对象。
+
+             some没有直接修改传递给callbackfn的对象，但它可能会被callbackfn
+             修改。
+
+             在some第一次调用callbackfn之前就确定了元素的范围。在some开始调用
+             之后附加到数组的元素不会被callbackfn访问到。如果数组上已有元素发
+             生变动，传递给callbackfn的值是some访问它时的值；在some开始后，
+             传递给callbackfn之前，被删除的元素，不会被访问到。some的行为像数
+             学中的术语"存在元素"。因此空数组，会返回false。
+当some带被带一个或两个参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让k是0
+5. 重复，当k < len，
+   a. 让Pk是!ToString(F(k))
+   b. 让kPresent是?HasProperty(O, Pk)
+   c. 如果kPresent是true，那么
+       i. 让kValue是?Get(O, Pk)
+      ii. 让testResult是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
+     iii. 如果testResult是true，返回true
+   d. 置k是k+1
+6. 返回false
+***** 注意2 some函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.sort ( comparefn )
+this数组的元素会被排序。这个排序是可靠的（因此比较的元素必须保留原来顺序
+）。如果comparefn不是undefined，会被当作接受x和y参数，如果x<y，返回负数，
+x == y，返回0，如果x > y返回正数的函数。
+
+执行如下步骤：
+1. 如果comparefn不是undefined，而且IsCallable(comparefn)是false，投掷TypeError异常
+2. 让obj是?ToObject(this值)
+3. 让len是?LengthOfArrayLike(O)
+4. 让items是新的空列表
+5. 让k是0
+6. 重复，当 k < len时
+    a. 让Pk是!ToString(F(k))
+    b. 让kPresent是?HasProperty(obj, Pk)
+    c. 让kPresent是true，那么
+        i. 让kValue是?Get(ojb, Pk)
+       ii. 附加kValue到items
+    d. 置k是k+1
+7. 让itemCount是items中元素的数量
+8. 排序items，使用实现定义的序列调用SortCompare。如果有意外完结，停止继续
+   调用SortCompare和剩余算法步骤，并返回这个完结。
+9. 让j是0
+10. 重复，当j < itemCount时
+    a. 执行?Set(obj, !ToString(F(j)), items[j], true)
+    b. 置j是j+1
+11. 重复，当j < len时，
+    a. 执行?DeletePropertyOrThrow(obj, !ToString(F(j)))
+    b. 置j是j+1
+12. 返回obj
+
+SortOrder是指，在完成本函数后，obj上小于len的整数索引性质值的顺序。sort函数的
+结果，如下定义：
+
+SortOrder是实现定义的，如果符合下列条件之一：
+. 如果comparefn不是undefined，而且不是符合items元素的比较函数
+. 如果comparefn是undefined，SortCompare不是符合的比较函数
+. 如果comparefn是undefiend，且传递给SortCompare的参数，在应用了ToString后结果
+  不同。
+
+除非SortOrder使用了上面的实现定义，在步骤8之后，items必须满足下列条件：
+. 必然存在由小于itemCount的非负整数构成的数学排列π，使得对于任意小于
+  itemCount的非负整数j，有old[j]与new[π(j)]严格相同。
+. 任意小于itemCount的非负整数j和k，如果SortCompare(old[j],old[k]) < 0（见下
+  SortCompare），那么π(j) < π(k)
+
+这里记号old[j]指的是步骤8执行前的items[j]，而记号new[j]指的是步骤8执行结束
+后的items[j]
+
+若函数comparefn是值集S上的符合比较函数，需要满足S集上所有a、b和c（可能相等）
+值符合下列条件：记号a < CF_b意味着comparefn(a, b) < 0； a = CF_b意味着
+comparefn(a, b) = 0（任意符号）； a > CF_b 意味着comparefn(a, b) > 0。
+. 在给定值对a和b时，调用comparefn(a, b)总是返回相同的值v。此外，Type(v)是
+  Number，且v不是NaN。这隐含着a < CF_b、a = CF_b和a > CF_b，对于给定a和b，只有
+  一个能返回true
+. 调用comparefn(a, b)不会修改obj，或者obj原型链上的对象。
+. a = CF_a（反身性）
+. 如果a = CF_b，那么b = CF_a（对称性）
+. 如果a = CF_b且b = CF_c那么a = CF_c（= CF的传递性）
+. 如果a < CF_b且b < CF_c那么a < CF_c（< CF的传递性）
+. 如果a > CF_b且b > CF_c那么a > CF_c（> CF的传递性）
+***** 注意1 上述条件是必要充分的，确保comparefn将S划分成等价的类，而且这些
+             等价的类完全有序。
+***** 注意2 sort函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 ***** SortCompare ( x, y )
+抽象操作SortCompare接受参数x和y。还会访问传递给当前调用sort方法的comparefn参
+数
 **** Array.prototype.splice ( start, deleteCount, ...items )
 **** Array.prototype.toLocaleString ( [ reserved1 [ , reserved2 ] ] )
 **** Array.prototype.toString ( )
