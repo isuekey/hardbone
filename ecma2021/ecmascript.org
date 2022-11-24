@@ -21680,7 +21680,7 @@ push方法的"length"性质是1_F。
         i. 让kValue是?Get(O, Pk)
        ii. 执行?CreateDataPropertyOrThrow(O, !ToString(F(n)), kValue)
     d. 置k是k+1
-    h. 置n是n+1
+    e. 置n是n+1
 15. 执行?Set(A, "length", F(n), true)
 16. 返回A
 ***** 注意2 在步骤15处显式的设置Array的"length"性质在之前的ECMAScript版本里
@@ -21791,14 +21791,194 @@ comparefn(a, b) = 0（任意符号）； a > CF_b 意味着comparefn(a, b) > 0�
              录给其他对象作为方法。
 ***** SortCompare ( x, y )
 抽象操作SortCompare接受参数x和y。还会访问传递给当前调用sort方法的comparefn参
-数
+数。被调用时执行下列步骤：
+1. 如果x和y都是undefined，返回+0_F.
+2. 如果x是undefined，返回1_F
+3. 如果y是undefined，返回-1_F
+4. 如果comparefn不是undefined，那么
+    a. 让v是?ToNumber(?Call(comparefn, undefined, << x, y >>))
+    b. 如果v是NaN，返回+0_F
+    c. 返回v
+5. 让xString是?ToString(x)
+6. 让yString是?ToString(y)
+7. 让xSmaller是执行AbstractRelationalComparison xString < yString的结果
+8. 如果xSmaller是true，返回-1_F
+9. 让ySmaller是执行AbstractRelationalComparison yString < xString的结果
+10. 如果ySmaller是true，返回1_F
+11. 返回 +0_F
+****** 注意1 因为不存在的性质值总是大于undefined的性质值，而undefined的性质
+              值总是大于其他值，因此undefined的性质值总是在结果末端，并跟随
+              着不存在的性质值。
+****** 注意2 在步骤5和6中ToString抽象操作的方法调用潜在的会让SortCompare行为
+              不符合比较函数。
 **** Array.prototype.splice ( start, deleteCount, ...items )
+***** 注意1 splice被带两个或者更多参数start、deleteCount和可数参数items调用时，
+             数组从整数索引start处开始的deleteCount元素被替换为items的元素。
+             被删除的元素组成新的数组，并被返回。
+执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 让relativeStart是?ToIntegerOrInfinity(start)
+4. 如果relativeStart是-∞，让actualStart是0
+5. 否则如果relativeStart < 0，让actualStart是max(len + relativeStart, 0)
+6. 否则，让actualStart是min(relativeStart, len)
+7. 如果start不存在，那么
+    a. 让insertCount是0
+    b. 让actualDeleteCount是0
+8. 否则如果deleteCount不存在，那么
+    a. 让insertCount是0
+    b. 让actualDeleteCount是len - actualStart
+9. 否则
+    a. 让insertCount是items的元素数量
+    b. 让dc是?ToIntegerOrInfinity(deleteCount)
+    c. 让actualDeleteCount是将dc局限在0和len-actualStart的结果。
+10. 如果len+insertCount-actualDeleteCount > 2^53-1，投掷TypeError异常
+11. 让A是?ArraySpeciesCreate(O, count)
+12. 让k是0
+13. 重复，当k < actualDeleteCount时
+    a. 让from是!ToString(F(actualStart+k))
+    b. 让fromPresent是?HasProperty(O, from)
+    c. 如果fromPresent是true，那么
+        i. 让fromValue是?Get(O, from)
+       ii. 执行?CreateDataPropertyOrThrow(A, !ToString(F(k)), fromValue)
+    d. 置k是k+1
+14. 执行?Set(A, "length", F(acutalDeleteCount), true)
+15. 让itemCount是items的元素数量
+16. 如果itemCount < actualDeleteCount，那么
+    a. 置k是actualStart
+    b. 重复，当k < (len - actualDeleteCount)时
+        i. 让from是!ToString(F(k + actualDeleteCount))
+       ii. 让to是!ToString(F(k + itemCount))
+      iii. 让fromPresent是?HasProperty(O, from)
+       iv. 如果fromPresent是true，那么
+            1. 让fromValue是?Get(O, from)
+            2. 执行?Set(O, to, fromValue, true)
+        v. 否则
+            1. Assert：fromPresent是false
+            2. 执行?DeletePropertyOrThrow(O, to)
+       vi. 置k是k+1
+    c. 置k是len
+    d. 重复，当k > (len - actualDeleteCount + itemCount)时
+        i. 执行?DeletePropertyOrThrow(O, !ToString(F(k-1)))
+       ii. 置k是k-1
+17. 否则如果itemCount > actualDeleteCount，那么
+    a. 置k是(len - actualDeleteCount)
+    b. 重复，当k > acutalStart时，
+        i. 让from是!ToString(F(k + actualDeleteCount -))
+       ii. 让to是!ToString(F(k + itemCount -1))
+      iii. 让fromPresent是?HasProperty(O, from)
+       iv. 如果fromPresent是true，那么
+            1. 让fromValue是?Get(O, from)
+            2. 执行?Set(O, to, fromValue, true)
+        v. 否则
+            1. Assert：fromPresent是false
+            2. 执行?DeletePropertyOrThrow(O, to)
+       vi. 置k是k-1
+18. 置k是actualStart
+19. 遍历items的元素记作E，做
+    a. 执行?Set(O, !ToString(F(k)), E, true)
+    b. 置k是k+1
+20. 执行?Set(O, "length", F(len - actualDeleteCount + itemCount), true)
+21. 返回A
+***** 注意2 在步骤20处显式的设置Array的"length"性质在之前的ECMAScript版本里
+             是有必要的，确保在返回的数组里尾部元素不存在的情况下，其值
+             正确。从ES2015之后的版本，设置"length"不再必要，因为结果Array被
+             初始化了合适的长度，即便是空数组。但是需要兼容之前的版本。
+***** 注意3 splice函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.toLocaleString ( [ reserved1 [ , reserved2 ] ] )
+包含ECMA-402国际API的ECMAScript实现必须按照ECMA-402规范的规定来实现
+Array.prototype.toLocaleString方法。如果没有包含ECMA-402的API，按照随后的规范
+实现toLocaleString方法。
+***** 注意1 第一版的ECMA-402不包含Array.prototype.toLocaleString方法的替换规范。
+
+这意味着本方法的可选参数定义在ECMA-402规范；不支持ECMA-402的实现不能将参数用
+做他途。
+
+被调用时执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 让separator是主机环境本地恰当的列表分隔符的字符串（源于实现定义）
+4. 让R是空字符串
+5. 让k是0
+6. 重复，当k < len时
+    a. 如果k>0，那么
+        i. 置R是R和separator的字符串拼接
+    b. 让nextElement是?Get(array, !ToString(F(k)))
+    c. 如果nextElement不是undefined和null，那么
+        i. 让S是?ToString(?Invoke(nextElement, "toLocaleString"))
+       ii. 置R是R和S的字符串拼接
+    d. 置k是k+1
+7. 返回R
+***** 注意2 数组的元素使用各自的toLocaleString方法转换为字符串，再间隔着
+             实现定义的分隔符，形成字符串拼接。调用此函数的结果是故意与
+             toString的结果类似的，除了本函数的结果是想要本地规范的。
+***** 注意3 toLocaleString函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.toString ( )
+toString被调用时执行下列步骤：
+1. 让array是?ToObject(this值)
+2. 让func是?Get(array, "join")
+3. 如果IsCallable(func)是false，置func是内置函数%Object.prototype.toString%
+4. 返回?Call(func, array)
+***** 注意 toString函数试图是泛型的；不需要this值是Array对象。因此可以转
+            录给其他对象作为方法。
 **** Array.prototype.unshift ( ...items )
+***** 注意1 参数按照出现顺序添加到数组的首端，他们在数组里的顺序，与在参数
+             的里顺序一致。
+当unshift被带可数参数调用时，执行下列步骤：
+1. 让O是?ToObject(this值)
+2. 让len是?LengthOfArrayLike(O)
+3. 让argCount是items的元素数量
+4. 如果argCount > 0，那么
+    a. 如果len+argCount > 2^53-1，投掷RangeError异常
+    b. 让k是len
+    c. 重复，当k > 0时
+        i. 让from是!ToString(F(k - 1))
+       ii. 让to是!ToString(F(k + argCount - 1))
+      iii. 让fromPresent是?HasProperty(O, from)
+       iv. 如果fromPresent是true，那么
+            1. 让fromValue是?Get(O, from)
+            2. 执行?Set(O, to, fromValue, true)
+        v. 否则
+            1. Assert：fromPresent是false
+            2. 执行?DeletePropertyOrThrow(O, to)
+       vi. 置k是k-1
+    d. 让j是+0_F
+    e. 遍历items的元素记作E，做
+        i. 执行?Set(O, !ToString(j), E, true)
+       ii. 置j是j+1
+5. 执行?Set(O, "length", F(len + argCount), true)
+6. 返回F(len + argCount)
+
+unshift方法的"length"性质是1_F。
+
+***** 注意2 unshift函数试图是泛型的；不需要this值是Array对象。因此可以转
+             录给其他对象作为方法。
 **** Array.prototype.values ( )
+执行如下步骤：
+1. 让O是?ToObject(this值)
+2. 返回CreateArrayIterator(O, value)
 **** Array.prototype [ @@iterator ] ( )
+@@iterator性质的初始值与Array.prototype.values性质的初始值是同一函数对象。
 **** Array.prototype [ @@unscopables ]
+@@unscopables数据性质的初始值是按照如下步骤创建的对象。
+1. 让unscopableList是!OrdinaryObjectCreate(null)
+2. 执行!CreateDataPropertyOrThrow(unscopableList, "copyWithin", true)。
+3. 执行!CreateDataPropertyOrThrow(unscopableList, "entries", true)。
+4. 执行!CreateDataPropertyOrThrow(unscopableList, "fill", true)。
+5. 执行!CreateDataPropertyOrThrow(unscopableList, "find", true)。
+6. 执行!CreateDataPropertyOrThrow(unscopableList, "findIndex", true)。
+7. 执行!CreateDataPropertyOrThrow(unscopableList, "flat", true)。
+8. 执行!CreateDataPropertyOrThrow(unscopableList, "flatMap", true)。
+9. 执行!CreateDataPropertyOrThrow(unscopableList, "includes", true)。
+10. 执行!CreateDataPropertyOrThrow(unscopableList, "keys", true)。
+11. 执行!CreateDataPropertyOrThrow(unscopableList, "values", true)。
+12. 返回unscopableList
+
+本性值属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
+***** 注意 这个对象的这些自有性质名称没有被包含在在ECMAScript2015前的规范里。
+            这些名称会被with绑定语句忽略，以便
 *** Properties of Array Instances
 **** length
 *** Array Iterator Objects
