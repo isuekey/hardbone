@@ -21086,19 +21086,19 @@ copyWithin方法接受参数target、start和end
              生变动，传递给callbackfn的值是every访问它时的值；在every开始后，
              传递给callbackfn之前，被删除的元素，不会被访问到。every的行为像数
              学中的术语"元素都符合"。因此空数组，会返回true。
-当every带被带参数调用时，执行下列步骤：
+当every带被带一个或者两个参数调用时，执行下列步骤：
 1. 让O是?ToObject(this值)
 2. 让len是?LengthOfArrayLike(O)
 3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
 4. 让k是0
 5. 重复，当k < len，
-   a. 让Pk是!ToString(F(k))
-   b. 让kPresent是?HasProperty(O, Pk)
-   c. 如果kPresent是true，那么
-       i. 让kValue是?Get(O, Pk)
-      ii. 让testResult是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
-     iii. 如果testResult是false，返回false
-   d. 置k是k+1
+    a. 让Pk是!ToString(F(k))
+    b. 让kPresent是?HasProperty(O, Pk)
+    c. 如果kPresent是true，那么
+        i. 让kValue是?Get(O, Pk)
+       ii. 让testResult是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
+      iii. 如果testResult是false，返回false
+    d. 置k是k+1
 6. 返回true
 ***** 注意2 every函数试图是泛型的；不需要this值是Array对象。因此可以转
              录给其他对象作为方法。
@@ -21144,7 +21144,7 @@ fill方法接受参数value、start和end
              调用之后附加到数组的元素不会被callbackfn访问到。如果数组上已有
              元素发生变动，传递给callbackfn的值是filter访问它时的值；在filter
              开始后，传递给callbackfn之前，被删除的元素，不会被访问到。
-当filter带被带参数调用时，执行下列步骤：
+当filter带被带一或者两个参数调用时，执行下列步骤：
 1. 让O是?ToObject(this值)
 2. 让len是?LengthOfArrayLike(O)
 3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
@@ -21152,15 +21152,15 @@ fill方法接受参数value、start和end
 5. 让k是0
 6. 让to是0
 7. 重复，当k < len，
-   a. 让Pk是!ToString(F(k))
-   b. 让kPresent是?HasProperty(O, Pk)
-   c. 如果kPresent是true，那么
-       i. 让kValue是?Get(O, Pk)
-      ii. 让selected是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
-     iii. 如果selected是true，那么
-           1. 执行?CreateDataPropertyOrThrow(A, !ToString(F(to)), kValue)
-           2. 置to是to+1
-   d. 置k是k+1
+    a. 让Pk是!ToString(F(k))
+    b. 让kPresent是?HasProperty(O, Pk)
+    c. 如果kPresent是true，那么
+        i. 让kValue是?Get(O, Pk)
+       ii. 让selected是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
+      iii. 如果selected是true，那么
+            1. 执行?CreateDataPropertyOrThrow(A, !ToString(F(to)), kValue)
+            2. 置to是to+1
+    d. 置k是k+1
 8. 返回A
 ***** 注意2 filter函数试图是泛型的；不需要this值是Array对象。因此可以转
              录给其他对象作为方法。
@@ -21184,17 +21184,17 @@ find方法接受一或二个参数，predicate和thisArg
              元素发生变动，传递给predicate的值是find访问它时的值；在find
              开始后，传递给predicate之前，被删除的元素，无法访问到，
              会把undefinded传给predicate。
-当find带被带参数调用时，执行下列步骤：
+当find带被带一个或者两个参数调用时，执行下列步骤：
 1. 让O是?ToObject(this值)
 2. 让len是?LengthOfArrayLike(O)
 3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
 4. 让k是0
 5. 重复，当k < len，
-   a. 让Pk是!ToString(F(k))
-   b. 让kValue是?Get(O, Pk)
-   c. 让testResult是!ToBoolean(?Call(predicate, thisArg, << kValue, F(k), O>> ))
-   d. 如果testResult是true，返回kValue
-   e. 置k是k+1
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 让testResult是!ToBoolean(?Call(predicate, thisArg, << kValue, F(k), O>> ))
+    d. 如果testResult是true，返回kValue
+    e. 置k是k+1
 6. 返回undefined
 ***** 注意2 find函数试图是泛型的；不需要this值是Array对象。因此可以转
              录给其他对象作为方法。
@@ -21223,11 +21223,11 @@ find方法接受一或二个参数，predicate和thisArg
 3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
 4. 让k是0
 5. 重复，当k < len，
-   a. 让Pk是!ToString(F(k))
-   b. 让kValue是?Get(O, Pk)
-   c. 让testResult是!ToBoolean(?Call(predicate, thisArg, << kValue, F(k), O>> ))
-   d. 如果testResult是true，返回F(k)
-   e. 置k是k+1
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 让testResult是!ToBoolean(?Call(predicate, thisArg, << kValue, F(k), O>> ))
+    d. 如果testResult是true，返回F(k)
+    e. 置k是k+1
 6. 返回-1_F
 ***** 注意2 findIndex函数试图是泛型的；不需要this值是Array对象。因此可以转
              录给其他对象作为方法。
@@ -21300,7 +21300,7 @@ find方法接受一或二个参数，predicate和thisArg
              调用之后附加到数组的元素不会被callbackfn访问到。如果数组上已有
              元素发生变动，传递给callbackfn的值是forEach访问它时的值；在forEach
              开始后，传递给callbackfn之前，被删除的元素，不会被访问到。
-当forEach带被带参数调用时，执行下列步骤：
+当forEach带被带一个或者两个参数调用时，执行下列步骤：
 1. 让O是?ToObject(this值)
 2. 让len是?LengthOfArrayLike(O)
 3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
@@ -21322,7 +21322,7 @@ find方法接受一或二个参数，predicate和thisArg
              可选参数fromIndex，默认是+0_F（此时搜索整个数组）。如果他大于等于
              数组的长度，返回false，此时不会搜索数组。如果小于+0_F，当作从数
              组末端计算的偏移。如果计算结果小于0，仍然是搜索整个数组。
-当includes带被带参数调用时，执行下列步骤：
+当includes带被带一个或者两个参数调用时，执行下列步骤：
 1. 让O是?ToObject(this值)
 2. 让len是?LengthOfArrayLike(O)
 3. 如果len是0,返回false
@@ -21337,7 +21337,7 @@ find方法接受一或二个参数，predicate和thisArg
     b. 如果k<0,置k是0
 10. 重复，当k<len
     a. 让elementK是?Get(O, !ToString(F(k)))
-    b. 如果SameValueZero(searchElement, elementK)是ture，返回true
+    b. 如果SameValueZero(searchElement, elementK)是true，返回true
     c. 置k是k+1
 11. 返回false
 ***** 注意2 includes函数试图是泛型的；不需要this值是Array对象。因此可以转
@@ -21446,7 +21446,7 @@ find方法接受一或二个参数，predicate和thisArg
              调用之后附加到数组的元素不会被callbackfn访问到。如果数组上已有
              元素发生变动，传递给callbackfn的值是map访问它时的值；在map
              开始后，传递给callbackfn之前，被删除的元素，不会被访问到。
-当map被带参数调用时，执行下列步骤：
+当map被带一个或者两个参数调用时，执行下列步骤：
 1. 让O是?ToObject(this值)
 2. 让len是?LengthOfArrayLike(O)
 3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
@@ -21709,7 +21709,7 @@ push方法的"length"性质是1_F。
              生变动，传递给callbackfn的值是some访问它时的值；在some开始后，
              传递给callbackfn之前，被删除的元素，不会被访问到。some的行为像数
              学中的术语"存在元素"。因此空数组，会返回false。
-当some带被带一个或两个参数调用时，执行下列步骤：
+当some被带一个或两个参数调用时，执行下列步骤：
 1. 让O是?ToObject(this值)
 2. 让len是?LengthOfArrayLike(O)
 3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
@@ -21978,63 +21978,913 @@ unshift方法的"length"性质是1_F。
 
 本性值属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
 ***** 注意 这个对象的这些自有性质名称没有被包含在在ECMAScript2015前的规范里。
-            这些名称会被with绑定语句忽略，以便
+            这些名称会被with绑定语句忽略，以便保留使用with语句绑定了Array对
+            象，同时在外圈绑定了这些名称，的现存代码行为。
 *** Properties of Array Instances
+Array实例是Array奇异对象，有特别规定的内部方法。Array实例继承了Array原型对
+象的性质。
+
+Array实例有"length"性质，和一套可枚举的数组索引构造成的性质。
 **** length
+Array实例的"length"性质是数据性质，其值总是在数字上大于任何一个可配置的
+自由数组索引性质。
+
+"length"性质的初始属性是 { \[\[Writable]]:true, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
+***** 注意 减少"length"性质的值，来删除旧长度与新长度间的元素，是有副作用
+            的。非可配置的性质，无法被删除。试图设置含有不可配置数组索引，
+            记作p，自有性质的数组对象的"length"的小于等于p，结果是数组的
+            "length"值是p+1。见于10.4.2.1
 *** Array Iterator Objects
+ArrayIterator对象表述某个数组实例对象上的规定遍历器。不具有有命名的构造范。
+ArrayIteratorObject通过Array实例对象上的某些方法创建。
 **** CreateArrayIterator ( array, kind )
+抽象操作CreateArrayIterator接受参数array和kind。为返回ArrayIterator的Array方法
+创建遍历器对象。被调用时执行下列步骤：
+1. Assert：Type(array)是Object
+2. Assert：kind是key+value、key或者value
+3. 让closure是新的AbstractClosure，捕获kind和array，被调用时执行如下步骤：
+    a. 让index是0
+    b. 重复
+        i. 如果array有\[\[TypedArrayName]]内部占位，那么
+            1. 如果IsDetachedBuffer(array.\[\[ViewedArrayBuffer]])是true，投掷
+               TypeError异常
+            2. 让len是array.\[\[ArrayLength]]
+       ii.
+            1. 让len是?LengthOfArrayLike(array)
+      iii. 如果index >= len，返回undefined
+       iv. 如果kind是key，执行?Yield(F(index))
+        v. 否则
+            1. 让elementKey是!ToString(F(index))
+            2. 让elementValue是?Get(array, elementKey)
+            3. 如果kind是value，执行?Yield(elementValue)
+            4. 否则
+                a. Assert：kind是key+value
+                b. 执行?Yield(!CreateArrayFromList(<< F(index), elementValue>>))
+       vi. 置index是index+1
+4. 返回!CreateIteratorFromClosure(closure, "%ArrayIteratorPrototype%",
+   %ArrayIteratorPrototype%)
 **** The %ArrayIteratorPrototype% Object
+%ArrayIteratorPrototype%:
+. 有被全部ArrayIteratorObject继承的性质
+. 是基本对象
+. 有\[\[Prototype]]内部占位，值是%IteratorPrototype%
+. 有如下性质
 ***** %ArrayIteratorPrototype%.next ( )
+1. 返回?GeneratorResume(this值, empty, "%ArrayIteratorPrototype%")
 ***** %ArrayIteratorPrototype% [ @@toStringTag ]
+@@toStringTag的初始值是"Array Iterator"
+
+此性质有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true, }
 ** TypedArray Objects
+TypedArray对象将潜在的二进制数据缓冲区（25.1）表述为类似数组的视图。TypedArray
+的元素类型是TypedArray实例的所有元素都是的潜在的二进制标量数据类型。在表60
+列出了支持的元素类型对应的TypedArray构造范。在表60的每个构造范有一个对应的
+原型对象。
+
+表60
+
+| 构造范名和内置                        | 元素类型 | 元素大小 | 转换操作      | 描述                            |
+| Int8Array %Int8Array%                 | Int8     |        1 | ToInt8        | 有符号8位二进制补码整数         |
+| Uint8Array %Uint8Array%               | Uint8    |        1 | ToUint8       | 8位二进制无符号整数             |
+| Uint8ClampedArray %Uint8ClampedArray% | Uint8C   |        1 | ToUinit8Clamp | 8位二进制无符号整数（截断转换） |
+| Int16Array %Int16Array%                 | Int16     |        2 | ToInt16        | 有符号16位二进制补码整数        |
+| Uint16Array %Uint16Array%               | Uint16    |        2 | ToUint16       | 16位二进制无符号整数            |
+| Int32Array %Int32Array%                 | Int32     |        4 | ToInt32        | 有符号32位二进制补码整数         |
+| Uint32Array %Uint32Array%               | Uint32    |        4 | ToUint32       | 32位二进制无符号整数             |
+| BigInt64Array %BigInt64Array%                 | BigInt64     |        8 | ToBigInt64        | 有符号64位二进制补码整数         |
+| BigUint64Array %BigUint64Array%               | BigUint64    |        8 | ToBigUint64       | 64位二进制无符号整数             |
+| Float32Array %Float32Array%                 | Float32     |        4 |         | 32位IEEE浮点数 |
+| Float64Array %Float64Array%               | Float64    |        8 |        | 64位IEEE浮点数      |
+
+在随后的定义中，TypedArray的引用应当替换为上表中恰当的构造范。
 *** The %TypedArray% Intrinsic Object
+%TypedArray%内部对象：
+. 全部TypedArray构造范都继承的构造范函数。
+. 沿着对应原型对象，为全部的TypedArray的构造范和其实例提供通用的性质。
+. 没有全局名称，也不是全局对象的性质
+. 是TypedArray构造范的抽象父类
+. 当调用时，投掷异常。因为是抽象的构造范类。TypedArray构造范不执行supper
+  调用。
 **** %TypedArray% ( )
+%TypedArray%构造范执行如下步骤：
+1. 投掷TypeError异常
+
+%TypedArray%构造范函数的"length"性质是+0_F
 *** Properties of the %TypedArray% Intrinsic Object
+%TypedArray%内部对象
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有"name"性质，值是"TypedArray"
+. 有如下性质：
 **** %TypedArray%.from ( source [ , mapfn [ , thisArg ] ] )
+当from被参数source和可选参数mapfn和thisArg调用时，执行下列步骤：
+1. 让C是this值
+2. 如果IsConstructor(C)是false，投掷TypeError异常
+3. 如果mapfn是undefined，让mapping是false
+4. 否则
+    a. 如果IsCallable(mapfn)是false，投掷TypeError异常
+    b. 让mapping是true。
+5. 让usingIterator是?GetMethod(source, @@iterator)
+6. 如果usingIterator不是undefined，那么
+    a. 让values是?IteratableToList(source, usingIterator)
+    b. 让len是values的元素数量
+    c. 让targetObj是?TypedArrayCreate(C, << F(len) >> )
+    d. 让k是0
+    e. 重复，当k < len时，
+        i. 让Pk是!ToString(F(k))
+       ii. 让kValue是values的第一个元素，并将其从values中移除
+      iii. 如果mapping是true，那么
+            1. 让mappedValue是?Call(mapfn, thisArg, << kValue, F(k) >>)
+       iv. 否则，让mappedValue是kValue
+        v. 执行?Set(targetObj, Pk, mappedValue, true)
+       vi. 置k是k+1
+    f. Assert：values现在是空列表
+    g. 返回targetObj
+7. 注意：source不可遍历，假设是像数组的对象
+8. 让arrayLike是!ToObject(source)
+9. 让len是?LengthOfArrayLike(arrayLike)
+10. 让targetObj是?TypedArrayCreate(C, << F(len) >>)
+11. 让k是0
+12. 重复，当k < len时，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(arrayLike, Pk)
+    c. 如果mapping是true，那么
+        i. 让mappedValue是?Call(mapfn, thisArg, << kValue, F(k) >>)
+    d. 否则，让mappedValue是kValue
+    e. 执行?Set(targetObj, Pk, mappedValue, true)
+    f. 置k是k+1
+13. 返回targetObj
 **** %TypedArray%.of ( ...items )
+当of方法被带可数参数items调用时，执行下列步骤：
+1. 让len是items的元素数量
+2. 让C是this值
+3. 如果IsConstructor(C)是false，投掷TypeError异常
+4. 让newObj是?TypeArrayCreate(C, << F(len) >>)
+5. 让k是0
+6. 重复，当k < len时
+    a. 让kValue是items[k]
+    b. 让Pk是!ToString(F(k))
+    c. 执行?Set(newObj, Pk, kValue, true)
+    d. 置k是k+1
+7. 返回newObj
 **** %TypedArray%.prototype
+%TypedArray%.prototype的初始值是%TypedArray%原型对象。
+
+此性质有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** get %TypedArray% [ @@species ]
+%TypedArray%[@@species]是访问性质，其set访问函数是undefined。这个get访问函数被
+调用时执行下列步骤：
+1. 返回this值
+
+此函数的"name"性质值是"get[Symbol.species]"
+***** 注意 %TypedArray.prototype%的方法一般用它们的this值的构造范来创建派生对
+            象。然而子类的构造范可能会通过重新定义@@species性质来重写这个默
+            认行为。
 *** Properties of the %TypedArray% Prototype Object
+%TypedArray%原型对象
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是%TypedArray.prototype%
+. 是基本对象
+. 没有\[\[ViewedArrayBuffer]]和其他TypedArray实例特定的内部占位。
 **** get %TypedArray%.prototype.buffer
+%TypedArray%.prototype.buffer是访问性质，其set访问函数是undefined。这个get访问
+函数被调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireInternalSlot(O, \[\[TypedArrayName]])
+3. Assert：O有\[\[ViewedArrayBuffer]]内部占位
+4. 让buffer是O.\[\[ViewedArrayBuffer]]
+5. 返回buffer
 **** get %TypedArray%.prototype.byteLength
+%TypedArray%.prototype.byteLength是访问性质，其set访问函数是undefined。这个get访问
+函数被调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireInternalSlot(O, \[\[TypedArrayName]])
+3. Assert：O有\[\[ViewedArrayBuffer]]内部占位
+4. 让buffer是O.\[\[ViewedArrayBuffer]]
+5. 如果IsDetachedBuffer(buffer)是true，返回+0_F
+6. 让size是O.\[\[ByteLength]]
+7. 返回F(size)
 **** get %TypedArray%.prototype.byteOffset
+%TypedArray%.prototype.byteOffset是访问性质，其set访问函数是undefined。这个get访问
+函数被调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireInternalSlot(O, \[\[TypedArrayName]])
+3. Assert：O有\[\[ViewedArrayBuffer]]内部占位
+4. 让buffer是O.\[\[ViewedArrayBuffer]]
+5. 如果IsDetachedBuffer(buffer)是true，返回+0_F
+6. 让offset是O.\[\[ByteOffset]]
+7. 返回F(offset)
 **** %TypedArray%.prototype.constructor
+%TypedArray%.prototype.constructor的初始值是%TypedArray%内部对象。
 **** %TypedArray%.prototype.copyWithin ( target, start [ , end ] )
+%TypedArray%.prototype.copyWithin的解释和用途与定义在23.1.3.3的
+Array.prototype.copyWithin相同。
+
+执行如下步骤：
+1. 让O是this值
+2. 执行?ValidateTypeArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 让relativeTarget是?ToIntegerOrInfinity(target)
+5. 如果relativeTarget是-∞，让to是0
+6. 否则，如果relativeTarget<0，让to是max(len+relativeTarget, 0)
+7. 否则，让to是min(relativeTarget, len)
+8. 让relativeStart是?ToIntegerOrInfinity(start)
+9. 如果relativeStart是-∞，让from是0
+10. 否则，如果relativeStart<0，让from是max(len+relativeTarget, 0)
+11. 否则，让from是min(relativeStart, len)
+12. 如果end是undefined，让relativeEnd是len；否则让relativeEnd
+    是?ToIntegerOrInfinity(end)
+13. 如果relativeEnd是-∞，让final是0
+14. 否则，如果relativeEnd<0，让final是max(len+relativeEnd, 0)
+15. 否则，让final是min(relativeEnd, len)
+16. 让count是min(final - from, len - to)
+17. 如果count > 0，那么
+    a. 注意：副本必须按照保留源数据字节层编码的方式执行。
+    b. 让buffer是O.\[\[ViewedArrayBuffer]]
+    c. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+    d. 让typedArrayName是O.\[\[TypedArrayName]]的字符串值
+    e. 让elementSize是按照表60中规定的typedArrayName的元素大小
+    f. 让byteOffset是O.\[\[ByteOffset]]
+    g. 让toByteIndex是to * elementSize + byteOffset
+    h. 让fromByteIndex是from * elementSize + byteOffset
+    i. 让countBytes是count * elementSize
+    j. 如果fromByteIndex < toByteIndex而且toByteIndex < fromByteIndex + countBytes，
+       那么
+        i. 让direction是-1
+       ii. 置fromByteIndex是fromByteIndex + countBytes - 1
+      iii. 置toByteIndex是toByteIndex + countBytes - 1
+    k. 否则
+        i. 让direction是1
+    l. 重复，当countBytes > 0时，
+        i. 让value是GetValueFromBuffer(buffer, fromByteIndex, Uint8, true, Unordered)
+       ii. 执行SetValueInBuffer(buffer, toByteIndex, Uint8, value, true, Unordered)
+      iii. 置fromByteIndex是fromByteIndex + direction
+       iv. 置toByteIndex是toByteIndex + direction
+        v. 置countBytes是countBytes - 1
+18. 返回O
 **** %TypedArray%.prototype.entries ( )
+执行如下步骤：
+1. 让O是this值
+2. 执行?ValidateTypeArray(O)
+3. 返回CreateArrayIterator(O, key+value)
 **** %TypedArray%.prototype.every ( callbackfn [ , thisArg ] )
+%TypedArray%.prototype.every的解释和用途与定义在23.1.3.5的
+Array.prototype.every相同。
+
+当every带被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 让k是0
+6. 重复，当k < len，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 让testResult是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
+    d. 如果testResult是false，返回false
+    e. 置k是k+1
+7. 返回true
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.fill ( value [ , start [ , end ] ] )
+%TypedArray%.prototype.fill的解释和用途与定义在23.1.3.6的
+Array.prototype.fill相同。
+
+执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果O.\[\[ContentType]]是BigInt，置value是?ToBigInt(value)
+5. 否则，置value是?ToNumber(value)
+6. 让relativeStart是?ToIntegerOrInfinity(start)
+7. 如果relativeStart是-∞，让k是0。
+8. 否则，如果relativeStart < 0，让k是max(len + relativeStart, 0)
+9. 否则，让k是min(relativeStart, len)
+10. 如果end是undefined，让relativeEnd是len；否则，让relativeEnd
+    是?ToIntegerOrInfinity(end)
+11. 如果relativeEnd是-∞，让final是0
+12. 否则如果relativeEnd < 0，让final是max(len + relativeEnd, 0)
+13. 否则，让final是min(relativeEnd, len)
+14. 如果IsDetachedBuffer(O.\[\[ViewedArrayBuffer]]是true，投掷TypeError异常。
+15. 重复，当 k < find
+    a. 让Pk是!ToString(F(k))
+    b. 执行?Set(O, Pk, value, true)
+    c. 置k是k+1
+16. 返回O
 **** %TypedArray%.prototype.filter ( callbackfn [ , thisArg ] )
+%TypedArray%.prototype.filter的解释和用途与定义在23.1.3.7的
+Array.prototype.filter相同。
+
+当filter带被带一或者两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 让kept是新的空列表
+6. 让k是0
+7. 让captured是0
+8. 重复，当k < len时，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 让selected是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
+    d. 如果selected是true，那么，
+        i. 附加kValue到kept的末端
+       ii. 置captured是captured + 1
+   1. 置k是k+1
+9. 让A是?TypedArraySpeciesCreate(O, << F(captured) >>)
+10. 让n是0
+11. 遍历kept元素，记作e，做：
+    a. 执行!Set(A, !ToString(F(n)), e, true)
+    b. 置n是n+1
+12. 返回A
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.find ( predicate [ , thisArg ] )
+%TypedArray%.prototype.find的解释和用途与定义在23.1.3.8的
+Array.prototype.find相同。
+
+当find带被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 让k是0
+6. 重复，当k < len，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 让testResult是!ToBoolean(?Call(predicate, thisArg, << kValue, F(k), O>> ))
+    d. 如果testResult是true，返回kValue
+    e. 置k是k+1
+7. 返回undefined
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.findIndex ( predicate [ , thisArg ] )
+%TypedArray%.prototype.findIndex的解释和用途与定义在23.1.3.9的
+Array.prototype.findIndex相同。
+
+当findIndex带被带一或二个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 让k是0
+6. 重复，当k < len，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 让testResult是!ToBoolean(?Call(predicate, thisArg, << kValue, F(k), O>> ))
+    d. 如果testResult是true，返回F(k)
+    e. 置k是k+1
+7. 返回-1_F
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.forEach ( callbackfn [ , thisArg ] )
+%TypedArray%.prototype.forEach的解释和用途与定义在23.1.3.12的
+Array.prototype.forEach相同。
+
+当forEach带被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 让k是0
+6. 重复，当k < len，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 执行?Call(callbackfn, thisArg, << kValue, F(k), O >>)
+    d. 置k是k+1
+7. 返回undefined
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.includes ( searchElement [ , fromIndex ] )
+%TypedArray%.prototype.includes的解释和用途与定义在23.1.3.13的
+Array.prototype.includes相同。
+
+当includes带被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果len是0,返回false
+5. 让n是?ToIntegerOrInfinity(fromIndex)
+6. Assert:如果fromIndex是undefined，那么n是0
+7. 如果n是+∞，返回false
+8. 否则如果n是-∞，置n是0
+9. 如果n >= 0，那么
+    a. 让k是n
+10. 否则
+    a. 让k是len + n
+    b. 如果k<0,置k是0
+11. 重复，当k<len时，
+    a. 让elementK是?Get(O, !ToString(F(k)))
+    b. 如果SameValueZero(searchElement, elementK)是true，返回true
+    c. 置k是k+1
+12. 返回false
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.indexOf ( searchElement [ , fromIndex ] )
+%TypedArray%.prototype.indexOf的解释和用途与定义在23.1.3.14的
+Array.prototype.indexOf相同。
+
+当indexOf带被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果len是0,返回-1_F
+5. 让n是?ToIntegerOrInfinity(fromIndex)
+6. Assert:如果fromIndex是undefined，那么n是0
+7. 如果n是+∞，返回-1_F
+8. 否则如果n是-∞，置n是0
+9. 如果n >= 0，那么
+    a. 让k是n
+10. 否则
+    a. 让k是len + n
+    b. 如果k<0,置k是0
+11. 重复，当k<len
+    a. 让kPresent是?HasProperty(O, !ToString(F(k)))
+    b. 如果kPresent是true，那么
+        i. 让elementK是?Get(O, !ToString(F(k)))
+       ii. 让same是执行StrictEqualityComparison searchElement \=\=\= elementK
+      iii. 如果same是true，返回F(k)
+    c. 置k是k+1
+12. 返回-1_F
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.join ( separator )
+%TypedArray%.prototype.join的解释和用途与定义在23.1.3.15的
+Array.prototype.join相同。
+
+当join带被带一个参数，separator，调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果separator是undefinde，让sep是但元素字符串","
+5. 否则，让sep是?ToString(separator)
+6. 让R是空字符串
+7. 让k是0
+8. 重复，当k<len时，
+    a. 如果k>0,置R是R和sep的字符串拼接
+    b. 让element是?Get(O, !ToString(F(k)))
+    c. 如果element是undefined，让next是空字符串；否则让next是
+       ?ToString(element)
+    d. 置R是R和next的字符串拼接
+    e. 置k是k+1
+9. 返回R
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.keys ( )
+执行如下步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 返回CreateArrayIterator(O, key)
+
 **** %TypedArray%.prototype.lastIndexOf ( searchElement [ , fromIndex ] )
+%TypedArray%.prototype.lastIndex的解释和用途与定义在23.1.3.17的
+Array.prototype.lastIndex相同。
+
+当lastIndexOf带被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果len是0,返回-1_F
+5. 如果fromIndex存在，那么让n是?ToIntegerOrInfinity(fromIndex)；否则让n是len-1
+6. 如果n是-∞，返回-1_F
+7. 如果n >= 0，那么
+    a. 让k是min(n, len-1)
+8. 否则
+    a. 让k是len + n
+9. 重复，当k >= 0时
+    a. 让kPresent是?HasProperty(O, !ToString(F(k)))
+    b. 如果kPresent是true，那么
+        i. 让elementK是?Get(O, !ToString(F(k)))
+       ii. 让same是执行StrictEqualityComparison searchElement \=\=\= elementK
+      iii. 如果same是true，返回F(k)
+    c. 置k是k-1
+10. 返回-1_F
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** get %TypedArray%.prototype.length
+%TypedArray%.prototype.length是访问性质，其set访问函数是undefined。这个get访问函数被
+调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireInternalSlot(O, \[\[TypedArrayName]])
+3. Assert：O有\[\[ViewedArrayBuffer]]和\[\[ArrayLength]]内部占位
+4. 让buffer是O.\[\[ViewedArrayBuffer]]
+5. 如果IsDetachedBuffer(buffer)是true，返回+0_F
+6. 让length是O.\[\[ArrayLength]]
+7. 返回F(length)
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.map ( callbackfn [ , thisArg ] )
+%TypedArray%.prototype.map的解释和用途与定义在23.1.3.18的
+Array.prototype.map相同。
+
+当map被带一个或者两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 让A是?TypedArraySpeciesCreate(O, << F(len) >>)
+6. 让k是0
+7. 重复，当k < len时，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 让mappedValue是?Call(callbackfn, thisArg, << kValue, F(k), O >>)
+    d. 执行?Set(A, Pk, mappedValue, true)
+    e. 置k是k+1
+8. 返回A
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.reduce ( callbackfn [ , initialValue ] )
+%TypedArray%.prototype.reduce的解释和用途与定义在23.1.3.21的
+Array.prototype.reduce相同。
+
+当reduce被带一两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 如果len==0而且没有initialValue，投掷TypeError异常
+6. 让k是0
+7. 让accumulator是undefined
+8. 如果initialValue存在，那么
+    a. 置accumulator是initialValue
+9. 否则
+    a. 让Pk是!ToString(F(k))
+    b. 置accumulator是?Get(O, Pk)
+    c. k是k+1
+10. 重复，当k < len时，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 置accumulator是?Call(callbackfn, undefined, << accumulator, kValue, F(k), O >>)
+    d. 置k是k+1
+11. 返回accumulator
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.reduceRight ( callbackfn [ , initialValue ] )
+%TypedArray%.prototype.reduceRight的解释和用途与定义在23.1.3.22的
+Array.prototype.reduceRight相同。
+
+当reduceRight被带一两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 如果len==0而且没有initialValue，投掷TypeError异常
+6. 让k是len-1
+7. 让accumulator是undefined
+8. 如果initialValue存在，那么
+    a. 置accumulator是initialValue
+9. 否则
+    a. 让Pk是!ToString(F(k))
+    b. 置accumulator是?Get(O, Pk)
+    c. 置k是k-1
+10. 重复，当k >= 0时，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(O, Pk)
+    c. 置accumulator是?Call(callbackfn, undefined, << accumulator, kValue, F(k), O >>)
+    d. 置k是k-1
+11. 返回accumulator
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.reverse ( )
+%TypedArray%.prototype.reverse的解释和用途与定义在23.1.3.23的
+Array.prototype.reverse相同。
+
+当reverse被调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 让middle是floor(len / 2)
+5. 让lower是0
+6. 重复，当lower != millde时
+    a. 让upper是len - lower - 1
+    b. 让upperP是!ToString(F(upper))
+    c. 让lowerP是!ToString(F(lower))
+    d. 让lowerValue是?Get(O, lowerP)
+    e. 让upperValue是?Get(O, upperP)
+    f. 执行?Set(O, lowerP, upperValue, true)
+    g. 执行?Set(O, upperP, lowerValue, true)
+    h. 置lower是lower+1
+7. 返回O
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.set ( source [ , offset ] )
+%TypedArray%.prototype.set函数根据第一个参数的类型有不同的行为。
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
+
+从source读取的值设置到TypedArray上。可选offset值指明从TypedArray的开始写入
+的索引。如果缺省，假定是0.
+
+1. 让target是this值
+2. 执行?RequiredInternalSlot(target, \[\[TypedArrayName]])
+3. Assert：target有\[\[ViewdArrayBuffer]]内部占位
+4. 让targetOffset是?ToIntegerOrInfinity(offset)
+5. 如果targetOffset < 0，投掷RangeError异常
+6. 如果source是Object，而且有\[\[TypedArrayName]]内部占位，那么
+    a. 执行?SetTypedArrayFromTypedArray(target, targetOffset, source)
+7. 否则
+    a. 执行?SetTypedArrayFromArrayLike(target, targetOffset, source)
+8. 返回undefined
 ***** SetTypedArrayFromTypedArray ( target, targetOffset, source )
+抽象操作SetTypedArrayFromTypedArray接受参数target（TypedArray对象）、targetOffset（
+非负整数或者+∞）、和source（TypedArray对象）。从source读取值，于target的
+targetOffset开始写入值。被调用时执行下列步骤：
+1. Assert：source是Object，而且有\[\[TypedArrayName]]内部占位
+2. 让targetBuffer是target.\[\[ViewedArrayBuffer]]
+3. 如果IsDetachedBuffer(targetBuffer)是true，投掷TypeError异常
+4. 让targetLength是target.\[\[ArrayLength]]
+5. 让srcBuffer是source.\[\[ViewedArrayBuffer]]
+6. 如果IsDetachedBuffer(srcBuffer)是true，投掷TypeError异常
+7. 让targetName是target.\[\[TypedArrayName]]的String值
+8. 让targetType是表60中targetName对应的元素类型
+9. 让targetElementSize是表60中targetName对应的元素大小
+10. 让targetByteOffset是target.\[\[ByteOffset]]
+11. 让srcName是source.\[\[TypedArrayName]]的String值
+12. 让srcType是表60中srcName对应的元素类型
+13. 让srcElementSize是表60中srcName对应的元素大小
+14. 让srcLength是source.\[\[ArrayLength]]
+15. 让srcByteOffset是source.\[\[ByteOffset]]
+16. 如果targetOffset是+∞，投掷RangeError异常
+17. 如果srcLength + targetOffset > targetLength，投掷RangeError异常
+18. 如果target.\[\[ContentType]] != source.\[\[ContentType]]，投掷TypeError异常
+19. 如果IsSharedArrayBuffer(srcBuffer)和IsSharedArrayBuffer(targetBuffer)都是true，那么
+    a. 如果srcBuffer.\[\[ArrayBufferData]]和targetBuffer.\[\[ArrayBufferData]]是相同
+       的SharedDataBlock值，让same是true；否则让same是false
+20. 否则，让same是SameValue(srcBuffer, targetBuffer)
+21. 如果same是true，那么
+    a. 让srcByteLength是source.\[\[ByteLength]]
+    b. 置srcBuffer是?CloneArrayBuffer(srcBuffer, srcByteOffset, srcByterLength,
+       %ArrayBuffer%)
+    c. 注意：使用%ArrayBuffer%复制srcBuffer，是因为没有任何已知的副作用
+    d. 让srcByteIndex是0
+22. 否则，让srcByteIndex是srcByteOffset
+23. 让targetByteIndex是targetOffset * targetElementSize + targetByteOffset
+24. 让limit是targetByteIndex + targetElementSize * srcLength
+25. 如果srcType与targetType相同，那么
+    a. 注意：如果srcType和targetType相同，转录行为以必须保留源数据字节层编码
+       的方式执行。
+    b. 重复，当targetByteIndex < limit时
+        i. 让value是GetValueFromBuffer(srcBuffer, srcByteIndex, Uint8, true, Unordered)
+       ii. 执行SetValueInBuffer(targetBuffer, targetByteIndex, Uint8, value, true,
+           Unordered)
+      iii. 置srcByteIndex是srcByteIndex + 1
+       iv. 置targetByteIndex是targetByteIndex + 1
+26. 否则
+    a. 重复，当targetByteIndex < limit时
+        i. 让value是GetValueFromBuffer(srcBuffer, srcByteIndex, srcType, true, Unordered)
+       ii. 执行SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true,
+           Unordered)
+      iii. 置srcByteIndex是srcByteIndex + srcElementSize
+       iv. 置targetByteIndex是targetByteIndex + targetElementSize
 ***** SetTypedArrayFromArrayLike ( target, targetOffset, source )
+抽象操作SetTypedArrayFromArrayLike接受参数target（TypedArray对象）、targetOffset（
+非负整数或者+∞）、和source（不是TypedArray对象的ECMAScript语言值）。从source读
+取值，于target的targetOffset开始写入值。被调用时执行下列步骤：
+1. Assert：source任何没有\[\[TypedArrayName]]内部占位的ECMAScript语言值。
+2. 让targetBuffer是target.\[\[ViewedArrayBuffer]]
+3. 如果IsDetachedBuffer(targetBuffer)是true，投掷TypeError异常
+4. 让targetLength是target.\[\[ArrayLength]]
+5. 让targetName是target.\[\[TypedArrayName]]的String值
+6. 让targetElementSize是表60中targetName对应的元素大小
+7. 让targetType是表60中targetName对应的元素类型
+8. 让targetByteOffset是target.\[\[ByteOffset]]
+9. 让src是?ToObject(source)
+10. 让srcLength是?LengthOfArrayLike(src)
+11. 如果targetOffset是+∞，投掷RangeError异常
+12. 如果srcLength + targetOffset > targetLength，投掷RangeError异常
+13. 让targetByteIndex是targetOffset * targetElementSize + targetByteOffset
+14. 让k是0
+15. 让limit是targetByteIndex + targetElementSize * srcLength
+16. 重复，当targetByteIndex < limit时
+    a. 让Pk是!ToString(F(k))
+    b. 让value是?Get(src, Pk)
+    c. 如果target.\[\[ContentType]]是BigInt，置value是?ToBigInt(value)
+    d. 否则，置value是?ToNumber(value)
+    e. 如果IsDetachedBuffer(targetBuffer)是true，投掷TypeError异常
+    f. 执行SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true,
+       Unordered)
+    g. 置k是k+1
+    h. 置targetByteIndex是targetByteIndex + targetElementSize
 **** %TypedArray%.prototype.slice ( start, end )
+%TypedArray%.prototype.slice的解释和用途与定义在23.1.3.25的
+Array.prototype.slice相同。
+
+执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 让relativeStart是?ToIntegerOrInfinity(start)
+5. 如果relativeStart是-∞，让k是0
+6. 否则如果relativeStart < 0，让k是max(len + relativeStart, 0)
+7. 否则，让k是min(relativeStart, len)
+8. 如果end是undefined，让relativeEnd是len；否则，让relativeEnd
+   是?ToIntegerOrInfinity(end)
+9. 如果relativeEnd是-∞，让final是0
+10. 否则如果relativeEnd < 0，让final是max(len + relativeEnd, 0)
+11. 否则，让final是min(relativeEnd, len)
+12. 让count是max(final - k, 0)
+13. 让A是?TypedArraySpeciesCreate(O, << F(count) >>)
+14. 如果count > 0，那么
+    a. 如果IsDetachedBuffer(targetBuffer)是true，投掷TypeError异常
+    b. 让srcName是O.\[\[TypedArrayName]]的String值
+    c. 让srcType是表60中srcName对应的元素类型
+    d. 让targetName是A.\[\[TypedArrayName]]的String值
+    e. 让targetType是表60中targetName对应的元素类型
+    f. 如果srcType与targetType不同，那么
+        i. 让n是0
+       ii. 重复，当k<final时
+            1. 让Pk是!ToString(F(k))
+            2. 让value是?Get(src, Pk)
+            3. 执行!Set(A, !ToString(F(n)), kValue, true)
+            4. 置k是k+1
+            5. 置n是n+1
+    g. 否则
+        i. 让srcBuffer是O.\[\[ViewedArrayBuffer]]
+       ii. 让targetBuffer是target.\[\[ViewedArrayBuffer]]
+      iii. 让elementSize是表60中srcType对应的元素大小
+       iv. 注意：如果srcType和targetType相同，转录行为以必须保留源数据字
+           节层编码的方式执行。
+        v. 让srcByteOffset是O.\[\[ByteOffset]]
+       vi. 让targetByteIndex是A.\[\[ByteOffset]]
+      vii. 让srcByteIndex是k * elementSize + srcByteOffset
+     viii. 让limit是targetByteIndex  + count * elementSize
+       ix. 重复
+            1. 让value是GetValueFromBuffer(srcBuffer, srcByteIndex, Uint8, true,
+               Unordered)
+            2. 执行SetValueInBuffer(targetBuffer, targetByteIndex, Uint8, value, true,
+               Unordered)
+            3. 置srcByteIndex是srcByteIndex + 1
+            4. 置targetByteIndex是targetByteIndex + 1
+    b. 让kPresent是?HasProperty(O, Pk)
+    c. 如果kPresent是true，那么
+        i. 让kValue是?Get(O, Pk)
+       ii. 执行?CreateDataPropertyOrThrow(O, !ToString(F(n)), kValue)
+    d. 置k是k+1
+    e. 置n是n+1
+15. 返回A
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.some ( callbackfn [ , thisArg ] )
+%TypedArray%.prototype.some的解释和用途与定义在23.1.3.26的
+Array.prototype.some相同。
+
+当some被带一个或两个参数调用时，执行下列步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 让len是O.\[\[ArrayLength]]
+4. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+5. 让k是0
+6. 重复，当k < len时，
+   a. 让Pk是!ToString(F(k))
+   b. 让kValue是?Get(O, Pk)
+   c. 让testResult是!ToBoolean(?Call(callbackfn, thisArg, << kValue, F(k), O >>))
+   d. 如果testResult是true，返回true
+   e. 置k是k+1
+7. 返回false
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.sort ( comparefn )
+%TypedArray%.prototype.sort是不同的函数，但是除了下方的描述，实现与定义在
+23.1.3.27的Array.prototype.sort有相同的要求。%TypedArray%.prototype.sort规范的实现
+可以根据this值是有固定长度的、整数索引不稀疏的对象来进行优化。
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
+
+在条目上，随后步骤用于执行初始化sort函数的评估。这步骤用于替代23.1.3.27中的
+1-3步骤：
+1. 如果comparefn不是undefined，且IsCallable(comparefn)是false，投掷TypeError异常
+2. 让obj是this值
+3. 让buffer是?ValidateTypedArray(obj)
+4. 让len是obj.\[\[ArrayLength]]
+
+随后版本的SortCompare用于%TypedArray%.prototype.sort。使用数值比较而不是23.1.3.27
+中的字符串比较
+
+抽象操作TypedArraySortCompare接受参数x和y。还会访问当前调用sort方法时传入的
+comparefn参数和调用的buffer值。被调用时执行下列步骤：
+1. Assert：Type(x)和Type(y)都是Number或者都是BigInt
+2. 如果comparefn不是undefined，那么
+    a. 让v是?ToNumber(?Call(comparefn, undefined, << x, y >>))
+    b. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常。
+    b. 如果v是NaN，返回+0_F
+    c. 返回v
+3. 如果x和y都是NaN，返回+0_F
+4. 如果x是NaN，返回1_F
+5. 如果y是NaN，返回-1_F
+6. 如果x < y，返回-1_F
+7. 如果y < x，返回1_F
+8. 如果x是-0_F而y是+0_F，返回-1_F
+9. 如果x是+0_F而y是-0_F，返回1_F
+10. 返回 +0_F
+***** 注意 因为NaN总是大于其他值，在没有提供comparefn时，NaN的性质值总是排在
+            结果的末端。
 **** %TypedArray%.prototype.subarray ( begin, end )
+返回新的TypedArray，元素类型与this的元素类型相同，而且ArrayBuffer与this的
+ArrayBuffer相同，引用了this上[begin,end)内的元素。begin或者end是负数时，指的
+是从数组的末端开始的索引，而不从开始位置的索引。
+
+1. 让O是this值
+2. 执行?RequireInternalSlot(O, \[\[TypedArrayName]])
+3. Assert：O有\[\[ViewedArrayBuffer]]内部占位
+4. 让buffer是O.\[\[ViewedArrayBuffer]]
+5. 让srcLength是O.\[\[ArrayLength]]
+6. 让relativeBegin是?ToIntegerOrInfinity(begin)
+7. 如果relativeBegin是-∞，让beginIndex是0
+8. 否则，如果relativeBegin < 0，让beginIndex是max(srcLength + relativeBegin, 0)
+9. 否则，让beginIndex是min(relativeBegin, srcLength)
+10. 如果end是undefined，让relativeEnd是len；否则，让relativeEnd
+    是?ToIntegerOrInfinity(end)
+11. 如果relativeEnd是-∞，让endIndex是0
+12. 否则如果relativeEnd < 0，让endIndex是max(srcLength + relativeEnd, 0)
+13. 否则，让endIndex是min(relativeEnd, srcLengt)
+14. 让newLength是max(endIndex - beginIndex)
+15. 让constructorName是O.\[\[TypedArrayName]]的String值
+16. 让elementSize是表60中constructorName对应的元素大小
+17. 让srcByteOffset是O.\[\[ByteOffset]]
+18. 让beginByteOffset是srcByteOffset + beginIndex * elementSize
+19. 让argumentsList是<< buffer, F(beginByteOffset), F(newLength) >>
+20. 返回?TypedArraySpeciesCreate(O, argumentsList)
+
+本方法不是泛型的。this值必须是对象，并且有\[\[TypedArrayName]]内部占位。
 **** %TypedArray%.prototype.toLocaleString ( [ reserved1 [ , reserved2 ] ] )
+%TypedArray%.prototype.toLocaleString是不同的函数，但是除了使用this值的
+\[\[ArrayLength]]内部占位替换了"length"性质上调用\[\[Get]]，实现了定义
+在23.1.3.29的Array.prototype.toLocaleString的相同算法。
+%TypedArray%.prototype.toLocaleString规范的实现可以根据this值是有固定长
+度的、整数索引不稀疏的对象来进行优化。但是这些优化必能引入与本算法规定
+可见的不同行为。
+
+本方法不是泛型的。评估本算法前，会对this值应用ValidateTypedArray。如果是意外
+完结，就投掷异常，不再继续评估算法。
+***** 注意 包含ECMA-402国际API的ECMAScript实现必须按照ECMA-402规范的规定来实现
+            Array.prototype.toLocaleString方法。
 **** %TypedArray%.prototype.toString ( )
+%TypedArray%.prototype.toString数据性质的初始值是与定义在23.1.3.30的
+Array.prototype.toString相同的内建函数对象。
 **** %TypedArray%.prototype.values ( )
+执行如下步骤：
+1. 让O是this值
+2. 执行?ValidateTypedArray(O)
+3. 返回CreateArrayIterator(O, value)
 **** %TypedArray%.prototype [ @@iterator ] ( )
+@@iterator性质的初始值是与定义在%TypedArray%.prototype.values性质的初始值相同
+的内建函数对象。
 **** get %TypedArray%.prototype [ @@toStringTag ]
+%TypedArray%.prototype[@@toStringTag]是访问性质，其set访问函数是undefined。这个
+get访问函数被调用时执行下列步骤：
+1. 让O是this值
+2. 如果Type(O)不是Object，返回undefined
+3. 如果O没有\[\[TypedArrayName]]内部占位，返回undefined
+4. 让name是O.\[\[TypedArrayName]]
+5. Assert：Type(name)是String
+6. 返回name
+
+此性质有属性{\[\[Enumerable]]:false, \[\[Configurable]]:true}
+
+此函数的"name"性质的初始值是"get[Symbol.toStringTag]"
 *** Abstract Operations for TypedArray Objects
 **** TypedArraySpeciesCreate ( exemplar, argumentList )
+抽象操作TypedArraySpeciesCreate接受参数exemplar和argumentList。用于规范使用从
+exemplar派生出的构造范函数创建新的TypedArray对象过程。被调用时执行如下步骤：
+1. Assert：exemplar是有\[\[TypedArrayName]]和\[\[ContentType]]内部占位的对象。
+2. 让defaultConstructor是exemplar.\[\[TypedArrayName]]按照表60对应在第一列的内置
+   对象。
+3. 让constructor是?SpeciesConstructor(exemplar, defaultConstructor)
+4. 让result是?TypedArrayCreate(constructor, argumentList)
+5. Assert：result有\[\[TypedArrayName]]和\[\[ContentType]]内部占位
+6. 让result.\[\[ContentType]] != exemplar.\[\[ContentType]]，投掷TypeError异常
+7. 返回result
 **** TypedArrayCreate ( constructor, argumentList )
+抽象操作TypedArrayCreate接受参数exemplar和argumentList。用于规范使用从
+constructor创建新的TypedArray对象过程。被调用时执行如下步骤：
+1. 让newTypedArray是?Constructor(constructor, argumentList)
+2. 执行?ValidateTypedArray(newTypedArray)
+3. 如果argumentList是只有一个Number值的列表，那么
+    a. 如果newTypedArray.\[\[ArrayLength]] < R(arugmentList[0])，投掷TypeError异常。
+4. 返回newTypedArray
 **** ValidateTypedArray ( O )
+抽象操作ValidateTypedArray接受参数O。被调用时执行下列步骤：
+1. 执行?RequireInternalSlot(O, \[\[TypedArrayName]])
+2. Assert：O有\[\[ViewedArrayBuffer]]内部占位
+3. 让buffer是O.\[\[ViewedArrayBuffer]]
+4. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+5. 返回buffer
 *** The TypedArray Constructors
+每个TypedArray构造范：
+. 是有下列描述的结构的内置对象，不同的是根据表60用不同的构造范名。
+. 是根据参数数量和类型不同有不同行为的函数。调用TypedArray时的具体行为依赖
+  传入的参数数量和类型。
+. 不试图作为函数，以此种方式调用时会投掷异常。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承TypedArray的行为，必须含有super调用，以使用TypedArray构造范创建和
+  初始化带有%TypedArray%.prototype内建方法的TypedArray子类实例。
+. "length"性质是1_F
 **** TypedArray ( ...args )
+每个TypedArray构造范被调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常
+2. 让construct
 ***** AllocateTypedArray ( constructorName, newTarget, defaultProto [ , length ] )
 ***** InitializeTypedArrayFromTypedArray ( O, srcArray )
 ***** InitializeTypedArrayFromArrayBuffer ( O, buffer, byteOffset, length )
