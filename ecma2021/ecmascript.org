@@ -22884,20 +22884,193 @@ constructor创建新的TypedArray对象过程。被调用时执行如下步骤�
 **** TypedArray ( ...args )
 每个TypedArray构造范被调用时，执行下列步骤：
 1. 如果NewTarget是undefined，投掷TypeError异常
-2. 让construct
+2. 让constructorName是this TypedArray构造范按照表60规定的Constructor名称的String。
+3. 让proto是"%TypedArray.prototype%"
+4. 让numberOfArgs是args的元素数量
+5. 如果numberOfArgs==0，那么
+    a. 返回?AllocateTypedArray(constructorName, NewTarget, proto, 0)
+6. 否则
+    a. 让firstArgument是args[0]
+    b. 如果Type(firstArgument)是Object，那么
+        i. 让O是?AllocateTypedArray(constructorName, NewTarget, proto)
+       ii. 如果firstArgument有\[\[TypedArrayName]]内部占位，那么
+            1. 执行?InitializeTypedArrayFromTypedArray(O, firstArgument)
+      iii. 否则，如果firstArgument有\[\[ArrayBufferData]]内部占位，那么
+            1. 如果numberOfArg > 1，让byteOffset是args[1]，否则让byteOffset是
+               undefined
+            2. 如果numberOfArg > 2，让lenth是args[2]，否则让length是undefined
+            3. 执行?InitializeTypedArrayFromArrayBuffer(O, firstArgument,
+               byteOffset, length)
+       iv. 否则，
+            1. Assert：Type(firstArgument)是Object，而且firstArgument没有
+               \[\[TypedArrayName]]和\[\[ArrayBufferData]]内部占位
+            2. 让usingIterator是?GetMethod(firstArgument, @@iterator)
+            3. 如果usingIterator不是undefined，那么
+                a. 让values是?IterableToList(firstArgument, usingIterator)
+                b. 执行?InitializeTypedArrayFromList(O, values)
+            4. 否则
+                a. 注意：firstArgument不是可遍历的，所以假定是类似数组的对象。
+                b. 执行?InitializeTypedArrayFromArrayLike(O, firstArgument)
+        v. 返回O
+    c. 否则，
+        i. Assert: firstArgument不是对象
+       ii. 让elementLength是?ToIndex(firstArgument)
+      iii. 返回?AllocateTypedArray(constructorName, NewTarget, proto, elementLength)
 ***** AllocateTypedArray ( constructorName, newTarget, defaultProto [ , length ] )
+抽象操作AllocateTypedArray接受参数constructorName（表60中TypedArray构造范的String
+值）、newTarget、defaultProto、和可选参数length（非负整数）。用于检查和创建
+TypedArray构造范的实例。如果传递了length参数，length长度的ArrayBuffer同时被分配
+和联结到新的TypedArray实例上。AllocateTypedArray为TypedArray提供一般予以。被调用
+时执行如下步骤：
+1. 让proto是?GetPrototypeFromConstructor(newTarget, defaultProto)
+2. 让obj是!IntegerIndexedObjectCreate(proto)
+3. Assert：obj.\[\[ViewedArrayBuffer]]是undefined
+4. 置obj.\[\[TypedArrayName]]是constructorName
+5. 如果constructorName是"BigInt64Array"或者"BigUint64Array"，置obj.\[\[ContentType]]
+   是BigInt
+6. 否则，置obj.\[\[ContentType]]是Number
+7. 如果length不存在，那么
+    a. 置obj.\[\[ByteLength]]是0
+    b. 置obj.\[\[ByteOffset]]是0
+    c. 置obj.\[\[ArrayLength]]是0
+8. 否则
+    a. 执行?AllocateTypedArrayBuffer(obj, length)
+9. 返回 obj
 ***** InitializeTypedArrayFromTypedArray ( O, srcArray )
+抽象操作InitializeTypedArrayFromTypedArray接受参数O（TypedArray对象）和srcArray（
+TypedArray对象）被调用时执行如下步骤：
+1. Assert：O是有\[\[TypedArrayName]]内部占位的对象
+2. Assert：srcArray有\[\[TypedArrayName]]内部占位的对象
+3. 让srcData是srcArray.\[\[ViewedArrayBuffer]]
+4. 如果IsDetachedBuffer(srcData)是true，投掷TypeError异常
+5. 让constructorName是O.\[\[TypedArrayName]]的String值
+6. 让elementType是表60中constructorName对应的元素类型
+7. 让elementLength是srcArray.\[\[ArrayLength]]
+8. 让srcName是srcArray.\[\[TypedArrayName]]的String值
+9. 让srcType是表60中srcName对应的元素类型
+10. 让srcElementSize是表60中srcName对应的元素大小
+11. 让srcByteOffset是source.\[\[ByteOffset]]
+12. 让elementSize是表60中constructorName对应的元素大小
+13. 让byteLength是elementSize * elementLength
+14. 如果IsSharedArrayBuffer(srcData)是false，那么
+    a. 让bufferConstructor是?SpeciesConstructor(srcData, %ArrayBuffer%)
+15. 否则
+    a. 让bufferConstructor是%ArrayBuffer%
+16. 如果elementType与srcType相同，那么
+    a. 让data是?CloneArrayBuffer(srcData, srcByteOffset, byteLength, bufferConstructor)
+17. 否则
+    a. 让data是?AllocateArrayBuffer(bufferConstructor, byteLength)
+    b. 如果IsDetachedBuffer(srcData)是true，投掷TypeError异常
+    c. 如果srcArray.\[\[ContentType]] != O.\[\[ContentType]]，投掷TypeError异常
+    d. 让srcByteIndex是srcByteOffset
+    e. 让targetByteIndex是0
+    f. 让count是elementLength
+    g. 重复，当count > 0时，
+        i. 让value时GetValueFromBuffer(srcData, srcByteIndex, srcType, true, Unordered)
+       ii. 执行SetValueInBuffer(data, targetByteIndex, elementType, value, true, Unordered)
+      iii. 置srcByteIndex是srcByteIndex + srcElementSize
+       iv. 置targetByteIndex是targetByteIndex + elementSize
+        v. 置count是count - 1
+18. 置O.\[\[ViewedArrayBuffer]]是data
+19. 置O.\[\[ByteLength]]是byteLength
+20. 置O.\[\[ByteOffset]]是0
+21. 置O.\[\[ArrayLength]]是elementLength
 ***** InitializeTypedArrayFromArrayBuffer ( O, buffer, byteOffset, length )
+抽象操作InitializeTypedArrayFromArrayBuffer接受参数O（TypedArray对象）、buffer（
+ArrayBuffer对象）、byteOffset（ECMAScript语言值）、和length（ECMAScript语言置）。
+被调用时执行如下步骤：
+1. Assert：O是有\[\[TypedArrayName]]内部占位的对象
+2. Assert：buffer有\[\[ArrayBufferData]]内部占位的对象
+3. 让constructorName是O.\[\[TypedArrayName]]的String值
+4. 让elementSize是表60中constructorName对应的元素大小
+5. 让offset是?ToIndex(byteOffset)
+6. 如果offset不是elementSize的倍数，投掷RangeError异常
+7. 如果length不是undefined，那么
+    a. 让newLength是?ToIndex(length)
+8. 如果IsDetachedBuffer(srcData)是true，投掷TypeError异常
+9. 让bufferByteLength是buffer.\[\[ArrayBufferByteLength]]
+10. 如果length是undefined，那么
+    a. 如果bufferByteLength不是elementSize的倍数，投掷RangeError异常
+    b. 让newByteLength是bufferByteLength - offset
+    c. 如果newByteLength < 0, 投掷RangeError异常
+11. 否则
+    a. 让newByteLength是newLength * elementSize
+    b. 如果offset + newByteLength > bufferByteLength，投掷RangeError异常
+12. 置O.\[\[ViewdArrayBuffer]]是buffer
+13. 置O.\[\[ByteLength]]是newByteLength
+14. 置O.\[\[ByteOffset]]是offset
+15. 置O.\[\[ArrayLength]]是newByteLength / elementSize
 ***** InitializeTypedArrayFromList ( O, values )
+抽象操作InitializeTypedArrayFromList接受参数O（TypedArray对象）和values（
+ECMAScript语言值组成的类表）。被调用时执行如下步骤：
+1. Assert：O是有\[\[TypedArrayName]]内部占位的对象
+2. 让len是values的元素数量
+3. 执行?AllocateTypedArrayBuffer(O, len)
+4. 让k是0
+5. 重复，当k < len时，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是values的第一个元素，并将其从values中移除。
+    c. 执行?Set(O, Pk, kValue, true)
+    d. 置k是k + 1
+6. Assert: values现在是空列表。
 ***** InitializeTypedArrayFromArrayLike ( O, arrayLike )
+抽象操作InitializeTypedArrayFromArrayLike接受参数O（TypedArray对象）和arrayLike（
+不是TypedArray和ArrayBuffer的对象）。被调用时执行如下步骤：
+1. Assert：O是有\[\[TypedArrayName]]内部占位的对象
+2. 让len是?LengthOfArrayLike(arrayLike)
+3. 执行?AllocateTypedArrayBuffer(O, len)
+4. 让k是0
+5. 重复，当k < len时，
+    a. 让Pk是!ToString(F(k))
+    b. 让kValue是?Get(arrayLike, Pk)
+    c. 执行?Set(O, Pk, kValue, true)
+    d. 置k是k + 1
 ***** AllocateTypedArrayBuffer ( O, length )
+抽象操作AllocateTypedArrayBuffer接受参数O（TypedArray对象）和length（非负整
+数）。被调用时执行如下步骤：
+1. Assert：O是有\[\[ViewedArrayBuffer]]内部占位的对象
+2. Assert：O.\[\[ViewedArrayBufffer]]是undefined
+3. 让constructorName是O.\[\[TypedArrayName]]的String值
+4. 让elementSize是表60中constructorName对应的元素小
+5. 让byteLength是elementSize * elementLength
+6. 让data是?AllocateArrayBuffer(%ArrayBuffer%, byteLength)
+7. 置O.\[\[ViewedArrayBuffer]]是data
+8. 置O.\[\[ByteLength]]是byteLength
+9. 置O.\[\[ByteOffset]]是0
+10. 置O.\[\[ArrayLength]]是elementLength
+11. 返回O
 *** Properties of the TypedArray Constructors
+每个TypedArray构造范：
+. 有\[\[Prototype]]内部占位，值是%TypedArray%
+. 有"name"性质，值是表60中构造范名称的String值
+. 有如下性质：
 **** TypedArray.BYTES_PER_ELEMENT
+TypedArray.BYTES_PER_ELEMENT是表60中规定TypedArray的元素大小。
+
+此性质有属性{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** TypedArray.prototype
+TypedArray.prototype的初始值与TypedArray原型内置对象（23.2.7）一致。
+
+此性质有属性{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 *** Properties of the TypedArray Prototype Objects
+每个TypedArray原型对象：
+. 有\[\[Prototype]]内部，值是%TypeArray.prototype%
+. 是基本对象
+. 没有\[\[ViewedArrayBuffer]]或者其他规定给TypedArray实例的内部占位
 **** TypedArray.prototype.BYTES_PER_ELEMENT
+TypedArray.prototype.BYTES_PER_ELEMENT是表60中规定TypedArray的元素大小。
+
+此性质有属性{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false, }
 **** TypedArray.prototype.constructor
+TypedArray.prototype.constructor的初始值与%TypedArray%内置对象一致。
 *** Properties of TypedArray Instances
+TypedArray是整数索引的奇异对象。每个TypedArray实例继承了对应TypedArray原型对象
+上的性质。每个TypedArray实例都有随后的内部占位：
+\[\[TypedArrayName]]、\[\[ViewedArrayBuffer]]、\[\[ByteLength]]、\[\[ByteOffset]]、
+和\[\[ArrayLength]]
 * Keyed Collections 689-708
 * Structured Data 708-743
 * Managing Memory 743-748
