@@ -23072,6 +23072,83 @@ TypedArray是整数索引的奇异对象。每个TypedArray实例继承了对应
 \[\[TypedArrayName]]、\[\[ViewedArrayBuffer]]、\[\[ByteLength]]、\[\[ByteOffset]]、
 和\[\[ArrayLength]]
 * Keyed Collections 689-708
+** Map Objects
+*** The Map Constructor
+**** Map ( [ iterable ] )
+**** AddEntriesFromIterable ( target, iterable, adder )
+*** Properties of the Map Constructor
+**** Map.prototype
+**** get Map [ @@species ]
+*** Properties of the Map Prototype Object
+**** Map.prototype.clear ( )
+**** Map.prototype.constructor
+**** Map.prototype.delete ( key )
+**** Map.prototype.entries ( )
+**** Map.prototype.forEach ( callbackfn [ , thisArg ] )
+**** Map.prototype.get ( key )
+**** Map.prototype.has ( key )
+**** Map.prototype.keys ( )
+**** Map.prototype.set ( key, value )
+**** get Map.prototype.size
+**** Map.prototype.values ( )
+**** Map.prototype [ @@iterator ] ( )
+**** Map.prototype [ @@toStringTag ]
+*** Properties of Map Instances
+*** Map Iterator Objects
+**** CreateMapIterator ( map, kind )
+**** The %MapIteratorPrototype% Object
+***** %MapIteratorPrototype%.next ( )
+***** %MapIteratorPrototype% [ @@toStringTag ]
+** Set Objects
+*** The Set Constructor
+**** Set ( [ iterable ] )
+*** Properties of the Set Constructor
+**** Set.prototype
+**** get Set [ @@species ]
+*** Properties of the Set Prototype Object
+**** Set.prototype.add ( value )
+**** Set.prototype.clear ( )
+**** Set.prototype.constructor
+**** Set.prototype.delete ( value )
+**** Set.prototype.entries ( )
+**** Set.prototype.forEach ( callbackfn [ , thisArg ] )
+**** Set.prototype.has ( value )
+**** Set.prototype.keys ( )
+**** get Set.prototype.size
+**** Set.prototype.values ( )
+**** Set.prototype [ @@iterator ] ( )
+**** Set.prototype [ @@toStringTag ]
+*** Properties of Set Instances
+*** Set Iterator Objects
+**** CreateSetIterator ( set, kind )
+**** The %SetIteratorPrototype% Object
+***** %SetIteratorPrototype%.next ( )
+***** %SetIteratorPrototype% [ @@toStringTag ]
+** WeakMap Objects
+*** The WeakMap Constructor
+**** WeakMap ( [ iterable ] )
+*** Properties of the WeakMap Constructor
+**** WeakMap.prototype
+*** Properties of the WeakMap Prototype Object
+**** WeakMap.prototype.constructor
+**** WeakMap.prototype.delete ( key )
+**** WeakMap.prototype.get ( key )
+**** WeakMap.prototype.has ( key )
+**** WeakMap.prototype.set ( key, value )
+**** WeakMap.prototype [ @@toStringTag ]
+*** Properties of WeakMap Instances
+** WeakSet Objects
+*** The WeakSet Constructor
+**** WeakSet ( [ iterable ] )
+*** Properties of the WeakSet Constructor
+**** WeakSet.prototype
+*** Properties of the WeakSet Prototype Object
+**** WeakSet.prototype.add ( value )
+**** WeakSet.prototype.constructor
+**** WeakSet.prototype.delete ( value )
+**** WeakSet.prototype.has ( value )
+**** WeakSet.prototype [ @@toStringTag ]
+*** Properties of WeakSet Instances
 * Structured Data 708-743
 * Managing Memory 743-748
 * Control Abstraction Objects 748-794
