@@ -21284,9 +21284,9 @@ find方法接受一或二个参数，predicate和thisArg
 5. 执行?FlattenIntoArray(A, O, sourceLen, 0, 1, mapperFunction, thisArg)
 6. 返回A
 **** Array.prototype.forEach ( callbackfn [ , thisArg ] )
-***** 注意1 callbackfn应当是接受三个参数，并返回能够强制转换为Boolean的值的
-             函数。forEach按照升序给数组里存在元素上调用一次callbackfn，只有
-             当元素确实存在时，才会调用callbackfn；不会应用到缺失元素上。
+***** 注意1 callbackfn应当是接受三个参数的函数。forEach按照升序给数组里
+             存在元素上调用一次callbackfn，只有当元素确实存在时，才会调
+             用callbackfn；不会应用到缺失元素上。
 
              如果提供了thisArg，会被当作调用callbackfn的this值。如果没有提供，
              使用undefined。
@@ -21999,18 +21999,18 @@ Array实例的"length"性质是数据性质，其值总是在数字上大于任�
 ArrayIterator对象表述某个数组实例对象上的规定遍历器。不具有有命名的构造范。
 ArrayIteratorObject通过Array实例对象上的某些方法创建。
 **** CreateArrayIterator ( array, kind )
-抽象操作CreateArrayIterator接受参数array和kind。为返回ArrayIterator的Array方法
+抽象操作CreateArrayIterator接受参数array和kind。为返回ArrayIterator的Array上方法
 创建遍历器对象。被调用时执行下列步骤：
 1. Assert：Type(array)是Object
 2. Assert：kind是key+value、key或者value
-3. 让closure是新的AbstractClosure，捕获kind和array，被调用时执行如下步骤：
+3. 让closure是新的AbstractClosure，捕获array和kind，被调用时执行如下步骤：
     a. 让index是0
     b. 重复
         i. 如果array有\[\[TypedArrayName]]内部占位，那么
             1. 如果IsDetachedBuffer(array.\[\[ViewedArrayBuffer]])是true，投掷
                TypeError异常
             2. 让len是array.\[\[ArrayLength]]
-       ii.
+       ii. 否则
             1. 让len是?LengthOfArrayLike(array)
       iii. 如果index >= len，返回undefined
        iv. 如果kind是key，执行?Yield(F(index))
@@ -23072,7 +23072,7 @@ TypedArray是整数索引的奇异对象。每个TypedArray实例继承了对应
 \[\[TypedArrayName]]、\[\[ViewedArrayBuffer]]、\[\[ByteLength]]、\[\[ByteOffset]]、
 和\[\[ArrayLength]]
 * Keyed Collections 有键的库藏
-** Map Objects 689-708
+** Map Objects
 Map对象是键/值对的库藏，其键和值都是任意ECMAScript语言值。在Map的库藏里不同
 的键值只有一个对应的键/值对存在。使用SameValueZero算法确定键值的不同。
 
@@ -23091,80 +23091,630 @@ Map构造范：
 **** Map ( [ iterable ] )
 当Map被带可选参数iterable调用时，执行下列步骤：
 1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 让map是?OrdinaryCreateFromConstructor(NewTarget, %Map.prototype%,
+   << \[\[MapData]] >>)
+3. 置map.\[\[MapData]]是新的空列表
+4. 如果iterable是undefined或者null，返回map
+5. 让adder是?Get(map, "set")
+6. 返回?AddEntriesFromIterable(map, iterable, adder)
+***** 注意 如果参数iterable存在，期望是实现了@@iterator方法的对象。这个方法
+            返回的遍历器产生一个像数组的有两个元素的对象，第一个元素作为Map
+            的键，第二个元素作为这个键联结的值。
 **** AddEntriesFromIterable ( target, iterable, adder )
+抽象操作AddEntriesFromIterable接受参数target、iterable、和adder（函数对象）。
+adder会被调用，带着target作为接收方。被调用时执行下列步骤：
+1. 如果IsCallable(adder)是false，投掷TypeError异常
+2. Assert：iterable存在，且不是undefined和null
+3. 让iteratorRecord是?GetIterator(iterable)
+4. 重复：
+    a. 让next是?IteratorStep(iteratorRecord)
+    b. 如果next是false，返回target
+    c. 让nextItem是?IteratorValue(next)
+    d. 如果Type(nextItem)不是对象，那么
+        i. 让error是ThrowCompletion（新建的TypeError对象）
+       ii. 返回?IteratorClose(iteratorRecord, error)
+    e. 让k是Get(nextIterm, "0")
+    f. 如果k是意外完结，返回?IteratorClose(iteratorRecord, k)
+    g. 让v是Get(nextItem, "1")
+    h. 如果c是意外完结，返回?IteratorClose(iteratorRecord, v)
+    i. 让status是Call(adder, target, << k.\[\[Value]], v.\[\[Value]] >>)
+    j. 如果status是意外完结，返回?IteratorClose(iteratorRecord, status)
+***** 注意 如果参数iterable存在，期望是实现了@@iterator方法的对象。这个方法
+            返回的遍历器产生一个像数组的有两个元素的对象，第一个元素作为Map
+            的键，第二个元素作为这个键联结的值。
 *** Properties of the Map Constructor
+Map构造范
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
 **** Map.prototype
+Map.prototype的初始值是Map原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 **** get Map [ @@species ]
+Map[@@species]是访问性质，对应的set访问函数是undefined。它的get访问函数被
+调用时，执行如下步骤：
+1. 返回this值
+
+本函数的"name"性质是"get[Symbol.species]"
+***** 注意 创建派生的库藏对象的方法应当调用@@species来确定创建派生对象的
+            构造范。子类的构造范会重写@@species来修改默认的构造范赋值。
 *** Properties of the Map Prototype Object
+Map原型对象
+. 是%Map.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[MapData]]内部占位
 **** Map.prototype.clear ( )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[MapData]])
+3. 让entries是M.\[\[MapData]]列表
+4. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 置p.\[\[Key]]是空
+    b. 置p.\[\[Value]]是空
+5. 返回undefined
+***** 注意 已有的\[\[MapData]]列表被保留了，因为可能已有MapIterator对象在遍历
+            这个列表的中途挂起了。
 **** Map.prototype.constructor
+Map.prototype.constructor的初始值是%Map%
 **** Map.prototype.delete ( key )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[MapData]])
+3. 让entries是M.\[\[MapData]]列表
+4. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，而且SameValueZero(p.\[\[Key]], key)是true，那么
+        i. 置p.\[\[Key]]是空
+       ii. 置p.\[\[Value]]是空
+      iii. 返回true
+5. 返回false
+***** 注意 空值用作指明条目被删除的标准方法。实际实现可能采用其他动作，
+            比如从数据结构里物理移除条目。
 **** Map.prototype.entries ( )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 返回?CreateMapIterator(M, key+value)
 **** Map.prototype.forEach ( callbackfn [ , thisArg ] )
+当forEach带被带一个或者两个参数调用时，执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[MapData]])
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让entries是M.\[\[MapData]]列表
+5. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作e，作
+    a. 如果e.\[\[Key]]不是空，那么
+        i. 执行?Call(callbackfn, thisArg, << e.\[\[Value]], e.\[\[Key]], M >> )
+6. 返回undefined
+***** 注意 callbackfn应当是接受三个参数的函数。forEach按照升序给数组里存在
+             的键/值对上调用一次callbackfn，只有当键确实存在时，才会调用
+             callbackfn；不会应用到已经删除的键上。
+
+             如果提供了thisArg，会被当作调用callbackfn的this值。如果没有提供，
+             使用undefined。
+
+             传递给callbackfn三个参数：项的值，项的键和在遍历的Map对象。
+
+             forEach没有直接修改传递给callbackfn的对象，但它可能会被callbackfn
+             修改。map的\[\[MapData]]的每个条目只会被访问一次。在forEach开始
+             调用之后加入的键也会被访问到。在forEach完成前，已经访问过，被
+             删除了，又重新加进来的键会被重新访问到。在forEach开始后，尚未
+             访问的键，如果被删除了，不会被访问到，除非在forEach完成前，又
+             被加了进来。
 **** Map.prototype.get ( key )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[MapData]])
+3. 让entries是M.\[\[MapData]]列表
+4. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，而且SameValueZero(p.\[\[Key]], key)是true，那么
+       返回p.\[\[Value]]
+5. 返回undefined
 **** Map.prototype.has ( key )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[MapData]])
+3. 让entries是M.\[\[MapData]]列表
+4. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，而且SameValueZero(p.\[\[Key]], key)是true，那么
+       返回true
+5. 返回false
 **** Map.prototype.keys ( )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 返回?CreateMapIterator(M, key)
 **** Map.prototype.set ( key, value )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[MapData]])
+3. 让entries是M.\[\[MapData]]列表
+4. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，而且SameValueZero(p.\[\[Key]], key)是true，那么
+        i. 置p.\[\[Value]]是value
+       ii. 返回M
+5. 如果key是-0_F，置key是+0_F
+6. 让p是记录{\[\[Key]], \[\[Value]]}
+7. 附加p到entries的末端
+8. 返回M
 **** get Map.prototype.size
+Map.prototype.size是访问性质，其set访问函数是undefined。这个get访问函数被
+调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[MapData]])
+3. 让entries是M.\[\[MapData]]列表
+4. 让count是0
+5. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，置count是count+1
+6. 返回F(count)
 **** Map.prototype.values ( )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 返回?CreateMapIterator(M, value)
 **** Map.prototype [ @@iterator ] ( )
+@@iterator性质的初始值与"entries"性质的初始值是相同的函数对象。
 **** Map.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"Map"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** Properties of Map Instances
+Map实例继承了Map原型对象上的性质。Map实例有\[\[MapData]]内部占位。
 *** Map Iterator Objects
+MapIterator对象表述某个Map实例对象上的规定遍历器。MapIterator对象不具有有命
+名的构造范。map遍历器对象通过Map实例对象上的某些方法创建。
 **** CreateMapIterator ( map, kind )
+抽象操作CreateMapIterator接受参数map和kind。为返回MapIterator的Map上方法创建
+遍历器对象。被调用时执行下列步骤：
+1. Assert：kind是key+value、key或者value
+2. 执行?RequireInternalSlot(map, \[\[MapData]])
+3. 让closure是新的AbstractClosure，捕获map和kind，被调用时执行如下步骤：
+    a. 让entries是map.\[\[MapData]]列表
+    b. 让index是0
+    c. 让numEntries是entries中元素的数量
+    d. 重复，当index < numEntries时
+        i. 让e是entries[index]处的记录{\[\[Key]], \[\[Value]]}
+       ii. 置index是index + 1
+      iii. 如果e.\[\[Key]]不是空，那么
+            1. 如果kind是key，让result是e.\[\[key]]
+            2. 否则，如果kind是value，让result是e.\[\[value]]
+            3. 否则，
+                a. Assert：kind是key+value
+                b. 让result是!CreateArrayFromList(<< e.\[\[Key]], e.\[\[Value]] >>)
+            4. 执行?Yield(result)
+            5. 注意：entries中元素的数量可能会变化，因为本抽象操作的执行会
+               被Yield暂停。
+            6. 置numEntries是entries的元素数量。
+    e. 返回undefined
+4. 返回!CreateIteratorFromClosure(closure, "%MapIteratorPrototype%",
+   %MapIteratorPrototype%)
 **** The %MapIteratorPrototype% Object
+%MapIteratorPrototype%对象
+. 有被所有MapIterator对象继承的性质
+. 是基本对象
+. 有\[\[Prototype]]内部占位，值是%IteratorPrototype%
+. 有如下性质：
 ***** %MapIteratorPrototype%.next ( )
+1. 返回?GeneratorResume(this值, empty, "%MapIteratorPrototype%")
 ***** %MapIteratorPrototype% [ @@toStringTag ]
+@@toStringTag的初始值是"Map Iterator"
+
+此性质有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true, }
 ** Set Objects
+Set对象ECMAScript语言值的库藏。在Set库藏里不同的值只有一个对应的元素。使用
+SameValueZero算法确定值的不同。
+
+Set对象必须使用hash表的方式实现，或者其他能提供访问时间，平均而言，与库藏
+元素数量是亚线性关系的机制方式实现。用在Set对象规范的数据结构只是用来描述
+Set对象的必须的可见语义，没有试图是一个可用的实现模型。
 *** The Set Constructor
+Set构造范：
+. 是%Set%
+. 是全局对象上"Set"性质的初始值
+. 作为构造范被调用时创建和初始化新的Set对象。
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承Set的特定行为，必须含有super调用，以使用Map构造范创建和初始化拥有支
+  持内建Set.prototype内建方法所必需内部状态的子类实例。
 **** Set ( [ iterable ] )
+当Set被带可选参数iterable调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 让set是?OrdinaryCreateFromConstructor(NewTarget, %Set.prototype%,
+   << \[\[SetData]] >>)
+3. 置set.\[\[SetData]]是新的空列表
+4. 如果iterable是undefined或者null，返回map
+5. 让adder是?Get(set, "add")
+6. 如果IsCallable(adder)是false，投掷TypeError异常
+7. 让iteratorRecord是?GetIterator(iterable)
+8. 重复
+    a. 让next是?IteratorStep(iteratorRecord)
+    b. 如果next是false，返回set
+    c. 让nextValue是?IteratorValue(next)
+    d. 让status是Call(adder, set, << nextValue >>)
+    e. 如果status是意外完结，返回?IteratorClose(iteratorRecord, status)
 *** Properties of the Set Constructor
+Set构造范
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
 **** Set.prototype
+Set.prototype的初始值是Set原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 **** get Set [ @@species ]
+Set[@@species]是访问性质，对应的set访问函数是undefined。它的get访问函数被
+调用时，执行如下步骤：
+1. 返回this值
+
+本函数的"name"性质是"get[Symbol.species]"
+***** 注意 创建派生的库藏对象的方法应当调用@@species来确定创建派生对象的
+            构造范。子类的构造范会重写@@species来修改默认的构造范赋值。
 *** Properties of the Set Prototype Object
+Set原型对象
+. 是%Set.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[SetData]]内部占位
 **** Set.prototype.add ( value )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[SetData]])
+3. 让entries是S.\[\[SetData]]列表
+4. 遍历entries的元素记作e，作
+    a. 如果e不是空，而且SameValueZero(e, value)是true，那么
+        i. 返回S
+5. 如果value是-0_F，置value是+0_F
+6. 附加value到entries的末端
+7. 返回S
 **** Set.prototype.clear ( )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[SetData]])
+3. 让entries是S.\[\[SetData]]列表
+4. 遍历entries的元素记作e，作
+    a. 用empty替换e值对应的元素
+5. 返回undefined
+***** 注意 已有的\[\[SetData]]列表被保留了，因为可能已有MapIterator对象在遍历
+            这个列表的中途挂起了。
 **** Set.prototype.constructor
+Set.prototype.constructor的初始值是%Set%
 **** Set.prototype.delete ( value )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[SetData]])
+3. 让entries是S.\[\[SetData]]列表
+4. 遍历entries的元素记作e，作
+    a. 如果e不是空，而且SameValueZero(e, value)是true，那么
+        i. 用empty替换e值对应的元素
+       ii. 返回true
+5. 返回false
+***** 注意 空值用作指明条目被删除的标准方法。实际实现可能采用其他动作，
+            比如从数据结构里物理移除条目。
 **** Set.prototype.entries ( )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 返回?CreateSetIterator(S, key+value)
+***** 注意 出于遍历的目的，类似Map，Set的每个条目的键和值都是相同的。
 **** Set.prototype.forEach ( callbackfn [ , thisArg ] )
+当forEach带被带一个或者两个参数调用时，执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[SetData]])
+3. 如果IsCallable(callbackfn)是false，投掷TypeError异常
+4. 让entries是M.\[\[SetData]]列表
+5. 遍历entries的元素记作e，作
+    a. 如果e不是空，那么
+        i. 执行?Call(callbackfn, thisArg, << e, e, S >> )
+6. 返回undefined
+***** 注意 callbackfn应当是接受三个参数的函数。forEach按照升序给数组里存在
+             的键/值对上调用一次callbackfn，只有当值确实存在时，才会调用
+             callbackfn；不会应用到已经删除的键上。
+
+             如果提供了thisArg，会被当作调用callbackfn的this值。如果没有提供，
+             使用undefined。
+
+             传递给callbackfn三个参数：前两个参数是Set中的值项的值。相同的值
+             占据两个为值。正在遍历的Set对象作为第三个参数。
+
+             forEach没有直接修改传递给callbackfn的对象，但它可能会被callbackfn
+             修改。
+             每个值只会被访问一次。然而在forEach完成前，已经访问过，被删除
+             了，又重新加进来的值会被重新访问到。在forEach开始后，尚未
+             访问的值，如果被删除了，不会被访问到，除非在forEach完成前，又
+             被加了进来。在forEach开始调用之后加入的键也会被访问到。
 **** Set.prototype.has ( value )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[SetData]])
+3. 让entries是S.\[\[Set]]列表
+4. 遍历entries的元素记作e，作
+    a. 如果e不是空，而且SameValueZero(e, value)是true，那么返回true
+5. 返回false
 **** Set.prototype.keys ( )
+"keys"性质的初始值与"values"性质的初始值是相同的函数对象。
+
+***** 注意 出于遍历的目的，类似Map，Set的每个条目的键和值都是相同的。
 **** get Set.prototype.size
+Map.prototype.size是访问性质，其set访问函数是undefined。这个get访问函数被
+调用时执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[SetData]])
+3. 让entries是S.\[\[SetData]]列表
+4. 让count是0
+5. 遍历entries的元素记作e，作
+    a. 如果e不是空，置count是count+1
+6. 返回F(count)
 **** Set.prototype.values ( )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 返回?CreateSetIterator(S, value)
 **** Set.prototype [ @@iterator ] ( )
+@@iterator性质的初始值与"values"性质的初始值是相同的函数对象。
 **** Set.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"Set"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** Properties of Set Instances
+Set实例继承了Set原型对象上的性质。Set实例有\[\[SetData]]内部占位。
 *** Set Iterator Objects
+SetIterator对象是有下属定义的结构的基本对象，表述某个Set实例对象上的规定
+遍历器。SetIterator对象不具有有命名的构造范。Set遍历器对象通过Set实例对象
+上的某些方法创建。
 **** CreateSetIterator ( set, kind )
+抽象操作CreateSetIterator接受参数Set和kind。为返回SetIterator的Set上方法创建
+遍历器对象。被调用时执行下列步骤：
+1. Assert：kind是key+value、或者value
+2. 执行?RequireInternalSlot(set, \[\[SetData]])
+3. 让closure是新的AbstractClosure，捕获set和kind，被调用时执行如下步骤：
+    a. 让index是0
+    b. 让entries是set.\[\[SetData]]列表
+    c. 让numEntries是entries中元素的数量
+    d. 重复，当index < numEntries时
+        i. 让e是entries[index]
+       ii. 置index是index + 1
+      iii. 如果e不是空，那么
+            1. 如果kind是key+value，那么
+                a. 执行?Yield(!CreateArrayFromLise(<< e, e>>))
+            2. 否则，
+                a. Assert：kind是value
+                b. 执行?Yield(e)
+            3. 注意：entries中元素的数量可能会变化，因为本抽象操作的执行会
+               被Yield暂停。
+            4. 置numEntries是entries的元素数量。
+    e. 返回undefined
+4. 返回!CreateIteratorFromClosure(closure, "%SetIteratorPrototype%",
+   %SetIteratorPrototype%)
 **** The %SetIteratorPrototype% Object
+%SetIteratorPrototype%对象
+. 有被所有SetIterator对象继承的性质
+. 是基本对象
+. 有\[\[Prototype]]内部占位，值是%IteratorPrototype%
+. 有如下性质：
 ***** %SetIteratorPrototype%.next ( )
+1. 返回?GeneratorResume(this值, empty, "%SetIteratorPrototype%")
 ***** %SetIteratorPrototype% [ @@toStringTag ]
+@@toStringTag的初始值是"Set Iterator"
+
+此性质有属性 { \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true, }
 ** WeakMap Objects
+WeakMap对象是键/值对的库藏，键是对象，而值是任意ECMAScript语言值。WeakMap可以
+查询是否某个键对应的键/值对，但是不提供枚举其包含的键的机制。在特定条件
+下，按照9.9.3中的描述，作为WeakMap键的对象，不再活跃时，会被移除。
+
+在WeakMap的键/值对不能访问的时间点，与从WeakMap移除此键/值对的时间点的延迟，
+实现可以采用任意确定的值。如果这个延迟是ECMAScript程序可见的，会成为损害
+程序执行的不确定性的源码。因此，ECMAScript实现不可以提供任何方式来监测
+WeakMap上的键，也就不需要表述被监测键的监测器。
+
+WeakMap对象必须使用hash表的方式实现，或者其他能提供访问时间，平均而言，与
+库藏键/值对数量是亚线性关系的机制方式实现。用在WeakMap对象规范的数据结构只
+是用来描述WeakMap对象必须的可见语义，没有试图是一个可用的实现模型。
+*** 注意 WeakMap和WeakSet试图给动态对象状态提供一种不会“泄漏”内存资源的
+           机制。在缺少WeakMap和WeakSet时，如果对象变得不可访问并准备被实现
+           的垃圾收集机制进行资源回收。这种特性可以使用从弱映射到键的反向
+           映射来达到。也可以每个弱映射内部存储其键到值的映射，但这种方式
+           需要协调WeakMap或者WeakSet实现与垃圾回收器。随后的参考描述了可能
+           有助于实现WeakMap和WeakSet的机制。
+
+           Barry Hayes. 1997. Ephemerons: a new finalization mechanism. In Proceedings
+           of the 12th ACM SIGPLAN conference on Object-oriented programming, systems,
+           languages, and applications (OOPSLA'97), A. Michael Berman (Ed.). ACM, New
+           York, NY, USA, 176-183, http://doi.acm.org/10.1145/263698.263733。
+
+           Alexandra Barros, Roberto Ierusalimschy, Eliminating Cycles in Weak Tables.
+           Journal of Universal Computer Science - J.UCS, vol. 14, no. 21, pp.
+           3481-3497, 2008, http://www.jucs.org/jucs_14_21/eliminating_cycles_in_weak。
+
 *** The WeakMap Constructor
+WeakMap构造范：
+. 是%WeakMap%
+. 是全局对象上"WeakMap"性质的初始值
+. 作为构造范被调用时创建和初始化新的Map对象。
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承WeakMap的特定行为，必须含有super调用，以使用WeakMap构造范创建和初始化
+  拥有支持内建WeakMap.prototype内建方法所必需内部状态的子类实例。
 **** WeakMap ( [ iterable ] )
+当WeakMap被带可选参数iterable调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 让map是?OrdinaryCreateFromConstructor(NewTarget, %WeakMap.prototype%,
+   << \[\[WeakMapData]] >>)
+3. 置map.\[\[WeakMapData]]是新的空列表
+4. 如果iterable是undefined或者null，返回map
+5. 让adder是?Get(WeakMap, "set")
+6. 返回?AddEntriesFromIterable(map, iterable, adder)
+***** 注意 如果参数iterable存在，期望是实现了@@iterator方法的对象。这个方法
+            返回的遍历器产生一个像数组的有两个元素的对象，第一个元素作
+            为WeakMap的键，第二个元素作为这个键联结的值。
 *** Properties of the WeakMap Constructor
+WeakMap构造范
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
 **** WeakMap.prototype
+WeakMap.prototype的初始值是WeakMap原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 *** Properties of the WeakMap Prototype Object
+WeakMap原型对象
+. 是%WeakMap.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[WeakMapData]]内部占位
 **** WeakMap.prototype.constructor
+WeakMap.prototype.constructor的初始值是%WeakMap%
 **** WeakMap.prototype.delete ( key )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[WeakMapData]])
+3. 让entries是M.\[\[WeakMapData]]列表
+4. 如果Type(key)不是Object，返回false
+5. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，而且SameValue(p.\[\[Key]], key)是true，那么
+        i. 置p.\[\[Key]]是空
+       ii. 置p.\[\[Value]]是空
+      iii. 返回true
+6. 返回false
+***** 注意 空值用作指明条目被删除的标准方法。实际实现可能采用其他动作，
+            比如从数据结构里物理移除条目。
 **** WeakMap.prototype.get ( key )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[WeakMapData]])
+3. 让entries是M.\[\[WeakMapData]]列表
+4. 如果Type(key)不是Object，返回undefined
+5. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，而且SameValue(p.\[\[Key]], key)是true，那么
+       返回p.\[\[Value]]
+6. 返回undefined
 **** WeakMap.prototype.has ( key )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[WeakMapData]])
+3. 让entries是M.\[\[WeakMapData]]列表
+4. 如果Type(key)不是Object，返回false
+5. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，而且SameValue(p.\[\[Key]], key)是true，那么
+       返回true
+6. 返回false
 **** WeakMap.prototype.set ( key, value )
+被调用时执行下列步骤：
+1. 让M是this值
+2. 执行?RequireIternalSlot(M, \[\[WeakMapData]])
+3. 让entries是M.\[\[WeakMapData]]列表
+4. 如果Type(key)不是Object，投掷TypeError异常
+5. 遍历entries的元素记录{\[\[Key]], \[\[Value]]}记作p，作
+    a. 如果p.\[\[Key]]不是空，而且SameValue(p.\[\[Key]], key)是true，那么
+        i. 置p.\[\[Value]]是value
+       ii. 返回M
+6. 让p是记录{\[\[Key]], \[\[Value]]}
+7. 附加p到entries的末端
+8. 返回M
 **** WeakMap.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"WeakMap"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** Properties of WeakMap Instances
-** WeakSet Objects
+WeakMap实例继承了WeakMap原型对象上的性质。WeakMap实例有\[\[WeakMapData]]内部
+占位。
+** WeakSet Objects 
+WeakSet对象是对象的库藏。在WeakSet库藏里不同的对象只有一个对应的元素。
+WeakSet可以查询是否含有某个对象，但是不提供枚举其包含的对象的机制。在特
+定条件下，按照9.9.3中的描述，作为WeakSet元素的对象，不再活跃时，会被移除。
+
+在WeakSet的对象不能访问的时间点，与从WeakSet移除此对象的时间点的延迟，
+实现可以采用任意确定的值。如果这个延迟是ECMAScript程序可见的，会成为损害
+程序执行的不确定性的源码。因此，ECMAScript实现不可以提供任何方式来监测
+WeakSet上的对象，也就不需要表述被监测对象的监测器。
+
+WeakSet对象必须使用hash表的方式实现，或者其他能提供访问时间，平均而言，与
+库藏键/值对数量是亚线性关系的机制方式实现。用在WeakSet对象规范的数据结构只
+是用来描述WeakSet对象必须的可见语义，没有试图是一个可用的实现模型。
+*** 注意 见WeakMap的注意事项
 *** The WeakSet Constructor
+WeakSet构造范：
+. 是%WeakSet%
+. 是全局对象上"WeakSet"性质的初始值
+. 作为构造范被调用时创建和初始化新的WeakSet对象。
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承WeakSet的特定行为，必须含有super调用，以使用Map构造范创建和初始化拥有支
+  持内建WeakSet.prototype内建方法所必需内部状态的子类实例。
 **** WeakSet ( [ iterable ] )
+当WeakSet被带可选参数iterable调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 让set是?OrdinaryCreateFromConstructor(NewTarget, %WeakSet.prototype%,
+   << \[\[WeakSetData]] >>)
+3. 置set.\[\[WeakSetData]]是新的空列表
+4. 如果iterable是undefined或者null，返回map
+5. 让adder是?Get(set, "add")
+6. 如果IsCallable(adder)是false，投掷TypeError异常
+7. 让iteratorRecord是?GetIterator(iterable)
+8. 重复
+    a. 让next是?IteratorStep(iteratorRecord)
+    b. 如果next是false，返回set
+    c. 让nextValue是?IteratorValue(next)
+    d. 让status是Call(adder, set, << nextValue >>)
+    e. 如果status是意外完结，返回?IteratorClose(iteratorRecord, status)
 *** Properties of the WeakSet Constructor
+WeakSet构造范
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
 **** WeakSet.prototype
+WeakSet.prototype的初始值是WeakSet原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 *** Properties of the WeakSet Prototype Object
+WeakSet原型对象
+. 是%WeakSet.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[WeakSetData]]内部占位
 **** WeakSet.prototype.add ( value )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[WeakSetData]])
+3. 如果Type(value)不是Object，投掷TypeError异常
+4. 让entries是S.\[\[WeakSetData]]列表
+5. 遍历entries的元素记作e，作
+    a. 如果e不是空，而且SameValue(e, value)是true，那么
+        i. 返回S
+6. 附加value到entries的末端
+7. 返回S
 **** WeakSet.prototype.constructor
+WeakSet.prototype.constructor的初始值是%WeakSet%
 **** WeakSet.prototype.delete ( value )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[WeakSetData]])
+3. 如果Type(value)不是Object，返回false
+4. 让entries是S.\[\[WeakSetData]]列表
+5. 遍历entries的元素记作e，作
+    a. 如果e不是空，而且SameValue(e, value)是true，那么
+        i. 用empty替换e值对应的元素
+       ii. 返回true
+6. 返回false
+***** 注意 空值用作指明条目被删除的标准方法。实际实现可能采用其他动作，
+            比如从数据结构里物理移除条目。
 **** WeakSet.prototype.has ( value )
+被调用时执行下列步骤：
+1. 让S是this值
+2. 执行?RequireIternalSlot(S, \[\[WeakSetData]])
+3. 让entries是S.\[\[WeakSet]]列表
+4. 如果Type(value)不是Object，返回false
+5. 遍历entries的元素记作e，作
+    a. 如果e不是空，而且SameValue(e, value)是true，那么返回true
+6. 返回false
 **** WeakSet.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"WeakSet"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** Properties of WeakSet Instances
+WeakSet实例继承了WeakSet原型对象上的性质。WeakSet实例有\[\[WeakSetData]]内部
+占位。
 * Structured Data 708-743
 * Managing Memory 743-748
 * Control Abstraction Objects 748-794
