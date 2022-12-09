@@ -5626,9 +5626,6 @@ agent的ExecutingThread在agent的独立于其他agent的执行背景上执行�
 ExecutingThread会被多个agent用作ExecutingThread外，前提是共用这个线程的agent有
 一个\[\[CanBlock]]是true的AgentRecord
 *** 注意1 例如有些网页浏览器在多个无关的浏览窗口中共用一个执行线程
-:PROPERTIES:
-:UNNUMBERED: 3
-:END:
 当agent的ExecutingThread执行jobs，这个agent就是job代码的SurroundingAgent。代码
 使用SurroundingAgent访问其含有的规范级别的执行对象：RunningExecutionContext、
 ExecutionContextStack和其他AgentRecord的字段。
@@ -23031,7 +23028,7 @@ ECMAScript语言值组成的类表）。被调用时执行如下步骤：
 1. Assert：O是有\[\[ViewedArrayBuffer]]内部占位的对象
 2. Assert：O.\[\[ViewedArrayBufffer]]是undefined
 3. 让constructorName是O.\[\[TypedArrayName]]的String值
-4. 让elementSize是表60中constructorName对应的元素小
+4. 让elementSize是表60中constructorName对应的元素大小
 5. 让byteLength是elementSize * elementLength
 6. 让data是?AllocateArrayBuffer(%ArrayBuffer%, byteLength)
 7. 置O.\[\[ViewedArrayBuffer]]是data
@@ -23433,7 +23430,7 @@ Set.prototype.constructor的初始值是%Set%
 
 ***** 注意 出于遍历的目的，类似Map，Set的每个条目的键和值都是相同的。
 **** get Set.prototype.size
-Map.prototype.size是访问性质，其set访问函数是undefined。这个get访问函数被
+Set.prototype.size是访问性质，其set访问函数是undefined。这个get访问函数被
 调用时执行下列步骤：
 1. 让S是this值
 2. 执行?RequireIternalSlot(S, \[\[SetData]])
@@ -23639,8 +23636,8 @@ WeakSet构造范：
 . 作为构造范被调用时创建和初始化新的WeakSet对象。
 . 不试图可以函数调用，这种方式调用会投掷异常。
 . 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
-  继承WeakSet的特定行为，必须含有super调用，以使用Map构造范创建和初始化拥有支
-  持内建WeakSet.prototype内建方法所必需内部状态的子类实例。
+  继承WeakSet的特定行为，必须含有super调用，以使用WeakSet构造范创建和初始
+  化拥有支持WeakSet.prototype内建方法所必需内部状态的子类实例。
 **** WeakSet ( [ iterable ] )
 当WeakSet被带可选参数iterable调用时，执行下列步骤：
 1. 如果NewTarget是undefined，投掷TypeError异常。
@@ -23715,7 +23712,498 @@ WeakSet.prototype.constructor的初始值是%WeakSet%
 *** Properties of WeakSet Instances
 WeakSet实例继承了WeakSet原型对象上的性质。WeakSet实例有\[\[WeakSetData]]内部
 占位。
-* Structured Data 708-743
+* Structured Data 
+** ArrayBuffer Objects
+*** Notation
+本节25.4和29中的描述，25.4和29会使用读取-修改-写入的操作类函数修改内部数
+据结构。
+
+读取-修改-写入的操作类函数是数学函数，以符号表述接受两个字节值列表作为
+参数，并返回一个字节值列表的AbstractClosure。并且此AbstractClosure满足下列
+两条性质：
+. 内部执行算法步骤是原子的。
+. 独立的算法步骤不可见。
+**** 注意 为了帮助确认某个读取-修改-写入的操作类函数的算法步骤是一个纯粹
+           的数学函数，推荐如下的编者管理：
+           . 他们不能访问，无论是直接或者间接的通过抽象操作和抽象闭包，
+             除了参数和捕获的值，的其他任何语言值或者规范值。
+           . 不返回完结值。
+*** Abstract Operations For ArrayBuffer Objects
+**** AllocateArrayBuffer ( constructor, byteLength )
+抽象操作AllocateArrayBuffer接受参数constructor和byteLength（非负整数）。用于
+创建ArrayBuffer对象。被调用时执行下列步骤：
+1. 让obj是?OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype", <<
+   \[\[ArrayBufferData]], \[\[ArrayBufferByteLength]], \[\[ArrayBufferDetachKey]] >>)
+2. 让block是?CreateByteDataBlock(byteLength)
+3. 置obj.\[\[ArrayBufferData]]是block
+4. 置obj.\[\[ArrayBufferByteLength]]是byteLength
+5. 返回obj
+**** IsDetachedBuffer ( arrayBuffer )
+抽象操作IsDetachedBuffer接受参数arrayBuffer。被调用时执行下列步骤：
+1. Assert：Type(arrayBuffer)是Object，而且有\[\[ArrayBufferData]]内部占位。
+2. 如果arrayBuffer.\[\[ArrayBufferData]]是null，返回true
+3. 返回false
+**** DetachArrayBuffer ( arrayBuffer [ , key ] )
+抽象操作DetachArrayBuffer接受参数arrayBuffer和可选参数key。被调用时执行下列
+步骤：
+1. Assert：Type(arrayBuffer)是Object，而且有\[\[ArrayBufferData]]、\[\[ArrayBufferByteLength]]
+   、\[\[ArrayBufferDetachKey]]内部占位。
+2. Assert：IsSharedArrayBuffer(arrayBuffer)是false
+3. 如果key不存在，置key是undefined
+4. 如果SameValue(arrayBuffer.\[\[ArrayBufferDetachKey]], key)是false，
+   投掷TypeError异常
+5. 置obj.\[\[ArrayBufferData]]是block
+6. 置obj.\[\[ArrayBufferByteLength]]是byteLength
+7. 返回NormalCompletion(null)
+***** 注意 解除ArrayBuffer实例是让实例不再关联存储数据的DataBlock，并将buffer
+            实例的length设置为0。本规范定义的操作都不使用DetachArrayBuffer抽象
+            操作。然而ECMAScript主机或者实现，可能会使用此类操作。
+**** CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength, cloneConstructor )
+抽象操作CloneArrayBuffer接受参数srcBuffer（ArrayBuffer对象）、srcByteOffset（
+非负整数）、srcLength（非负整数）和cloneConstructor（构造范）。创建一个新的
+ArrayBuffer，数据是srcBuffer从srcByteOffset开始连续srcLength个字节。被调用时执
+行下列步骤：
+1. Assert：Type(srcBuffer)是Object，而且有\[\[ArrayBufferData]]内部占位。
+2. Assert：IsConstructor(cloneConstructor)是true
+3. 让targetBuffer是?AllocateArrayBuffer(cloneConstructor, srcLength)
+4. 如果IsDetachedArrayBuffer(srcBuffer)是true，投掷TypeError异常。
+5. 让srcBlock是srcBuffer.\[\[ArrayBufferData]]
+6. 让targetBlock是targetBuffer.\[\[ArrayBufferData]]
+7. 执行CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength)
+8. 返回targetBuffer
+**** IsUnsignedElementType ( type )
+抽象操作IsUnsignedElementType接受参数type。检查参数type是无符号TypedArray元素类
+型。被调用时执行下列步骤：
+1. 如果type不是Uint8、Uint8C、Uint16、Uint32或者BigUint64，返回true
+2. 返回false
+**** IsUnclampedIntegerElementType ( type )
+抽象操作IsUnclampedIntegerElementType接受参数type。检查参数type是整数TypedArray元
+素类型，且不是Uint8C。被调用时执行下列步骤：
+1. 如果type不是Int8、Uint8、Int16、Uint16、Int32或者Uint32，返回true
+2. 返回false
+**** IsBigIntElementType ( type )
+抽象操作IsBigIntElementType接受参数type。检查参数type是BigInt TypedArray元素类
+型。被调用时执行下列步骤：
+1. 如果type是BigInt64或者BigUint64，返回true
+2. 返回false
+**** IsNoTearConfiguration ( type, order )
+抽象操作IsNoTearConfiguration接受参数type和order。被调用时执行下列步骤：
+1. 如果!IsUnclampedIntegerElementType(type)是true，返回true。
+2. 如果!IsBigIntElementType(type)是true，而且order不是Init或者Unordered，返回true。
+3. 返回false
+**** RawBytesToNumeric ( type, rawBytes, isLittleEndian )
+抽象操作RawBytesToNumeric接受参数type（TypedArray元素类型）、rawTypes（列表）和
+isLittelEndian（Boolean）。被调用时执行下列步骤：
+1. 让elementSize是表60中元素类型为type对应的元素大小
+2. 如果isLittelEndian是false，反转rawBytes的元素顺序。
+3. 如果type是Float32，那么
+    a. 让value是rawBytes字节元素根据IEEE 754-2019规范当作小端拼接的位字
+       符串翻译出的32位值
+    b. 如果value是IEEE 754-2019的32位NaN值，返回NaN Number值。
+    c. 返回value对应的Number值。
+4. 如果type是Float64，那么
+    a. 让value是rawBytes字节元素根据IEEE 754-2019规范当作小端拼接的位字
+       符串翻译出的64位值
+    b. 如果value是IEEE 754-2019的64位NaN值，返回NaN Number值。
+    c. 返回value对应的Number值。
+5. 如果!IsUnsignedElementType(type)是true，那么
+    a. 让intValue是rawBytes字节元素当作小端拼接的位字符串翻译出的无符号整数。
+6. 否则
+    a. 让intValue是长度位elementSize * 8的rawBytes字节元素当作小端拼接的位字符
+       串翻译出的补码整数。
+7. 如果!IsUnsignedElementType(type)是true，那么返回intValue对应的BigInt值
+8. 否则返回intValue对应的Number值。
+**** GetValueFromBuffer ( arrayBuffer, byteIndex, type, isTypedArray, order [ , isLittleEndian ] )
+抽象操作GetValueFromBuffer接受参数arrayBuffer（ArrayBuffer或者SharedArrayBuffer）、
+byteIndex（非负整数）、type（TypedArray元素类型）、isTypedArray（Boolean）、
+order（SeqCst或者Unordered）、和可选参数isLittleEndian（Boolean）。被调用时执行
+下列步骤：
+1. Assert：IsDetachedBuffer(arrayBuffer)是false
+2. Assert：在arrayBuffer中从byteIndex开始有足够的字节表示type对应的值。
+3. 让bock是arrayBuffer.\[\[ArrayBufferData]]
+4. 让elementSize是表60中元素类型为type对应的元素大小
+5. 如果IsSharedArrayBuffer(arrayBuffer)是true，那么
+    a. 让execution是SurroundingAgent的AgentRecord.\[\[CandidateExecution]]
+    b. 让eventList是execution.\[\[EventsRecord]]中\[\[AgentSignifier]]是
+       AgentSignifier()的元素的\[\[EventList]]
+    c. 如果isTypeArray是true，而且InNoTearConfiguration(type, order)是true，让noTear
+       是true，否则让noTear是false
+    d. 让rawValue是长度为elementSize，元素是不可确定选择的字节值，的列表
+    e. 注意：在实现中，rawValue是基于底层硬件的原子或者非原子操作的结果。
+       不可确定性质是内存模型里描述使用弱一致性观测硬件行为的语义处方。
+    f. 让readeEvent是ReadSharedMemory { \[\[Order]]:order, \[\[NoTear]]:noTear,
+       \[\[Block]]:block, \[\[ByteIndex]]:byteIndex, \[\[ElementSize]]:elementSize, }
+    g. 附加readEent到eventList的末端
+    h. 附加ChoseValueRecord { \[\[Event]]:readeEvent, \[\[ChosenValue]]:rawValue, }
+       到execution.\[\ChosenValues]]的末端。
+6. 否则，让rawValue是block上[byteIndex, byteIndex + elementSize)的字节构成的列表
+7. Assert：rawValue的元素数量是elementSize
+8. 如果isLittleEndian不存在，置isLittleEndian是SurroundingAgent的
+   AgentRecord.\[\[LittleEndian]]
+9. 返回RawBytesToNumeric(type, rawValue, isLittleEndian)
+**** NumericToRawBytes ( type, value, isLittleEndian )
+抽象操作NumericToRawBytes接受参数type（TypedArray元素类型）、value（BigInt或者
+Number值）和isLittelEndian（Boolean）。被调用时执行下列步骤：
+1. 如果type是Float32，那么
+    a. 让rawBytes是列表，其元素是value按照IEEE 754-2019的32位格式以roundTiesToEven
+       模式转换的4字节结果。如果isLittleEndian是false，字节按照大端序组织。否
+       则字节按照小端序组织。如果value是NaN，rawBytes可能是实现选择的任意一
+       个IEEE 754-2019 32位格式的NotANumber编码。但是实现需要总是返回相同的各
+       自实现确切的NaN值。
+2. 如果type是Float64，那么
+    a. 让rawBytes是列表，其元素是value按照IEEE 754-2019的64位格式以roundTiesToEven
+       模式转换的8字节结果。如果isLittleEndian是false，字节按照大端序组织。否
+       则字节按照小端序组织。如果value是NaN，rawBytes可能是实现选择的任意一
+       个IEEE 754-2019 64位格式的NotANumber编码。但是实现需要总是返回相同的各
+       自实现确切的NaN值。
+3. 否则
+    a. 让n是表60中元素类型为type对应的元素大小
+    b. 让convOp是表60中元素类型为type对应的转换操作。
+    c. 让intValue是R(convOp(value))
+    d. 如果intValue >=0，那么
+        i. 让rawBytes是列表，其元素是intValue的n字节二进制编码的字节。如果
+           isLittleEndian是false，字节按照大端序组织。否则字节按照小端序组织。
+    e. 否则
+        i. 让rawBytes是列表，其元素是intValue的n字节二进制补码的字节。如果
+           isLittleEndian是false，字节按照大端序组织。否则字节按照小端序组织。
+4. 返回rawBytes
+**** SetValueInBuffer ( arrayBuffer, byteIndex, type, value, isTypedArray, order [ , isLittleEndian ] )
+抽象操作SetValueFromBuffer接受参数arrayBuffer（ArrayBuffer或者SharedArrayBuffer）、
+byteIndex（非负整数）、type（TypedArray元素类型）、isTypedArray（Boolean）、
+order（SeqCst、Unordered或者Init）、和可选参数isLittleEndian（Boolean）。被调用时
+执行下列步骤：
+1. Assert：IsDetachedBuffer(arrayBuffer)是false
+2. Assert：在arrayBuffer中从byteIndex开始有足够的字节表示type对应的值。
+3. Assert：如果!IsBigIntElementType(type)是true，Type(value)是BigInt，否则Type(value)
+   是Number
+4. 让bock是arrayBuffer.\[\[ArrayBufferData]]
+5. 让elementSize是表60中元素类型为type对应的元素大小
+6. 如果isLittleEndian不存在，置isLittleEndian是SurroundingAgent的
+   AgentRecord.\[\[LittleEndian]]
+7. 让rawBytes是NumericToRawBytes(type, value, isLittleEndian)
+8. 如果IsSharedArrayBuffer(arrayBuffer)是true，那么
+    a. 让execution是SurroundingAgent的AgentRecord.\[\[CandidateExecution]]
+    b. 让eventList是execution.\[\[EventsRecord]]中\[\[AgentSignifier]]是
+       AgentSignifier()的元素的\[\[EventList]]
+    c. 如果isTypeArray是true，而且InNoTearConfiguration(type, order)是true，让noTear
+       是true，否则让noTear是false
+    d. 附加WriteSharedMemory { \[\[Order]]:order, \[\[NoTear]]:noTear,
+       \[\[Block]]:block, \[\[ByteIndex]]:byteIndex, \[\[ElementSize]]:elementSize,
+       \[\[Payload]]:rawBytes, }到eventList的末端
+9. 否则，将rawBytes的字节各自存储到block上byteIndex及之后的位置里
+10. 返回NormalCompletion(undefined)
+**** GetModifySetValueInBuffer ( arrayBuffer, byteIndex, type, value, op [ , isLittleEndian ] )
+抽象操作GetModifySetValueInBuffer接受参数arrayBuffer（ArrayBuffer或者
+SharedArrayBuffer）、byteIndex（非负整数）、type（TypedArray元素类型）、value（
+Number或者BigInt值）、op（读取-修改-写入操作函数）、和可选参数isLittleEndian（
+Boolean）。被调用时执行下列步骤：
+1. Assert：IsDetachedBuffer(arrayBuffer)是false
+2. Assert：在arrayBuffer中从byteIndex开始有足够的字节表示type对应的值。
+3. Assert：如果!IsBigIntElementType(type)是true，Type(value)是BigInt，否则Type(value)
+   是Number
+4. 让bock是arrayBuffer.\[\[ArrayBufferData]]
+5. 让elementSize是表60中元素类型为type对应的元素大小
+6. 如果isLittleEndian不存在，置isLittleEndian是SurroundingAgent的
+   AgentRecord.\[\[LittleEndian]]
+7. 让rawBytes是NumericToRawBytes(type, value, isLittleEndian)
+8. 如果IsSharedArrayBuffer(arrayBuffer)是true，那么
+    a. 让execution是SurroundingAgent的AgentRecord.\[\[CandidateExecution]]
+    b. 让eventList是execution.\[\[EventsRecord]]中\[\[AgentSignifier]]是
+       AgentSignifier()的元素的\[\[EventList]]
+    c. 让rawBytesRead是长度为elementSize，元素是不可确定选择的字节值，的列表
+    d. 注意：在实现中，rawValue是底层硬件的load-link、load-exclusive或者
+       read-modify-write操作置令的结果。不可确定性质是内存模型里描述使用
+       弱一致性观测硬件行为的语义处方。
+    e. 让readeEvent是ReadModifyWriteSharedMemory { \[\[Order]]:SeqCst,
+       \[\[NoTear]]:noTear, \[\[Block]]:block, \[\[ByteIndex]]:byteIndex,
+       \[\[ElementSize]]:elementSize, \[\[Payload]]:rawBytes, \[\[ModifyOp]]:op, }
+    f. 附加readEent到eventList的末端
+    g. 附加ChoseValueRecord { \[\[Event]]:readeEvent, \[\[ChosenValue]]:rawBytesRead, }
+       到execution.\[\ChosenValues]]的末端。
+9. 否则，
+    a. 让rawBytesRead是block上[byteIndex, byteIndex + elementSize)的字节构成的列表
+    b. 让rawBytesModifier是op(rawBytesRead, rawBytes)
+    c. 将rawBytesModifier的字节各自存储到block上byteIndex及之后的位置里
+10. 返回RawBytesToNumeric(type, rawBytesRead, isLittleEndian)
+*** The ArrayBuffer Constructor
+ArrayBuffer构造范：
+. 是%ArrayBuffer%
+. 是全局对象上"ArrayBuffer"性质的初始值
+. 作为构造范调用时创建并初始化新的ArrayBuffer对象
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承ArrayBuffer的特定行为，必须含有super调用，以使用ArrayBuffer构造范创建
+  和初始化拥有支持ArrayBuffer.prototype内建方法所必需内部状态的子类实例。
+**** ArrayBuffer ( length )
+当ArrayBuffer被带参数length调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 让byteLength是?ToIndex(length)
+3. 返回?AllocateArrayBuffer(NewTarget, byteLength)
+*** Properties of the ArrayBuffer Constructor
+ArrayBuffer构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
+**** ArrayBuffer.isView ( arg )
+isView函数接受参数arg，被调用时执行下列步骤：
+1. 如果Type(arg)不是Object，返回false
+2. 如果arg有\[\[ViewedArrayBuffer]]内部占位，返回true
+3. 返回false
+**** ArrayBuffer.prototype
+ArrayBuffer.prototype的初始值是ArrayBuffer原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
+**** get ArrayBuffer [ @@species ]
+ArrayBuffer[@@species]是访问性质，对应的set访问函数是undefined。它的get访问函
+数被调用时，执行如下步骤：
+1. 返回this值
+
+本函数的"name"性质是"get[Symbol.species]"
+***** 注意 ArrayBuffer原型的方法一般使用他们的this值上的构造范创建派生对象。
+            子类的构造范会重写@@species来修改默认的构造范赋值。
+*** Properties of the ArrayBuffer Prototype Object
+ArrayBuffer原型对象
+. 是%ArrayBuffer.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[ArrayBufferData]]或者\[\[ArrayBufferByteLength]]内部占位
+**** get ArrayBuffer.prototype.byteLength
+ArrayBuffer.prototype.byteLength是访问性质，其set访问函数是undefined。这个get访
+问函数被调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireIternalSlot(S, \[\[ArrayBufferData]])
+3. 如果IsSharedArrayBuffer(O)是true，投掷TypeError异常
+4. 如果IsDetachedBuffer(O)是true，返回+0_F
+5. 让length是O.\[\[ArrayBufferByteLength]]
+6. 返回F(length)
+**** ArrayBuffer.prototype.constructor
+ArrayBuffer.prototype.constructor的初始值是%ArrayBuffer%
+**** ArrayBuffer.prototype.slice ( start, end )
+执行如下步骤：
+1. 让O是this值
+2. 执行?RequireIternalSlot(S, \[\[ArrayBufferData]])
+3. 如果IsSharedArrayBuffer(O)是true，投掷TypeError异常
+4. 如果IsDetachedBuffer(O)是true，投掷TypeError异常
+5. 让leng是O.\[\[ArrayBufferByteLength]]
+6. 让relativeStart是?ToIntegerOrInfinity(start)
+7. 如果relativeStart是-∞，让first是0
+8. 否则如果relativeStart < 0，让first是max(len + relativeStart, 0)
+9. 否则，让first是min(relativeStart, len)
+10. 如果end是undefined，让relativeEnd是len；否则，让relativeEnd
+    是?ToIntegerOrInfinity(end)
+11. 如果relativeEnd是-∞，让final是0
+12. 否则如果relativeEnd < 0，让final是max(len + relativeEnd, 0)
+13. 否则，让final是min(relativeEnd, len)
+14. 让newLen是max(final - first, 0)
+15. 让ctor是?SpeciesConstructor(O, %ArrayBuffer%)
+16. 让new是?Construct(ctor, << F(newLen) >>)
+17. 执行?RequireIternalSlot(new, \[\[ArrayBufferData]])
+18. 如果IsSharedArrayBuffer(new)是true，投掷TypeError异常
+19. 如果IsDetachedBuffer(new)是true，投掷TypeError异常
+20. 如果SameValue(new, O)是true，投掷TypeError异常
+21. 如果new.\[\[ArrayBufferByteLength]] < newLen，投掷TypeError异常
+22. 注意：上述步骤可能有解除O的副作用
+23. 如果IsDetachedBuffer(O)是true，投掷TypeError异常
+24. 让fromBuf是O.\[\[ArrayBufferData]]
+25. 让toBuf是new.\[\[ArrayBufferData]]
+26. 执行CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen)
+27. 返回new
+**** ArrayBuffer.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"ArrayBuffer"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
+*** Properties of ArrayBuffer Instances
+ArrayBuffer实例继承ArrayBuffer原型对象的性质。ArrayBuffer实例有
+\[\[ArrayBufferData]]、\[\[ArrayBufferByteLength]]、和\[\[ArrayBufferDetachKey]]
+内部占位。
+
+\[\[ArrayBufferData]]是null的ArrayBuffer实例被认为是已解除的，在此ArrayBuffer实例
+上的所有访问或者修改数据的操作都会失败。
+
+\[\[ArrayBufferDetachKey]]不是undefined的ArrayBuffer要求所有DetachArrayBuffer调用
+时传递相同的"detach key"作为参数，否则结果是TypeError。这个内部占位只能是
+所嵌入的环境来设置，而不是本规范的算法。
+** SharedArrayBuffer Objects 
+*** Abstract Operations for SharedArrayBuffer Objects
+**** AllocateSharedArrayBuffer ( constructor, byteLength )
+抽象操作AllocateSharedArrayBuffer接受参数constructor和byteLength（非负整数）。用于
+创建SharedArrayBuffer对象。被调用时执行下列步骤：
+1. 让obj是?OrdinaryCreateFromConstructor(constructor, "%SharedArrayBuffer.prototype", <<
+   \[\[ArrayBufferData]], \[\[ArrayBufferByteLength]] >>)
+2. 让block是?CreateSharedByteDataBlock(byteLength)
+3. 置obj.\[\[ArrayBufferData]]是block
+4. 置obj.\[\[ArrayBufferByteLength]]是byteLength
+5. 返回obj
+**** IsSharedArrayBuffer ( obj )
+抽象操作IsSharedArrayBuffer接受参数obj。测试obj是否是ArrayBuffer、
+SharedArrayBuffer或者子类型。被调用时执行下列步骤：
+1. Assert：Type(arrayBuffer)是Object，而且有\[\[ArrayBufferData]]内部占位。
+2. 让bufferData是obj.\[\[ArrayBufferData]]
+3. 如果bufferData是null，返回false
+4. 如果bufferData是DataBlock，返回false
+5. Assert：bufferData是SharedDataBlock
+6. 返回true
+*** The SharedArrayBuffer Constructor
+SharedArrayBuffer构造范：
+. 是%SharedArrayBuffer%
+. 是全局对象上"SharedArrayBuffer"性质（如果存在）的初始值
+. 作为构造范调用时创建并初始化新的SharedArrayBuffer对象
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承SharedArrayBuffer的特定行为，必须含有super调用，以使用SharedArrayBuffer
+  构造范创建和初始化拥有支持SharedArrayBuffer.prototype内建方法所必需内部状
+  态的子类实例。
+
+主机不提供并发访问SharedArrayBuffer对象的机制，应该忽略全局对象上的
+"SharedArrayBuffer"性质
+**** 注意 不同于ArrayBuffer，SharedArrayBuffer不能变成已解除的，它的的
+           \[\[ArrayBufferData]]永远不会是null
+**** SharedArrayBuffer ( [ length ] )
+当SharedArrayBuffer被带参数length调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 让byteLength是?ToIndex(length)
+3. 返回?AllocateSharedArrayBuffer(NewTarget, byteLength)
+*** Properties of the SharedArrayBuffer Constructor
+SharedArrayBuffer构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
+**** SharedArrayBuffer.prototype
+SharedArrayBuffer.prototype的初始值是SharedArrayBuffer原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
+**** get SharedArrayBuffer [ @@species ]
+SharedArrayBuffer[@@species]是访问性质，对应的set访问函数是undefined。它的get访
+问函数被调用时，执行如下步骤：
+1. 返回this值
+
+本函数的"name"性质是"get[Symbol.species]"
+*** Properties of the SharedArrayBuffer Prototype Object
+SharedArrayBuffer原型对象
+. 是%SharedArrayBuffer.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[ArrayBufferData]]和\[\[ArrayBufferByteLength]]内部占位
+**** get SharedArrayBuffer.prototype.byteLength
+SharedArrayBuffer.prototype.byteLength是访问性质，其set访问函数是undefined。
+这个get访问函数被调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireIternalSlot(S, \[\[ArrayBufferData]])
+3. 如果IsSharedArrayBuffer(O)是false，投掷TypeError异常
+4. 让length是O.\[\[ArrayBufferByteLength]]
+5. 返回F(length)
+**** SharedArrayBuffer.prototype.constructor
+SharedArrayBuffer.prototype.constructor的初始值是%SharedArrayBuffer%
+**** SharedArrayBuffer.prototype.slice ( start, end )
+执行如下步骤：
+1. 让O是this值
+2. 执行?RequireIternalSlot(S, \[\[ArrayBufferData]])
+3. 如果IsSharedArrayBuffer(O)是false，投掷TypeError异常
+4. 让len是O.\[\[ArrayBufferByteLength]]
+5. 让relativeStart是?ToIntegerOrInfinity(start)
+6. 如果relativeStart是-∞，让first是0
+7. 否则如果relativeStart < 0，让first是max(len + relativeStart, 0)
+8. 否则，让first是min(relativeStart, len)
+9. 如果end是undefined，让relativeEnd是len；否则，让relativeEnd
+   是?ToIntegerOrInfinity(end)
+10. 如果relativeEnd是-∞，让final是0
+11. 否则如果relativeEnd < 0，让final是max(len + relativeEnd, 0)
+12. 否则，让final是min(relativeEnd, len)
+13. 让newLen是max(final - first, 0)
+14. 让ctor是?SpeciesConstructor(O, %SharedArrayBuffer%)
+15. 让new是?Construct(ctor, << F(newLen) >>)
+16. 执行?RequireIternalSlot(new, \[\[ArrayBufferData]])
+17. 如果IsSharedArrayBuffer(new)是false，投掷TypeError异常
+18. 如果new.\[\[ArrayBufferData]]和O.\[\[ArrayBufferData]]是相同的SharedDataBlock
+    ，投掷TypeError异常
+19. 如果new.\[\[ArrayBufferByteLength]] < newLen，投掷TypeError异常
+20. 让fromBuf是O.\[\[ArrayBufferData]]
+21. 让toBuf是new.\[\[ArrayBufferData]]
+22. 执行CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen)
+23. 返回new
+**** SharedArrayBuffer.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"SharedArrayBuffer"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
+*** Properties of SharedArrayBuffer Instances
+SharedArrayBuffer实例继承SharedArrayBuffer原型对象的性质。SahredArrayBuffer实例有
+\[\[ArrayBufferData]]、和\[\[ArrayBufferByteLength]]内部占位。
+**** 注意 SharedArrayBuffer实例，不同于ArrayBuffer实例，永远不会被解除。
+** DataView Objects 719-743
+*** Abstract Operations For DataView Objects
+**** GetViewValue ( view, requestIndex, isLittleEndian, type )
+**** SetViewValue ( view, requestIndex, isLittleEndian, type, value )
+*** The DataView Constructor
+**** DataView ( buffer [ , byteOffset [ , byteLength ] ] )
+*** Properties of the DataView Constructor
+**** DataView.prototype
+*** Properties of the DataView Prototype Object
+**** get DataView.prototype.buffer
+**** get DataView.prototype.byteLength
+**** get DataView.prototype.byteOffset
+**** DataView.prototype.constructor
+**** DataView.prototype.getBigInt64 ( byteOffset [ , littleEndian ] )
+**** DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )
+**** DataView.prototype.getFloat32 ( byteOffset [ , littleEndian ] )
+**** DataView.prototype.getFloat64 ( byteOffset [ , littleEndian ] )
+**** DataView.prototype.getInt8 ( byteOffset )
+**** DataView.prototype.getInt16 ( byteOffset [ , littleEndian ] )
+**** DataView.prototype.getInt32 ( byteOffset [ , littleEndian ] )
+**** DataView.prototype.getUint8 ( byteOffset )
+**** DataView.prototype.getUint16 ( byteOffset [ , littleEndian ] )
+**** DataView.prototype.getUint32 ( byteOffset [ , littleEndian ] )
+**** DataView.prototype.setBigInt64 ( byteOffset, value [ , littleEndian ] )
+**** DataView.prototype.setBigUint64 ( byteOffset, value [ , littleEndian ] )
+**** DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )
+**** DataView.prototype.setFloat64 ( byteOffset, value [ , littleEndian ] )
+**** DataView.prototype.setInt8 ( byteOffset, value )
+**** DataView.prototype.setInt16 ( byteOffset, value [ , littleEndian ] )
+**** DataView.prototype.setInt32 ( byteOffset, value [ , littleEndian ] )
+**** DataView.prototype.setUint8 ( byteOffset, value )
+**** DataView.prototype.setUint16 ( byteOffset, value [ , littleEndian ] )
+**** DataView.prototype.setUint32 ( byteOffset, value [ , littleEndian ] )
+**** DataView.prototype [ @@toStringTag ]
+*** Properties of DataView Instances
+** The Atomics Object
+*** Abstract Operations for Atomics
+**** ValidateIntegerTypedArray ( typedArray [ , waitable ] )
+**** ValidateAtomicAccess ( typedArray, requestIndex )
+**** GetWaiterList ( block, i )
+**** EnterCriticalSection ( WL )
+**** LeaveCriticalSection ( WL )
+**** AddWaiter ( WL, W )
+**** RemoveWaiter ( WL, W )
+**** RemoveWaiters ( WL, c )
+**** SuspendAgent ( WL, W, timeout )
+**** NotifyWaiter ( WL, W )
+**** AtomicReadModifyWrite ( typedArray, index, value, op )
+**** ByteListBitwiseOp ( op, xBytes, yBytes )
+**** ByteListEqual ( xBytes, yBytes )
+*** Atomics.add ( typedArray, index, value )
+*** Atomics.and ( typedArray, index, value )
+*** Atomics.compareExchange ( typedArray, index, expectedValue, replacementValue )
+*** Atomics.exchange ( typedArray, index, value )
+*** Atomics.isLockFree ( size )
+*** Atomics.load ( typedArray, index )
+*** Atomics.or ( typedArray, index, value )
+*** Atomics.store ( typedArray, index, value )
+*** Atomics.sub ( typedArray, index, value )
+*** Atomics.wait ( typedArray, index, value, timeout )
+*** Atomics.notify ( typedArray, index, count )
+*** Atomics.xor ( typedArray, index, value )
+*** Atomics [ @@toStringTag ]
+** The JSON Object
+*** JSON.parse ( text [ , reviver ] )
+**** InternalizeJSONProperty ( holder, name, reviver )
+*** JSON.stringify ( value [ , replacer [ , space ] ] )
+**** SerializeJSONProperty ( state, key, holder )
+**** QuoteJSONString ( value )
+**** UnicodeEscape ( C )
+**** SerializeJSONObject ( state, value )
+**** SerializeJSONArray ( state, value )
+*** JSON [ @@toStringTag
 * Managing Memory 743-748
 * Control Abstraction Objects 748-794
 * Reflection 794-799
