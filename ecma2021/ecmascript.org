@@ -24131,42 +24131,223 @@ SharedArrayBuffer.prototype.constructor的初始值是%SharedArrayBuffer%
 SharedArrayBuffer实例继承SharedArrayBuffer原型对象的性质。SahredArrayBuffer实例有
 \[\[ArrayBufferData]]、和\[\[ArrayBufferByteLength]]内部占位。
 **** 注意 SharedArrayBuffer实例，不同于ArrayBuffer实例，永远不会被解除。
-** DataView Objects 719-743
+** DataView Objects
 *** Abstract Operations For DataView Objects
 **** GetViewValue ( view, requestIndex, isLittleEndian, type )
+抽象操作GetViewValue接受参数view、requestIndex、isLittleEndian和type。是用在DataView实例上
+的函数里，查找其缓冲区的值。被调用时执行下列步骤：
+1. 执行?RequireInternalSlot(view, \[\[DataView]])
+2. Assert：view有\[\[ViewedArrayBuffer]]内部占位
+3. 让getIndex是?ToIndex(requestIndex)
+4. 置isLittleendian是!ToBoolean(isLittelEndian)
+5. 让buffer是view.\[\[ViewedArrayBuffer]]
+6. 如果是IsDetachedBuffer(buffer)是true，投掷TypeError异常
+7. 让viewOffset是view.\[\[ByteOffset]]
+8. 让viewSize是view.\[\[ByteLength]]
+9. 让elementSize是表60中元素类型为type对应的元素大小
+10. 如果getIndex + elementSize > viewSize，投掷RangeError异常
+11. 让bufferIndex是getIndex + viewOffset
+12. 返回GetValueFromBuffer(buffer, bufferIndex, type, false, Unordered, isLittleEndian)
 **** SetViewValue ( view, requestIndex, isLittleEndian, type, value )
+抽象操作SetViewValue接受参数view、requestIndex、isLittleEndian、type、和value。是用在DataView实例上
+的函数里，向其缓冲区存储值。被调用时执行下列步骤：
+1. 执行?RequireInternalSlot(view, \[\[DataView]])
+2. Assert：view有\[\[ViewedArrayBuffer]]内部占位
+3. 让getIndex是?ToIndex(requestIndex)
+4. 如果!IsBigIntElementType(type)是true，让numberValue是?ToBigInt(value)
+5. 否则让numberValue是?ToNumber(value)
+6. 置isLittleendian是!ToBoolean(isLittelEndian)
+7. 让buffer是view.\[\[ViewedArrayBuffer]]
+8. 如果是IsDetachedBuffer(buffer)是true，投掷TypeError异常
+9. 让viewOffset是view.\[\[ByteOffset]]
+10. 让viewSize是view.\[\[ByteLength]]
+11. 让elementSize是表60中元素类型为type对应的元素大小
+12. 如果getIndex + elementSize > viewSize，投掷RangeError异常
+13. 让bufferIndex是getIndex + viewOffset
+14. 返回SetValueFromBuffer(buffer, bufferIndex, type, numberValue, false, Unordered, isLittleEndian)
 *** The DataView Constructor
+DataView构造范
+. 是%DataView%
+. 是全局对象上"DataView"性质的初始值
+. 作为构造范调用时创建并初始化新的DataView对象
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承DataView的特定行为，必须含有super调用，以使用DataView构造范创建
+  和初始化拥有支持DataView.prototype内建方法所必需内部状态的子类实例。
 **** DataView ( buffer [ , byteOffset [ , byteLength ] ] )
+当DataView函数被至少一个参数buffer调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 执行?RequireInternalSlot(view, \[\[DataView]])
+3. 让offset是?ToIndex(byteOffset)
+4. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+5. 让bufferByteLength是buffer.\[\[ArrayBufferByteLength]]
+6. 如果offset > bufferByteLength，投掷RangeError异常
+7. 如果byteLength是undefined，那么
+    a. 让viewByteLength是bufferBytelength - offset
+8. 否则
+    a. 让viewByteLength是?ToIndex(byteLength)
+    b. 如果offset + viewByteLength > bufferByteLength，投掷RangeError异常
+9. 让O是?OrdinaryCreateFromConstructor(NewTarget, "%DataView.prototype%", << \[\[DataView]],
+   \[\[ViewedArrayBuffer]], \[\[ByteLength]], \[\[ByteOffset]] >> )
+10. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+11. 置O.\[\[ViewedArrayBuffer]]是data
+12. 置O.\[\[ByteLength]]是viewByteLength
+13. 置O.\[\[ByteOffset]]是0
+14. 返回O
 *** Properties of the DataView Constructor
+DataView构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
 **** DataView.prototype
+DataView.prototype的初始值是DataView原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 *** Properties of the DataView Prototype Object
+DataView原型对象
+. 是%DataView.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[DataView]]、\[\[ViewedArrayBuffer]]、\[\[ByteLength]]或者\[\[ByteOffset]]内部占位
 **** get DataView.prototype.buffer
+DataView.prototype.buffer是访问性质，其set访问函数是undefined。这个get访
+问函数被调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireIternalSlot(O, \[\[DataView]])
+3. Assert：O有\[\[ViewedArrayBuffer]]内部占位
+4. 让buffer是O.\[\[ViewedArrayBuffer]]
+5. 返回buffer
 **** get DataView.prototype.byteLength
+DataView.prototype.byteLength是访问性质，其set访问函数是undefined。这个get访
+问函数被调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireIternalSlot(O, \[\[DataView]])
+3. Assert：O有\[\[ViewedArrayBuffer]]内部占位
+4. 让buffer是O.\[\[ViewedArrayBuffer]]
+5. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+6. 让size是O.\[\[ByteLength]]
+7. 返回F(size)
 **** get DataView.prototype.byteOffset
+DataView.prototype.byteOffset是访问性质，其set访问函数是undefined。这个get访
+问函数被调用时执行下列步骤：
+1. 让O是this值
+2. 执行?RequireIternalSlot(O, \[\[DataView]])
+3. Assert：O有\[\[ViewedArrayBuffer]]内部占位
+4. 让buffer是O.\[\[ViewedArrayBuffer]]
+5. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+6. 让offset是O.\[\[ByteOffset]]
+7. 返回F(offset)
 **** DataView.prototype.constructor
+DataView.prototype.constructor的初始值是%DataView%
 **** DataView.prototype.getBigInt64 ( byteOffset [ , littleEndian ] )
+当getBigInt64被带参数byteOffset和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 返回?GetViewValue(v, byteOffset, littleEndian, BigInt64)
 **** DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )
+当getBigUint64被带参数byteOffset和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 返回?GetViewValue(v, byteOffset, littleEndian, BigUint64)
 **** DataView.prototype.getFloat32 ( byteOffset [ , littleEndian ] )
+当getFloat32被带参数byteOffset和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?GetViewValue(v, byteOffset, littleEndian, float32)
 **** DataView.prototype.getFloat64 ( byteOffset [ , littleEndian ] )
+当getFloat64被带参数byteOffset和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?GetViewValue(v, byteOffset, littleEndian, float64)
 **** DataView.prototype.getInt8 ( byteOffset )
+当getInt8被带参数byteOffset调用时，执行下列步骤：
+1. 让v是this值
+2. 返回?GetViewValue(v, byteOffset, littleEndian, Int8)
 **** DataView.prototype.getInt16 ( byteOffset [ , littleEndian ] )
+当getInt16被带参数byteOffset和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?GetViewValue(v, byteOffset, littleEndian, Int16)
 **** DataView.prototype.getInt32 ( byteOffset [ , littleEndian ] )
+当getInt32被带参数byteOffset和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?GetViewValue(v, byteOffset, littleEndian, Int32)
 **** DataView.prototype.getUint8 ( byteOffset )
+当getUint8被带参数byteOffset调用时，执行下列步骤：
+1. 让v是this值
+2. 返回?GetViewValue(v, byteOffset, littleEndian, Uint8)
 **** DataView.prototype.getUint16 ( byteOffset [ , littleEndian ] )
+当getUint16被带参数byteOffset和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?GetViewValue(v, byteOffset, littleEndian, Uint16)
 **** DataView.prototype.getUint32 ( byteOffset [ , littleEndian ] )
+当getUint32被带参数byteOffset和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?GetViewValue(v, byteOffset, littleEndian, Uint32)
 **** DataView.prototype.setBigInt64 ( byteOffset, value [ , littleEndian ] )
+当setBigInt64被带参数byteOffset、value和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 返回?SetViewValue(v, byteOffset, littleEndian, BigInt64, value)
 **** DataView.prototype.setBigUint64 ( byteOffset, value [ , littleEndian ] )
+当setBigUint64被带参数byteOffset、value和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 返回?SetViewValue(v, byteOffset, littleEndian, BigUint64, value)
 **** DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )
+当setFloat32被带参数byteOffset、value和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?SetViewValue(v, byteOffset, littleEndian, float32, value)
 **** DataView.prototype.setFloat64 ( byteOffset, value [ , littleEndian ] )
+当setFloat64被带参数byteOffset、value和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?SetViewValue(v, byteOffset, littleEndian, float64, value)
 **** DataView.prototype.setInt8 ( byteOffset, value )
+当setInt8被带参数byteOffset、value调用时，执行下列步骤：
+1. 让v是this值
+2. 返回?SetViewValue(v, byteOffset, littleEndian, Int8, value)
 **** DataView.prototype.setInt16 ( byteOffset, value [ , littleEndian ] )
+当setInt16被带参数byteOffset、value和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?SetViewValue(v, byteOffset, littleEndian, Int16, value)
 **** DataView.prototype.setInt32 ( byteOffset, value [ , littleEndian ] )
+当setInt32被带参数byteOffset、value和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?SetViewValue(v, byteOffset, littleEndian, Int32, value)
 **** DataView.prototype.setUint8 ( byteOffset, value )
+当setUint8被带参数byteOffset、value调用时，执行下列步骤：
+1. 让v是this值
+2. 返回?SetViewValue(v, byteOffset, littleEndian, Uint8, value)
 **** DataView.prototype.setUint16 ( byteOffset, value [ , littleEndian ] )
+当setUint16被带参数byteOffset、value和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?SetViewValue(v, byteOffset, littleEndian, Uint16, value)
 **** DataView.prototype.setUint32 ( byteOffset, value [ , littleEndian ] )
+当setUint32被带参数byteOffset、value和可选参数littleEndian调用时，执行下列步骤：
+1. 让v是this值
+2. 如果littleEndian不存在，置littleEndian是false
+3. 返回?SetViewValue(v, byteOffset, littleEndian, Uint32, value)
 **** DataView.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"DataView"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** Properties of DataView Instances
+DataView实例继承DataView原型对象的性质。DataView实例有\[\[DataView]]、
+\[\[ViewedArrayBuffer]]、\[\[ByteLength]]、和\[\[ByteOffset]]内部占位。
+**** 注意 SharedArrayBuffer实例，不同于ArrayBuffer实例，永远不会被解除。
 ** The Atomics Object
+Atomics对象：
+. 是%Atomics%
+. 是全局对象"Atomics"性质的初始值
+. 是基本对象
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 没有\[\[Constructor]]内部方法；不能与new操作符合用
+. 没有\[\[Call]]内部方法；不能作为函数调用
 *** Abstract Operations for Atomics
 **** ValidateIntegerTypedArray ( typedArray [ , waitable ] )
 **** ValidateAtomicAccess ( typedArray, requestIndex )
@@ -24194,7 +24375,7 @@ SharedArrayBuffer实例继承SharedArrayBuffer原型对象的性质。SahredArra
 *** Atomics.notify ( typedArray, index, count )
 *** Atomics.xor ( typedArray, index, value )
 *** Atomics [ @@toStringTag ]
-** The JSON Object
+** The JSON Object 725-743
 *** JSON.parse ( text [ , reviver ] )
 **** InternalizeJSONProperty ( holder, name, reviver )
 *** JSON.stringify ( value [ , replacer [ , space ] ] )
