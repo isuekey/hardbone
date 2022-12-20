@@ -24348,16 +24348,121 @@ Atomics对象：
 . 有\[\[Prototype]]内部占位，值是%Object.prototype%
 . 没有\[\[Constructor]]内部方法；不能与new操作符合用
 . 没有\[\[Call]]内部方法；不能作为函数调用
+
+Atomics对象提供在共享内存数组单元上的不可分（原子）的操作函数，而且还让施动者能够等待
+和派发原始的事件。在按照准则使用时，Atomics函数允许多个施动者程序通过共享内存通讯来按照
+可以理解的顺序执行，即使是在并发CPU环境里。这些管理共享内存通讯的规则由MemoryModel提供，
+定义如下：
+*** 注意 ECMAScript的共享内存相关的编程和实现的指导信息，在最后一节的MemoryModel里。
 *** Abstract Operations for Atomics
 **** ValidateIntegerTypedArray ( typedArray [ , waitable ] )
+抽象操作ValidateIntegerTypedArray接受参数typedArray和可选参数waitable（Boolean）。
+被调用时执行下列步骤：
+1. 如果waitable不存在，置waitable是false
+2. 让buffer是?ValidateTypedArray(typedArray)
+3. 让typedName是typedArray.\[\[TypedArrayName]]
+4. 让type是表60中元素类型为typedName对应的元素类型
+5. 如果waitable是true，那么
+    a. 如果typeName不是"Int32Array"与"BigInt64Array"，投掷TypeError异常
+6. 否则
+    a. 如果!IsUnclampedIntegerElementType(type)是false
+       且!IsBigIntElementType(type)，投掷TypeError异常
+7. 返回buffer
 **** ValidateAtomicAccess ( typedArray, requestIndex )
+抽象操作ValidateAtomicAccess接受参数typedArray、和requestIndex。被调用时执行下列步骤：
+1. Assert：typedArray是有\[\[ViewedArrayBuffer]]内部占位的Object
+2. 让length是typedArray.\[\[ArrayLength]]
+3. 让accessIndex是?ToIndex(requestIndex)
+4. Assert：accessIndex >= 0
+5. 如果accessIndex >= length，投掷RangeError异常
+6. 让arrayTypeName是typedArray.\[\[TypedArrayName]]
+7. 让elementSize是表60中元素类型为arrayTypedName对应的元素大小
+8. 让offset是typedArray.\[\[ByteOffset]]
+9. 返回(accessIndex * elementSize) + offset
 **** GetWaiterList ( block, i )
+WaiterList是语义对象，含有有序的施动者列表，施动者在等待共享内存上的位置（block，id）；
+block是SharedDataBlock，i是在block上的偏移。WaiterList对象也可以包含一个Synchronize
+事件以标记即将离开关键环节。
+
+刚初始化的WatierList对象有一个空列表，没有Synchronize事件。
+
+施动者集群存储WaiterList对象，存储按照(block，i)进行索引。WaiterList正交于施动者：在
+存储中使用(block,i)查到的WaiterList对象，与在施动者集群中的施动者里查找的结果相同。
+
+每个WaiterList有关节环节，用于控制在WaiterList评估期间控制外部访问。同一时间只允许一个
+施动者进入WaiterList的关键环节。进入与离开WaiterList的关键环节由抽象操作EnterCriticalSection
+和LeaveCriticalSection控制。在WaiterList上的添加和移除等待的施动者、传递施动者列表、挂起
+和唤醒列表中的施动者、设置和查找Synchronize事件等操作，只有在施动者进入WaiterList的关键环节
+后才允许执行。
+
+抽象操作GetWaiterList接受参数block（SharedDatablock）和i（非负整数）。被调用时执行下列步骤：
+1. Assert：block是SharedDataBlock
+2. Assert：i和i+3是block的内存允许的字节偏移
+3. Assert：i能够被4整除
+4. 返回由(block, i)指向的WaiterList
 **** EnterCriticalSection ( WL )
+抽象操作EnterCriticalSection接受参数WL（WaiterList）。被调用时执行下列步骤：
+1. Assert：起调的施动者没在任何WaiterList的关键环节里。
+2. 等待所有施动者都不在WL的关键环节里后，起调施动者进入WL的关键环节（不允许其他施动者计入了）
+3. 如果WL有Synchronize事件，那么
+    a. 注意：如果WL的关键环节被进入过，就会有被设置为LeaveCriticalSection的Synchronize事件
+    b. 让execution是紧围施动者的AgentRecord的\[\[CandidateExecution]]
+    c. 让eventsRecord是是execution.\[\[EventsRecords]]里满足\[\[AgentSignifier]]是
+       AgentSignifier()的AgentEventsRecord
+    d. 让entererEvenList是eventsRecord.\[\[EventList]]
+    e. 让enterEvent是新的Synchronize事件
+    f. 附加enterEvent到entererEventList
+    g. 让leaveEvent是WL上的Synchronize事件
+    h. 附加(leaveEvent, enterEvent)到eventsRecord.\[\[AgentSynchronizesWith]]
+
+EnterCriticalSection在等待所有其他施动者离开关键环节后试图进入关键环节时存在争抢。没有争抢
+时，显然是按照FIFO顺序调用EnterCriticalSection。有争抢时，实现可以选择任意顺序，只要不引起
+施动者无限等待就可以。
 **** LeaveCriticalSection ( WL )
+抽象操作LeaveCriticalSection接受参数WL（WaiterList）。被调用时执行下列步骤：
+1. Assert：起调的施动者在WaiterList的关键环节里。
+2. 让execution是紧围施动者的AgentRecord的\[\[CandidateExecution]]
+3. 让eventsRecord是是execution.\[\[EventsRecords]]里满足\[\[AgentSignifier]]是
+   AgentSignifier()的AgentEventsRecord
+4. 让leaverEvenList是eventsRecord.\[\[EventList]]
+5. 让leaveEvent是新的Synchronize事件
+6. 附加leaveEvent到leaverEventList
+7. 置WL的Synchronize事件是leaveEvent
+8. 离开WL的关键环节
 **** AddWaiter ( WL, W )
+抽象操作AddWaiter接受参数WL（WaiterList）和W（施动者标识）。被调用时执行下列步骤：
+1. Assert：起调的施动者在WL的关键环节里。
+2. Assert：W没有在任何WaiterList的等待列表里。
+3. 添加W到WL的等待列表的末端。
 **** RemoveWaiter ( WL, W )
+抽象操作RemoveWaiter接受参数WL（WaiterList）和W（施动者标识）。被调用时执行下列步骤：
+1. Assert：起调的施动者在WL的关键环节里。
+2. Assert：W在WL的等待列表里。
+3. 从WL的等待列表中移除W
 **** RemoveWaiters ( WL, c )
+抽象操作RemoveWaiters接受参数WL（WaiterList）和c（非负整数或者+∞）。被调用时执行下列步骤：
+1. Assert：起调的施动者在WL的关键环节里。
+2. 让L是新的空列表
+3. 让S是WL中等待列表的引用
+4. 重复，当c>0且S不是空列表时：
+    a. 让W是S的第一个等待者（施动者标识）
+    b. 添加W到L的末端
+    c. 从S中移除W
+    d. 如果c是有限的，置c是c-1
+5. 返回L
 **** SuspendAgent ( WL, W, timeout )
+抽象操作SuspendAgent接受参数WL（WaiterList）、W（施动者标识）和timeout（非负整数）。
+被调用时执行下列步骤：
+1. Assert：起调的施动者在WL的关键环节里。
+2. Assert：W等价于AgentSignifier()
+3. Assert：W在WL的等待列表里
+4. Assert：AgentCanSuspend()是true
+5. 执行LeaveCriticalSection(WL)和挂起W持续timeout毫秒的组合操作，按照通知是在退出
+   关键环节后，保持挂起时发出的即可。W只会因为超时或者其他施动者显示调用
+   NotifyWaiter(WL, W)的原因唤醒，不会有原因。
+6. 执行EnterCriticalSection(WL)
+7. 如果W没有被其他施动者通过NotifyWaiter(WL, W)来唤醒，返回true。
+8. 返回false
 **** NotifyWaiter ( WL, W )
 **** AtomicReadModifyWrite ( typedArray, index, value, op )
 **** ByteListBitwiseOp ( op, xBytes, yBytes )
