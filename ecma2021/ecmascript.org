@@ -23912,7 +23912,7 @@ Boolean）。被调用时执行下列步骤：
        AgentSignifier()的元素的\[\[EventList]]
     c. 让rawBytesRead是长度为elementSize，元素是不可确定选择的字节值，的列表
     d. 注意：在实现中，rawValue是底层硬件的load-link、load-exclusive或者
-       read-modify-write操作置令的结果。不可确定性质是内存模型里描述使用
+       read-modify-write操作指令的结果。不可确定性质是内存模型里描述使用
        弱一致性观测硬件行为的语义处方。
     e. 让readeEvent是ReadModifyWriteSharedMemory { \[\[Order]]:SeqCst,
        \[\[NoTear]]:noTear, \[\[Block]]:block, \[\[ByteIndex]]:byteIndex,
@@ -24464,24 +24464,281 @@ EnterCriticalSection在等待所有其他施动者离开关键环节后试图进
 7. 如果W没有被其他施动者通过NotifyWaiter(WL, W)来唤醒，返回true。
 8. 返回false
 **** NotifyWaiter ( WL, W )
+抽象操作NotifyWaiter接受参数WL（WaiterList）、和W（施动者标识）。
+被调用时执行下列步骤：
+1. Assert：起调的施动者在WL的关键环节里。
+2. 唤醒施动者W
+***** 注意 嵌入可会延误唤醒W，比如，因为资源管理的原因；但是W必须被
+            实际唤醒，以保证进一步的过程。
 **** AtomicReadModifyWrite ( typedArray, index, value, op )
+抽象操作AtomicReadModifyWrite接受参数typedArray、index、value和op（读-改-写操作
+函数）。op接受两个字节列作为参数，返回字节列表。本操作原子性的读取值，
+与另一个值进行计算，存储计算的结果。返回加载的值。被调用时执行下列步骤：
+1. 让buffer是?ValidateIntegerTypedArray(typedArray)
+2. 让indexedPosition是?ValidateAtomicAccess(typedArray, index)
+3. 让arrayTypeName是typedArray.\[\[TypedArrayName]]
+4. 如果typedArray.\[\[ContentType]]是BigInt，让v是?ToBigInt(value)
+5. 否则让v是F(?ToIntegerOrInfinity(value))
+6. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+7. 注意：在ValidateIntegerTypedArray后的，上述检查不是多余的，因为调用ToBigInt
+   或者ToIntegerOrInfinity会有不可预料的副作用，进而导致缓冲区变成解除的。
+8. 让elementType是表60中元素类型为arrayTypedName对应的元素类型
+9. 返回GetModifySetValueInBuffer(buffer, indexedPosition, elementType, v, op)
 **** ByteListBitwiseOp ( op, xBytes, yBytes )
+抽象操作ByteListBitwiseOp接受参数op（Unicode编码点的序列）、xBytes（字节值
+列表）、和yBytes（字节值列表）。本操作原子性的执行参数上的二进制运算，并
+返回字节值列表。被调用时执行下列步骤：
+1. Assert：op是&、^、或者|。
+2. Assert：xBytes与yBytes有相同数量的元素
+3. 让result是新的空列表
+4. 让i是0
+5. 遍历xBytes的元素记作xByte，做：
+    a. 让yByte是yBytes[i]
+    b. 如果op是&，让resultByte是xByte和yByte的二进制与结果。
+    c. 否则如果op是^，让resultByte是xByte和yByte的二进制异或（XOR）结果。
+    d. 否则op是|，让resultByte是xByte和yByte的二进制或结果。
+    e. 置i是i+1
+    f. 附加resultByte到result的末端
+6. 返回result
 **** ByteListEqual ( xBytes, yBytes )
+抽象操作ByteListEqual接受参数xBytes（字节值列表）和yBytes（字节值列表）。
+被调用时执行下列步骤：
+1. xBytes与yBytes没有相同数量的元素，返回false
+2. 让i是0
+3. 遍历xBytes的元素记作xByte，做：
+    a. 让yByte是yBytes[i]
+    b. 如果xByte != yByte，返回false
+    c. 置i是i+1
+4. 返回true
 *** Atomics.add ( typedArray, index, value )
+被调用时执行下列步骤：
+1. 让type是表60中元素类型为typedArray.\[\[TypedArrayName]]对应的元素类型
+2. 让isLittleEndian是紧围施动者的AgentRecord的\[\[LittleEndian]]
+3. 让add是新的读-改-写操作函数，接受参数(xBytes, yBytes)，捕获type和
+   isLittleEdian。被调用时，原子性地执行下列步骤：
+    a. 让x是RawBytesToNumber(type, xBytes, isLittleEndian)
+    b. 让y是RawBytesToNumber(type, yBytes, isLittleEndian)
+    c. 让T是Type(x)
+    d. 让sum是T::add(x, y)
+    e. 让sumBytes是NumericToRawBytes(type, sum, isLittleEndian)
+    f. Assert：sumBytes、xBytes和yBytes有相同的元素数量
+    g. 返回sumBytes
+4. 返回?AtomicReadMoidfyWrite(typedArray, index, value, add)
 *** Atomics.and ( typedArray, index, value )
+被调用时执行下列步骤：
+1. 让and是新的读-改-写操作函数，接受参数(xBytes, yBytes)。被调用时，原子性
+   地执行下列步骤：
+    a. 返回ByteListBitwiseOp(&, xBytes, yBytes)
+2. 返回?AtomicReadMoidfyWrite(typedArray, index, value, and)
 *** Atomics.compareExchange ( typedArray, index, expectedValue, replacementValue )
+被调用时执行下列步骤：
+1. 让buffer是?ValidateIntegerTypedArray(typedArray)
+2. 让block是buffer.\[\[ArrayBufferData]]
+3. 让indexedPosition是?ValidateAtomicAccess(typedArray, index)
+4. 让arrayTypeName是typedArray.\[\[TypedArrayName]]
+5. 如果typedArray.\[\[ContentType]]是BigInt，那么
+    a. 让expected是?ToBigInt(expectedValue)
+    b. 让replacement是?ToBigInt(replacementValue)
+6. 否则
+    a. 让expected是F(?ToIntegerOrInfinity(expectedValue))
+    b. 让replacement是F(?ToIntegerOrInfinity(replacementValue))
+7. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+8. 注意：在ValidateIntegerTypedArray后的，上述检查不是多余的，因为调用ToBigInt
+   或者ToIntegerOrInfinity会有不可预料的副作用，进而导致缓冲区变成解除的。
+9. 让elementType是表60中arrayTypeName对应的元素类型
+10. 让elementSize是表60中元素类型为elementType规定的元素大小
+11. 让isLittleEndian是紧围施动者的AgentRecord的\[\[LittleEndian]]
+12. 让expectedBytes是NumericToRawBytes(elementType, expected, isLittleEndian)
+13. 让replacementBytes是NumericToRawBytes(elementType, replacement, isLittleEndian)
+14. 如果IsSharedArrayBuffer(buffer)是true，那么
+    a. 让execution是紧围施动者的AgentRecord的\[\[CandidateExecution]]
+    b. 让eventList是execution.\[\[EventsRecord]]中\[\[AgentSignifier]]是
+       AgentSignifier()的元素的\[\[EventList]]
+    c. 让rawBytesRead是长度位elementSize的列表，其元素是不可确定选择的字节值
+    d. 注意：在实现中，rawValue是底层硬件的load-link、load-exclusive或者
+       read-modify-write操作指令的结果。不可确定性质是内存模型里描述使用
+       弱一致性观测硬件行为的语义处方。
+    e. 注意：期望值与读取值的比较是在读-改-写操作函数外进行的，避免在
+       期望值与读取值不同时的不必要的强一致性。
+    f. 如果ByteListEqual(rawBytesRead, expectedBytes)是true，那么
+        i. 让second是新的读-改-写操作函数，接受参数(oldBytes, newBytes)。被
+           调用时，原子性地执行下列步骤：
+            1. 返回newBytes
+       ii. 让event是ReadModifyWriteSharedMemory { \[\[Order]]:SeqCst,
+           \[\[NoTear]]:true, \[\[Block]]:block, \[\[ByteIndex]]:indexedPosition,
+           \[\[ElementSize]]:elementSize, \[\[Payload]]:replacementBytes,
+           \[\[ModifyOp]]:second, }
+    g. 否则
+        i. 让readEvent是 ReadSharedMemory { \[\[Order]]:Unordered, \[\[NoTear]]:true,
+           \[\[Block]]:block, \[\[ByteIndex]]:indexedPosition,
+           \[\[ElementSize]]:elementSize}
+    h. 附加event到eventList
+    i. 在execution.\[\[ChosenValues]]中附加ChosenValueRecord {
+       \[\[Event]]:event, \[\[ChosenValue]]:rawBytesRead }
+15. 否则
+    a. 让rawBytesRead是block上[indexedPosition, indexedPosition + elementSize)的字节
+       构成的列表
+    b. 如果ByteListEqual(rawBytesRead, expectedBytes)是true，那么
+        i. 将replacementBytes的字节各自存储到block上indexedPosition及之后的位置里
+16. 返回RawBytesToNumeric(elementType, rawBytesRead, isLittleEndian)
 *** Atomics.exchange ( typedArray, index, value )
+被调用时执行下列步骤：
+1. 让second是新的读-改-写操作函数，接受参数(oldBytes, newBytes)。被调用时，
+   原子性地执行下列步骤：
+    a. 返回newBytes
+2. 返回?AtomicReadMoidfyWrite(typedArray, index, value, second)
 *** Atomics.isLockFree ( size )
+被调用时执行下列步骤：
+1. 让n是?ToIntegerOrInfinity(size)
+2. 让AR是紧围施动者的AgentRecord
+3. 如果n==1，返回AR.\[\[IsLockFree1]]
+4. 如果n==2，返回AR.\[\[IsLockFree2]]
+5. 如果n==4，返回true
+6. 如果n==8，返回AR.\[\[IsLockFree8]]
+7. 返回false
+**** 注意 Atomics.isLockFree是原始的优化手段。直觉上如果某个原子原始值（
+           compareExchange、load、store、add、sub、and、or、xor、或者exchange）
+           的原子步骤操作数据上的n个字节，而不会让施动者锁定数据上这n个
+           字节外的内容，那么Atomics.isLockFree(n)就会返回true。高性能算法会
+           使用Atomics.isLockFree来检测是否在关键环节使用锁定或者原子性操作。
+           如果原子原始值不是免锁的，那么就需要为算法提供的更多的努力来
+           提供自己的锁定方式。
+
+           Atomics.isLockFree(4)总是返回true，因为所有已知的相关硬件都支持。
+           感觉能够简化程序。
+
+           无论Atomics.isLockFree的值是啥，所有的原子操作必须保证原子性。比如
+           他们从不会在操作中发生可见操作（比如"tearing"）
 *** Atomics.load ( typedArray, index )
+被调用时执行下列步骤：
+1. 让buffer是?ValidateIntegerTypedArray(typedArray)
+2. 让indexedPosition是?ValidateAtomicAccess(typedArray, index)
+3. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+4. 注意：在ValidateIntegerTypedArray后的，上述检查不是多余的，因为调用ToBigInt
+   或者ToIntegerOrInfinity会有不可预料的副作用，进而导致缓冲区变成解除的。
+5. 让arrayTypeName是typedArray.\[\[TypedArrayName]]
+6. 让elementType是表60中arrayTypeName对应的元素类型
+7. 返回GetValueFromBuffer(buffer, indexedPosition, elementType, true, SeqCst)
 *** Atomics.or ( typedArray, index, value )
+被调用时执行下列步骤：
+1. 让or是新的读-改-写操作函数，接受参数(xBytes, yBytes)。被调用时，原子性
+   地执行下列步骤：
+    a. 返回ByteListBitwiseOp(!, xBytes, yBytes)
+2. 返回?AtomicReadMoidfyWrite(typedArray, index, value, or)
 *** Atomics.store ( typedArray, index, value )
+被调用时执行下列步骤：
+1. 让buffer是?ValidateIntegerTypedArray(typedArray)
+2. 让indexedPosition是?ValidateAtomicAccess(typedArray, index)
+3. 让arrayTypeName是typedArray.\[\[TypedArrayName]]
+4. 如果arrayTypeName是"BigUint64Array"或者"BigInt64Array"，让v是?ToBigInt(value)
+5. 否则，让v是F(?ToIntegerOrInfinity(value))
+6. 如果IsDetachedBuffer(buffer)是true，投掷TypeError异常
+7. 注意：在ValidateIntegerTypedArray后的，上述检查不是多余的，因为调用ToBigInt
+   或者ToIntegerOrInfinity会有不可预料的副作用，进而导致缓冲区变成解除的。
+8. 让elementType是表60中arrayTypeName对应的元素类型
+9. 执行SetValueInBuffer(buffer, indexedPosition, elementType, v, true, SeqCst)
+10. 返回v
 *** Atomics.sub ( typedArray, index, value )
+1. 让type是表60中元素类型为typedArray.\[\[TypedArrayName]]对应的元素类型
+2. 让isLittleEndian是紧围施动者的AgentRecord的\[\[LittleEndian]]
+3. 让subtract是新的读-改-写操作函数，接受参数(xBytes, yBytes)，捕获type和
+   isLittleEdian。被调用时，原子性地执行下列步骤：
+    a. 让x是RawBytesToNumber(type, xBytes, isLittleEndian)
+    b. 让y是RawBytesToNumber(type, yBytes, isLittleEndian)
+    c. 让T是Type(x)
+    d. 让difference是T::subtract(x, y)
+    e. 让differenceBytes是NumericToRawBytes(type, difference, isLittleEndian)
+    f. Assert：differenceBytes、xBytes和yBytes有相同的元素数量
+    g. 返回differenceBytes
+4. 返回?AtomicReadMoidfyWrite(typedArray, index, value, subtract)
 *** Atomics.wait ( typedArray, index, value, timeout )
+被调用时执行下列步骤：
+1. 让buffer是?ValidateIntegerTypedArray(typedArray)
+2. 如果IsSharedArrayBuffer(buffer)是false，投掷TypeError异常
+3. 让indexedPosition是?ValidateAtomicAccess(typedArray, index)
+4. 让arrayTypeName是typedArray.\[\[TypedArrayName]]
+5. 如果arrayTypeName是"BigInt64Array"，让v是?ToBigInt64(value)
+6. 否则，让v是?ToInt32(value)
+7. 让q是?ToNumber(timeout)
+8. 如果q是NaN或者+∞_F，让t是+∞；
+   否则如果q是-∞_F，让t是0；
+   否则t是max(R(q), 0)。
+9. 让B是AgentCanSuspend()
+10. 如果B是false，投掷TypeError异常
+11. 让block是buffer.\[\[ArrayBufferData]]
+12. 让WL是GetWaiterList(block, indexedPosition)
+13. 执行EnterCriticalSection(WL)
+14. 让elementType是表60中arrayTypeName对应的元素类型
+15. 让w是!GetValueFromBuffer(buffer, indexedPosition, elementType, true, SeqCst)
+16. 如果v != w，那么
+    a. 执行LeaveCriticalSection(WL)
+    b. 返回字符串"not-equal"
+17. 让W是AgentSignifier()
+18. 执行AddWaiter(WL, W)
+19. 让notified是SuspendAgent(WL, W, t)
+20. 如果notified是true，那么
+    a. Assert：W不在WL的等待者列表里
+21. 否则
+    a. 执行RemoveWaiter(WL, W)
+22. 执行LeaveCriticalSection(WL)
+23. 如果notified是true，返回字符串"ok"
+24. 返回字符串"timed-out"
 *** Atomics.notify ( typedArray, index, count )
+Atomics.notify唤醒在等待列表里睡眠的施动者。被调用时执行下列步骤：
+1. 让buffer是?ValidateIntegerTypedArray(typedArray)
+2. 让indexedPosition是?ValidateAtomicAccess(typedArray, index)
+3. 如果count是undefined，让c是+∞_F
+4. 否则
+    a. 让intCount是?ToIntegerOrInfinity(count)
+    b. 让c是mx(intCount, 0)
+5. 让block是buffer.\[\[ArrayBufferData]]
+6. 让arrayTypeName是typedArray.\[\[TypedArrayName]]
+7. 如果IsSharedArrayBuffer(buffer)是true，返回+0_F
+8. 让WL是GetWaiterList(block, indexedPosition)
+9. 让n是0
+10. 执行EnterCriticalSection(WL)
+11. 让S是RemoveWaiters(WL, c)
+12. 重复，当S不是空列表时
+    a. 让W是S的第一个施动者
+    b. 从S的前部移除W
+    c. 执行NotifyWaiter(WL, W)
+    d. 置n是n+1
+13. 执行LeaveCriticalSection(WL)
+14. 返回F(n)
 *** Atomics.xor ( typedArray, index, value )
+被调用时执行下列步骤：
+1. 让xor是新的读-改-写操作函数，接受参数(xBytes, yBytes)。被调用时，原子性
+   地执行下列步骤：
+    a. 返回ByteListBitwiseOp(^, xBytes, yBytes)
+2. 返回?AtomicReadMoidfyWrite(typedArray, index, value, xor)
 *** Atomics [ @@toStringTag ]
-** The JSON Object 725-743
+@@toStringTag性质的初始值是"Atomics"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
+** The JSON Object
+JSON对象：
+. 是%JSON%
+. 是全局对象"JSON"性质的初始值
+. 是基本对象
+. 含有parse与stringify两个函数，用于解析和构建JSON文本
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 没有\[\[Constructor]]内部方法；不能与new操作符合用
+. 没有\[\[Call]]内部方法；不能作为函数调用
+
+JSON数据交换格式定义在ECMA-404。本规范使用的JSON数据交换格式严格符合ECMA-404。
+一致实现上的JSON.parse和JSON.stringify必须严格支持ECMA-404描述的交换格式，不能
+有任何删减或者扩展。
 *** JSON.parse ( text [ , reviver ] )
+parse函数解析JSON文本（JSON格式的字符串）为ECMAScript值。JSON格式使用类似
+ECMAScript中字面量、数组初始化和对象初始化的语法表示字面两、数组和对象。
+解析之后，JSON对象被识为ECMAScript对象。JSON数组被识为ECMAScript数组实例。
+JSON字符串、数值、布尔和null被识为ECMAScript的字符串、数值、布尔和null。
+
+可选参数reviver是接受key和value两个参数的函数。用于过滤和调整结果。在解析的
+过程中，每个key/value都会应用到此函数上，其返回的值会替换原始的值。如果返
+回了重做的内容，结构不会修改。如果返回了undefined则此性质会从结果里移除。
+1. 让jsonString是?ToString(text)
 **** InternalizeJSONProperty ( holder, name, reviver )
 *** JSON.stringify ( value [ , replacer [ , space ] ] )
 **** SerializeJSONProperty ( state, key, holder )
@@ -24489,7 +24746,11 @@ EnterCriticalSection在等待所有其他施动者离开关键环节后试图进
 **** UnicodeEscape ( C )
 **** SerializeJSONObject ( state, value )
 **** SerializeJSONArray ( state, value )
-*** JSON [ @@toStringTag
+*** JSON [ @@toStringTag ]
+@@toStringTag性质的初始值是"JSON"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 * Managing Memory 743-748
 * Control Abstraction Objects 748-794
 * Reflection 794-799
