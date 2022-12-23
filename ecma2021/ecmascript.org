@@ -24739,19 +24739,450 @@ JSON字符串、数值、布尔和null被识为ECMAScript的字符串、数值�
 过程中，每个key/value都会应用到此函数上，其返回的值会替换原始的值。如果返
 回了重做的内容，结构不会修改。如果返回了undefined则此性质会从结果里移除。
 1. 让jsonString是?ToString(text)
+2. 将!StringToCodePoint(jsonString)的结果当作ECMA-404规定的JSON文本进行解析。如果
+   不是规范定义的有效JSON文本，投掷SyntaxError异常
+3. 让scriptString是"("、jsonString、和")"的字符串拼接
+4. 让script是ParseText(!StringToCodePoints(scriptString), Script)
+5. Assert：script是ParseNode
+6. 让completion是评估script的结果。此次评估不能使用在B.3.1定义的扩展
+   PropertyDefinitionEvaluation语义。
+7. 让unfiltered是completion.\[\[Value]]
+8. Assert：unfiltered是String、Number、Boolean、Null、或者使用ArrayLiteral和
+   ObjectLiteral定义的Object
+9. 如果IsCallable(reviver)是true，那么
+    a. 让root是!OrdinaryObjectCreate(%Object.prototype%)
+    b. 让rootName是空字符串
+    c. 执行!CreateDataPropertyOrThrow(root, rootName, unfiltered)
+    d. 返回?InternalizeJSONProperty(root, rootName, reviver)
+10. 否则
+    a. 返回unfiltered
+
+parse函数的"length"性质2_F
+**** 注意 有效的JSON文本是ECMAScript PrimaryExpression句法的子集。步骤2确定了
+           jsonString与此子集一致，而步骤8断言了解析评估结果是恰当的类型。
+
+           然而，因为B.3.1应用于评估ECMAScript源文本，而不应用于JSON.parse，
+           因此相同的原文本用PrimaryExpression评估和当作JSON评估时，会产生
+           不同的结果。此外，在对象文法里重复"\__proto__"的早期错误，不会在
+           JSON.parse时应用，也就意味这不是JSON.parse接受的文本也同样适用于
+           PrimaryExpression，尽管符合语法。
 **** InternalizeJSONProperty ( holder, name, reviver )
+抽象操作InternalizeJSONProperty接受参数holder（Object）、name（String）和
+reviver（函数对象）。被调用时执行下列步骤：
+***** 注意 本算法刻意不投掷异常，如果\[\[Delete]]或者CreateDataProperty
+            返回false。
+1. 让val是?Get(holder, name)
+2. 如果Type(val)是Object，那么
+    a. 让isArray是?IsArray(val)
+    b. 如果isArray是true，那么
+        i. 让I是0
+       ii. 让len是?LengthOfArrayLike(val)
+      iii. 重复，当I < len时，
+            1. 让prop是!ToString(F(I))
+            2. 让newElement是?InternalizeJSONProperty(val, prop, reviver)
+            3. 如果newElement是undefined，那么
+                a. 执行?val.\[\[Delete]](prop)
+            4. 否则
+                a. 执行?CreateDataProperty(val, prop, newElement)
+            5. 置I是I+1
+    c. 否则
+        i. 让keys是?EnumerableOwnPropertyNames(val, key)
+       ii. 遍历keys的元素记作P，做
+            1. 让newElement是?InternalizeJSONProperty(val, P, reviver)
+            2. 如果newElement是undefined，那么
+                a. 执行?val.\[\[Delete]](P)
+            3.
+                a. 执行?CreateDataProperty(val, prop, newElement)
+3. 返回?Call(reviver, holder, << name, val >>)
+
+不允许一致实现的JSON.parse扩展JSON语法。如果实现希望支持改良或者扩展版的
+JSON交换格式，必须定义其他的解析函数。
+***** 注意 在对象中如果有重复名称的建，词法在前的键值会被覆盖掉。
 *** JSON.stringify ( value [ , replacer [ , space ] ] )
+stringify函数返回将JSON格式表示的ECMAScript值以UTF-16编码的字符串，或者
+undefined。接受三个参数。value是ECMAScript值，通常是数组或者对象，也可以是
+String、Boolean、Number或者null。可选参数replacer是变更对象或者数组字符化
+途径的函数，或者是String和Number的数组作为将被字符化的对象性质可用集。可选
+参数space是String或者Number作为结果允许插入的空白，以提高可读性。
+
+随后是字符化对象的过程：
+1. 让stack是新的空列表
+2. 让indent是空字符串
+3. 让PropertyList和ReplacerFunction是undefined
+4. 如果Type(replacer)是Object，那么
+    a. 如果IsCallable(replacer)是true，那么
+        i. 置ReplacerFunction是replacer
+    b. 否则
+        i. 让isArray是?IsArray(replacer)
+       ii. 如果isArray是true，那么
+            1. 置PropertyList是新的空列表
+            2. 让len是?LengthOfArrayLike(replacer)
+            3. 让k是0
+            4. 重复，当k<len时，
+                a. 让prop是!ToString(F(k))
+                b. 让v是?Get(replacer, prop)
+                c. 让item是undefined
+                d. 如果Type(v)是String，置item是v
+                e. 否则如果Type(v)是Number，置item是!ToString(v)
+                f. 否则如果Type(v)是Object，那么
+                    i. 如果v有\[\[StringData]]或者\[\[NumberData]]内部占位，置
+                       v是!ToString(v)
+                g. 如果item不是undefined，而且item不是PropertyList此时的元素，那么
+                    i. 附加item到PropertyList的末端
+                h. 置k是k+1
+5. 如果Type(space)是兑现，那么
+    a. 如果space有\[\[NumberData]]内部占位，那么
+        i. 置space是?ToNumber(space)
+    b. 否则如果space有\[\[StringData]]内部占位，那么
+        i. 置space是?ToString(space)
+6. 如果Type(space)是Number，那么
+    a. 让spaceMV是!ToIntegerOrInfinity(space)
+    b. 置spaceMV是min(10, spaceMV)
+    c. 如果spaceMV < 1，让gap是空字符串，否则让gap是含有spaceMV个编码单元
+       0x0020（SPACE）的字符串。
+7. 否则如果Type(space)是String，那么
+    a. 如果space的长度不超过10，让gap是space；否则让gap是space上[0,10)的自字符串
+8. 否则
+    a. 让gap是空字符串。
+9. 让wrapper是!OrdinaryObjectCreate(%Object.prototype%)
+10. 执行!CreateDataPropertyOrThrow(wrapper, 空字符串， value)
+11. 让state是Record { \[\[ReplacerFunction]]:ReplacerFunction, \[\[Stack]]:stack,
+    \[\[Indent]]:indent, \[\[Gap]]:gap, \[\[PropertyList]]:PropertyList }
+12. 返回?SerializeJSONProperty(state, 空字符串, wrapper)
+
+stringify函数的"length"性质3_F
+**** 注意1 JSON结构允许嵌入结构，且不限深度，但不能是循环的。如果value含有
+            循环结构，stringify函数必须投掷TypeError异常。随后例子就不能字符
+            化：
+            a = [];
+            a[0] = a;
+            my_text = JSON.stringify(a)
+**** 注意2 符号性的原始置按照如下方式渲染：
+            . null在JSON文本里处理成"null"。
+            . undefined在JSON文本里不渲染
+            . true在JSON文本里处理成"true"
+            . false在JSON文本里处理成"false",
+**** 注意3 字符串值用QUOTATION MARK(")编码单元包装。编码单元"和\被转义为带\前
+            缀的方式。控制字符编码单元替换为转义序列\uHHHH、或者简写形式：
+            \b（BACKSPACE）、\f（FORM FEED）、\n（LINE FEED）、\R（CARRIAGE
+            RETURN）和\t（CHARACTER TABULATION）。
+**** 注意4 有限数值使用ToString(number)字符化。NaN和Infinity都被当作"null"
+**** 注意5 无法用JSON文本表述的值（比如undefined和函数）不产生字符串。都是
+            产生undefined值。但是在数组里这些值表述成"null"。在对象里，不可
+            表述的值引起性质排除在字符化结果里。
+**** 注意6 对象被渲染成U+007B（LEFT CURLY BRACKET）开始，跟随以U+002C（COMMA）分
+            隔的若干性质，再以U+007D（RIGHT CURLY BRACKET）结束。性质用双引号的
+            字符串表示这个键/性质名，U+003A（COLON），和字符化的性质值。数组
+            被渲染成一个U+005B（LEFT SQUARE BRACKET）开始，以U+002C（COMMA）分隔的
+            若干值，再以U+005D（RIGH SQUARE BRACKET）结束。
 **** SerializeJSONProperty ( state, key, holder )
+抽象操作SerializeJSONProperty接受参数state、key和holder。被调用时执行如下步骤：
+1. 让value是?Get(holder, key)
+2. 如果Type(value)是Object或者BigInt，那么
+    a. 让toJSON是?GetV(value, "toJSON")
+    b. 如果IsCallable(toJSON)是true，那么
+        i. 置value是?Call(toJSON, value, << key >>)
+3. 如果state.\[\[RepalceFunction]]不是undefined，那么
+    a. 置value是?Call(state.\[\[ReplaceFunction]], holder, << key, value >>)
+4. 如果Type(value)是Object，那么
+    a. 如果value有\[\[NumberData]]内部占位，那么
+        i. 置value是?ToNumber(value)
+    b. 否则如果value有\[\[StringData]]内部占位，那么
+        i. 置value是?ToString(value)
+    c. 否则如果value有\[\[BooleanData]]内部占位，那么
+        i. 置value是value.\[\[BooleanData]]
+    d. 否则如果value有\[\[BigIntData]]内部占位，那么
+        i. 置value是value.\[\[BigIntData]]
+5. 如果value是null，返回"null"
+6. 如果value是true，返回"true"
+7. 如果value是false，返回"false"
+8. 如果Type(value)是String，返回QuoteJSONString(value)
+9. 如果Type(value)是Nnumber，那么
+    a. 如果value是有限的，返回!ToString(value)
+    b. 返回"null"
+10. 如果Type(value)是BigInt，投掷TypeError异常
+11. 如果Type(value)是Object，而且IsCallable(value)是false，那么
+    a. 让isArray是?IsArray(value)
+    b. 如果isArray是true，返回?SerializeJSONArray(state, value)
+    c. 返回?SerializeJSONObject(state, value)
+12. 返回undefined
 **** QuoteJSONString ( value )
+抽象操作QuoteJSONString接受参数value。以0x0022（QUOTATION MARK）将value的值用
+特定编码单元转移后的结果封装起来。本操作会将value翻译成UTF-16编码的编码点，
+按照6.1.4中的描述。被调用时执行下列步骤：
+1. 让product是只有一个0x0022（QUOTATION MARK）的字符串。
+2. 遍历!StringToCodePoint(value)结果的编码点记作C，做
+    a. 如果C列在表61的"CODE POINT"列，那么
+        i. 置product是由product、C对应的Escape Sequence组成的字符串拼接
+    b. 如果C是0x0020（SPACE），或者C与首位或者尾位的值相同，那么
+        i. 让unit是C的编码单元
+       ii. 置product是由product和UnicodeEscape(unit)组成的字符串拼接。
+    c. 否则
+        i. 让product是由product和!UTF16EncodeCodePoint(C)组成的字符串拼接。
+3. 置product是由product和编码点0x0022（QUOTATION MARK）组成的字符串拼接。
+4. 返回product
+
+表61 JSON String Character Escape Sequences
+| Code Point | Unicode Character Name | Esacpe Sequence |
+| U+0008     | BACKSPACE              | \b              |
+| U+0009     | CHARACTER TABULATION   | \t              |
+| U+000A     | LINE FEED（LF）        | \n              |
+| U+000C     | FORM FEED（FF）        | \f              |
+| U+000D     | CARRIAGE RETURN（CR）  | \r              |
+| U+0022     | QUOTATION MARK         | \quota          |
+| U+005C     | REVERSE SOLIDUS        | \\              |
 **** UnicodeEscape ( C )
+抽象操作UnicodeEscape接受参数C（编码单元）。将C表述成Unicode转移序列。被调用
+时执行下列步骤：
+1. 让n是C的数值
+2. Assert：n <= 0xFFFF
+3. 返回下列的字符串拼接
+    . 编码点0x005C（REVERSE SOLIDUS）
+    . "u"
+    . 左侧补零，四位16进制字符表示n的字符串。
 **** SerializeJSONObject ( state, value )
+抽象SerializeJSONObject接受参数state和value。序列化对象。被调用时执行下列步
+骤：
+1. 如果state.\[\[Stack]]包含value，投掷TypeError异常，因为结构中有循环。
+2. 附加value到state.\[\[Stack]]
+3. 让stepback是state.\[\[Indent]]
+4. 置state.\[\[Indent]]是state.\[\[Indent]]和state.\[\[Gap]]的字符串拼接
+5. 如果state.\[\[PropertyList]]不是undefined，那么
+    a. 让K是state.\[\[PropertyList]]
+6. 否则
+    a. 让K是?EnumerableOwnPropertyNames(value, key)
+7. 让partial是新的空列表
+8. 遍历K的元素记作P，做
+    a. 让strP是?SerializeJSONProperty(state, P, value)
+    b. 如果strP不是undefined，那么
+        i. 让member是QuoteJSONString(P)
+       ii. 置member是member和":"的字符串拼接
+      iii. 如果state.\[\[Gap]]不是空字符串，那么
+            1. 置member是member和编码单元0x0020（SPACE）的字符串拼接
+       iv. 置member是member和strP的字符串拼接
+        v. 附加member到partial。
+9. 如果partial是空的，那么
+    a. 让final是"{}"
+10. 否则
+    a. 如果state.\[\[Gap]]是空字符串，那么
+        i. 让properties是partial元素以编码单元0x002C（COMMA）间隔的字符串拼接。
+           不在第一个元素之前和末元素之后插入逗号。
+       ii. 让final是由"{"、properties和"}"构成的字符串拼接。
+    b. 否则，
+        i. 让separator是由编码单元0x002C（COMMA）、编码单元0x000A（LINE FEED）
+           和state.\[\[Indent]]构成的字符串拼接
+       ii. 让properties是partial元素以separator为间隔的字符串拼接。
+           不在第一个元素之前和末元素之后插入separator。
+      iii. 让final是由"{"、编码单元0x000A（LINE FEED）、state.\[\[Indent]]、
+           properties、编码单元0x000A（LINE FEED）、stepback和"}"组成的字符串
+           拼接。
+11. 移除state.\[\[Stack]]的末尾元素
+12. 置state.\[\[Indent]]是stepback
+13. 返回final
 **** SerializeJSONArray ( state, value )
+抽象SerializeJSONArray接受参数state和value。序列化数组。被调用时执行下列步
+骤：
+1. 如果state.\[\[Stack]]包含value，投掷TypeError异常，因为结构中有循环。
+2. 附加value到state.\[\[Stack]]
+3. 让stepback是state.\[\[Indent]]
+4. 置state.\[\[Indent]]是state.\[\[Indent]]和state.\[\[Gap]]的字符串拼接
+5. 让partial是新的空列表
+6. 让len是?LengthOfArrayLike(value)
+7. 让index是0
+8. 重复，当index < len时
+    a. 让strP是?SerializeJSONProperty(state, !ToString(F(index)), value)
+    b. 如果strP是undefined，那么
+        i. 附加"null"到partial
+    c. 否则
+        i. 附加strP到partial
+    d. 置index是index + 1
+9. 如果partial是空的，那么
+    a. 让final是"[]"
+10. 否则
+    a. 如果state.\[\[Gap]]是空字符串，那么
+        i. 让properties是partial元素以编码单元0x002C（COMMA）间隔的字符串拼接。
+           不在第一个元素之前和末元素之后插入逗号。
+       ii. 让final是由"["、properties和"]"构成的字符串拼接。
+    b. 否则，
+        i. 让separator是由编码单元0x002C（COMMA）、编码单元0x000A（LINE FEED）
+           和state.\[\[Indent]]构成的字符串拼接
+       ii. 让properties是partial元素以separator为间隔的字符串拼接。
+           不在第一个元素之前和末元素之后插入separator。
+      iii. 让final是由"["、编码单元0x000A（LINE FEED）、state.\[\[Indent]]、
+           properties、编码单元0x000A（LINE FEED）、stepback和"]"组成的字符串
+           拼接。
+11. 移除state.\[\[Stack]]的末尾元素
+12. 置state.\[\[Indent]]是stepback
+13. 返回final
+**** 注意 只会表述数组上[0, array.length - 1]的元素。本规范排除了不是数组索
+           引的性质。数组字符化为LEFT SQUARE BRACKET启头，COMMA分隔的元素，
+           RIGHT SQUARE BRACKET收尾。
 *** JSON [ @@toStringTag ]
 @@toStringTag性质的初始值是"JSON"字符串
 
 此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
 \[\[Configurable]]:true }
-* Managing Memory 743-748
+* Managing Memory
+** WeakRef Objects 743-748
+WeakRef是用来以不阻止垃圾回收的方式引用目标对象的对象。WeakRefs
+can be dereferenced to allow access to the target object,
+if the target object hasn't been reclaimed by garbage collection.
+WeakRef可以被解除引用以允许访问目标对象，如果目标对象没有垃圾回收机制
+回收。
+*** The WeakRef Constructor
+WeakRef构造范：
+. 是%WeakRef%
+. 是全局对象"WeakRef"性质的初始值。
+. 作为构造范被调用时创建和初始化新的WeakRef对象。
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承WeakRef的特定行为，必须含有super调用，以使用WeakRef构造范创建和初始
+  化拥有支持内建WeakRef.prototype内建方法所必需内部状态的子类实例。
+**** WeakRef ( target )
+当带参数target调用WeakRef时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 如果Type(target)不是Object，投掷TypeError异常
+3. 让weakRef是?OrdinaryCreateFromConstructor(NewTarget, "%WeakRef.prototype",
+   << \[\[WeakRefTarget]] >>)
+4. 执行!AddToKeptObjects(target)
+5. 置weakRef.\[\[WeakRefTarget]]是target
+6. 返回WeakRef
+*** Properties of the WeakRef Constructor
+WeakRef的构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质：
+**** WeakRef.prototype
+WeakRef.prototype的初始值是WeakRef原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
+*** Properties of the WeakRef Prototype Object
+WeakRef原型对象
+. 是%WeakRef.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[WeakRefTarget]]内部占位
+**** WeakRef.prototype.constructor：：可选规范
+WeakRef.prototype.constructor的初始值是%WeakRef%
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
+**** WeakRef.prototype.deref ( )
+被调用时执行下列步骤：
+1. 让weakRef是this值
+2. 执行?RequireInternalSlot(weakRef, \[\[WeakRefTarget]])
+3. 返回!WeakRefDeref(weakRef)
+***** 注意 如果WeakRef返回了不是undefined的target对象，那么这个target对象
+            应在本次ECMAScript代码执行完后，才可以进行垃圾回收。
+            AddToKeptObjects操作保证了读取一致性。
+
+            target = { foo: function() {} };
+            lef weakRef = new WeakRef(target);
+            ... later ...
+            if(weakRef.deref()) {
+              weakRef.deref().foo();
+            }
+
+            上述例子里，如果第一个deref没有返回undefined，那么第二个deref也
+            不会返回undefined.
+**** WeakRef.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"WeakRef"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
+*** WeakRef Abstract Operations
+**** WeakRefDeref ( weakRef )
+抽象操作WeakRefDeref接受参数weakRef（WeakRef）。被调用时执行下列步骤：
+1. 让target是weakRef.\[\[WeakRefTarget]]
+2. 如果target不是empty，那么
+    a. 执行!AddToKeptObjects(target)
+    b. 返回target
+3. 返回undefined
+***** 注意 本抽象操作与WeakRef.prototype.deref分离定义是为了让其可以简明的
+            有效的定义。
+*** Properties of WeakRef Instances
+WeakRef实例继承了WeakRef原型对象上的性质。WeakRef实例有\[\[WeakRefTarget]]内部
+占位。
+** FinalizationRegistry Objects 746-748
+FinalizationRegistry是用来管理在目标对象被垃圾回收时执行的清理操作的注册和
+解除行为的对象。
+*** The FinalizationRegistry Constructor
+FinalizationRegistry构造范：
+. 是%FinalizationRegistry%
+. 是全局对象"FinalizationRegistry"性质的初始值。
+. 作为构造范被调用时创建和初始化新的FinalizationRegistry对象。
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承FinalizationRegistry的特定行为，必须含有super调用，以使用
+  FinalizationRegistry构造范创建和初始化拥有支持内建
+  FinalizationRegistry.prototype内建方法所必需内部状态的子类实例。
+**** FinalizationRegistry ( cleanupCallback )
+当带参数target调用FinalizationRegistry时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常。
+2. 如果IsCallable(cleanupCallback)是false，投掷TypeError异常。
+3. 让finalizationRegistry是?OrdinaryCreateFromConstructor(NewTarget,
+   "%FinalizationRegistry.prototype%", << \[\[Realm]], \[\[CleanupCallback]],
+   \[\[Cells]] >>)
+4. 让fn是活跃函数对象
+5. 置finalizationRegistry.\[\[Realm]]是fn.\[\[Realm]]
+6. 置finalizationRegistry.\[\CleanupCallback]]是cleanupCallback
+7. 置finalizationRegistry.\[\[Cells]]是新的空列表
+8. 返回finalizationRegistry。
+*** Properties of the FinalizationRegistry Constructor
+FinalizationRegistry的构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质：
+**** FinalizationRegistry.prototype
+FinalizationRegistry.prototype的初始值是FinalizationRegistry原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
+*** Properties of the FinalizationRegistry Prototype Object
+FinalizationRegistry原型对象
+. 是%FinalizationRegistry.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[Cells]]和\[\[CleanupCallback]]内部占位
+**** FinalizationRegistry.prototype.constructor
+FinalizationRegistry.prototype.constructor的初始值是%FinalizationRegistry%
+**** FinalizationRegistry.prototype.register ( target, heldValue [ , unregisterToken ] )
+被调用时执行下列步骤：
+1. 让finalizationRegistry是this值
+2. 执行?RequireInternalSlot(finalizationRegistry, \[\[Cells]])
+3. 如果Type(target)不是Object，投掷TypeError异常。
+4. 如果SameValue(target, heldValue)是true，投掷TypeError异常
+5. 如果Type(unregisterToken)不是Object，那么
+    a. 如果unregisterToke不是undefined，投掷TypeError异常
+    b. 置unregisterToken是空
+6. 让cell是Record { \[\[WeakRefTarget]]:target, \[\[HeldValue]]:heldValue,
+   \[\[UnregisterToken]]:unregisterToken, }
+7. 附加cell到finalizationRegistry.\[\[Cells]]
+8. 返回undefined
+***** 注意 基于本规范的算法和定义，当cell在finalizationRegistry.\[\[Cells]]里
+            时，cell.\[\[HeldValue]]是存活的；然而，不意味着
+            cell.\[\[UnregisterTarget]]或者cell\[\[Target]]是存活的。比如，
+            注册一个对象，并用其自身作为解除令牌，就无法保持对象一直存活。
+**** FinalizationRegistry.prototype.unregister ( unregisterToken )
+被调用时执行下列步骤：
+1. 让finalizationRegistry是this值
+2. 执行?RequireInternalSlot(finalizationRegistry, \[\[Cells]])
+3. 如果Type(target)不是Object，投掷TypeError异常。
+4. 让removed是false
+5. 遍历 finalizationRegistry.\[\[Celss]]的Record { \[\[WeakRefTarget]]:target,
+   \[\[HeldValue]]:heldValue, \[\[UnregisterToken]]:unregisterToken, }记作cell，做
+    a. 如果cell.\[\[UnregisterToken]]不是空，而且
+       SameValue(cell.\[\[UnregisterToken]], unregisterToken)是true，那么
+        i. 从finalizationRegistry.\[\[Cells]]中移除cell
+       ii. 置removed是true
+6. 返回removed
+**** FinalizationRegistry.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"FinalizationRegistry"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
+*** Properties of FinalizationRegistry Instances
+FinalizationRegistry实例继承了FinalizationRegistry原型对象上的性质。
+FinalizationRegistry实例有\[\[Cells]]和\[\[CleanupCallback]]内部占位。
 * Control Abstraction Objects 748-794
 * Reflection 794-799
 * Memory Model 799-812
