@@ -57,6 +57,8 @@ octect 8个连续的二进制位。至于大小端，如果没有明确说明，
 表示Target上有性质property，且其值是some
 ** 码型
 表示production
+** 承诺
+表示promise
 ** TODO instantiate 和 intialize在这里都被翻译成初始化了，这是错误。
    instantiate表示建立变量（实例化）。initialize表示建立变量并赋值，或者给
    未赋值的变量赋值（初始化）。后期需要校订。
@@ -2762,7 +2764,7 @@ key+value).被调用时执行下列步骤
 6. 让nextMethod是?GetV(iterator, "next")
 7. 让iteratorRecord是Record {\[\[Iterator]]:iterator, \[\[NextMethod]]:nextMethod,
    \[\[Done]]:false }
-8. 返回itratorRecord
+8. 返回iteratorRecord
 *** IteratorNext(iteratorRecord[,value])
 抽象操作IteratorNext接受参数iteratorRecord和可选参数value。被调用时执行下列
 步骤：
@@ -24865,7 +24867,7 @@ stringify函数的"length"性质3_F
 **** 注意3 字符串值用QUOTATION MARK(")编码单元包装。编码单元"和\被转义为带\前
             缀的方式。控制字符编码单元替换为转义序列\uHHHH、或者简写形式：
             \b（BACKSPACE）、\f（FORM FEED）、\n（LINE FEED）、\R（CARRIAGE
-            RETURN）和\t（CHARACTER TABULATION）。
+            RETURN）和\t（CHARACTER TABULATION）。)
 **** 注意4 有限数值使用ToString(number)字符化。NaN和Infinity都被当作"null"
 **** 注意5 无法用JSON文本表述的值（比如undefined和函数）不产生字符串。都是
             产生undefined值。但是在数组里这些值表述成"null"。在对象里，不可
@@ -25183,7 +25185,634 @@ FinalizationRegistry.prototype.constructor的初始值是%FinalizationRegistry%
 *** Properties of FinalizationRegistry Instances
 FinalizationRegistry实例继承了FinalizationRegistry原型对象上的性质。
 FinalizationRegistry实例有\[\[Cells]]和\[\[CleanupCallback]]内部占位。
-* Control Abstraction Objects 748-794
+* Control Abstraction Objects
+** Iteration
+*** Common Iteration Interfaces
+接口是一套性质键，其值联结着特定的规范。任何对象如果提供了某个
+接口规范描述的全部性质，就被认为是对应的接口。接口不需要表示为
+确切的对象。有很多不同的对象实现了某个接口。一个独立的对象可能
+实现了很多接口。
+**** The Iterable Interface
+Iterable接口包含表62描述的性质：
+表62：Iterable接口要求的性质
+| 性质       | 值                     | 要求                           |
+| @@iterator | 返回Iterator对象的函数 | 返回的对象必须实现Iterator接口 |
+**** The Iterator Interface
+实现Iterator接口的对象包含表63描述的性质。此类对象可能业实现了
+表64的性质。
+
+表63：Iterator接口要求的性质
+| 性质   | 值                           | 要求 |
+| "next" | 返回IteratorResult对象的函数 | 返回的对象必须实现IteratorResult接口。如果Iterator对象的上一次next方法调用返回的IteratorResult的done性质是true，后续next方法调用返回的IteratorResult的done性质也应是true。不过，这个不是强制要求。 |
+***** 注意1 可以给next函数传递参数，但是其解释与校验依赖目标Iterator。
+             for-of语句和其他常用Iterator都不传递参数，所以这种用途的
+             Iterator对象必须处理无参调用的情况。
+
+表64：Iterator接口的可选性质
+| 性质     | 值                           | 要求 |
+| "return" | 返回IteratorResult对象的函数 | 返回的对象必须实现IteratorResult接口。调用此方法会通知其起调Iterator对象不会再调用其上的next方法了。返回一个IteratorResult对象，done性质值是true，value性质值是传递给return方法的参数。不过，这个不是强制要求。   |
+| "throw"  | 返回IteratorResult对象的函数 | 返回的对象必须实现IteratorResult接口。调用此方法会通知其起调Iterator对象检测到了错误情况。参数可能会被用于标志错误情况，一般是异常对象。通常的响应是投掷传入的参数。如果方法没有投掷，返回的IteratorResult的done性质值是true。 |
+***** 注意2 通常这些方法的起调者应在调用之前检查方法是否存在。ECMAScript语言
+             的某些特性包括for-of、yield*和数组解构是在检查存在性之后进行执行
+             的。大多数接受Iterable对象做参数的ECMAScript库函数也是如此。
+**** The AsyncIterable Interface
+AsyncIterable接口包含表62描述的性质：
+表62：AsyncIterable接口要求的性质
+| 性质            | 值                          | 要求                                |
+| @@asyncIterator | 返回AsyncIterator对象的函数 | 返回的对象必须实现AsyncIterator接口 |
+**** The AsyncIterator Interface
+实现AsyncIterator接口的对象包含表66描述的性质。此类对象可能业实现了
+表66的性质。
+
+表66：AsyncIterator接口要求的性质
+| 性质   | 值                               | 要求                                                                                                                                                                                                                                                                                                                                             |
+| "next" | 返回承诺IteratorResult对象的函数 | 返回的承诺在满足时必须具备实现IteratorResult接口的对象。如果AsyncIterator对象的上一次next方法调用返回承诺的IteratorResult的done性质是true，后续next方法调用返回承诺的IteratorResult的done性质也应是true。不过，这个不是强制要求。另外，作为满足时承诺的IteratorResult应当有"value"性质，其值不是承诺（或者thenable）。不过，此要求也不是强制的。 |
+***** 注意1 可以给next函数传递参数，但是其解释与校验依赖目标AsyncIterator。
+             for-await-of语句和其他常用AsyncIterator都不传递参数，所以这种用途的
+             AsyncIterator对象必须处理无参调用的情况。
+
+表67：AsyncIterator接口的可选性质
+| 性质     | 值                               | 要求                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| "return" | 返回承诺IteratorResult对象的函数 | 返回的承诺在满足时必须具备实现IteratorResult接口的对象。调用此方法会通知其起调AsyncIterator对象不会再调用其上的next方法了。返回承诺的IteratorResult对象，done性质值是true，value性质值是传递给return方法的参数。另外，作为满足时承诺的IteratorResult应当有"value"性质，其值不是承诺（或者thenable）。如果参数值按照经典方式使用，那么在其是拒绝时，应当返回相同原因的拒绝；如果是满足的承诺，那么其具备的是IteratorResult对象，其value性质是满足的值。不过，这个也不是强制要求。 |
+| "throw"  | 返回承诺IteratorResult对象的函数 | 返回的承诺在满足时必须具备实现IteratorResult接口的对象。调用此方法会通知其起调AsyncIterator对象检测到了错误情况。参数可能会被用于标志错误情况，一般是异常对象。通常的响应是返回拒绝传入的参数。如果返回的承诺被满足了，返回的IteratorResult的done性质值是true。另外，应当有"value"性质，其值不是承诺（或者thenable），但是此要求不是强制的。                                                                                                                                     |
+***** 注意2 通常这些方法的起调者应在调用之前检查方法是否存在。ECMAScript语言
+             的某些特性包括for-await-of和yield*是在检查存在性之后进行执行
+             的。
+**** The IteratorResult Interface
+IteratorResult接口包含表68描述的性质：
+表62：IteratorResult接口要求的性质
+| 性质    | 值                   | 要求                                                                                                                                                                                                     |
+| "done"  | true或者false        | 这个是iterator对象调用next方法返回结果的状态。如果到达遍历器的末端，done是true。如果没有到末端，done是false，而且有"value"可用。如果done性质（自有或者继承）不存在，被认为是false。                      |
+| "value" | 任意ECMAScript语言值 | 如果"done"是false，其值是当前的遍历元素。如果done是true，其值是遍历器的"return"值，如果有的话。如果遍历其没有"return"值，"value"的值是undefined。此时如果没有继承显式的"value"性质，那么可以缺失此性质。 |
+*** The %IteratorPrototype% Object
+%IteratorPrototype%对象：
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+**** 注意 本规范定义的实现了Iterator接口的对象也可以继承%IteratorPrototype%。
+           ECMAScript代码也可以定义继承了%IteratorPrototype%的对象。
+           %IteratorPrototype%对象提供了为所有适用遍历器对象添加额外方法的
+           地方。
+
+           随后的表达式是一种ECMAScript代码得到%IteratorPrototype%对象的途径：
+           Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()))
+**** %IteratorPrototype% [ @@iterator ] ( )
+被调用时执行下列步骤：
+1. 返回this值
+
+本函数的"name"性质是"[Symbol.iterator]"
+*** The %AsyncIteratorPrototype% Object
+%AsyncIteratorPrototype%对象：
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+**** 注意 本规范定义的实现了AsyncIterator接口的对象也可以继承
+           %AsyncIteratorPrototype%。ECMAScript代码也可以定义继承了
+           %AsyncIteratorPrototype%的对象。%AsyncIteratorPrototype%对象提供了为
+           所有适用遍历器对象添加额外方法的地方。
+**** %AsyncIteratorPrototype% [ @@asyncIterator ] ( )
+被调用时执行下列步骤：
+1. 返回this值
+
+本函数的"name"性质是"[Symbol.asyncIterator]"
+*** Async-from-Sync Iterator Objects
+Async-from-Sync Iterator对象是适配特定同步遍历器的异步遍历器。Async-from-Sync
+Iterator对象没有命名的构造范。Async-from-Sync Iterator对象由
+CreateAsyncFromSyncIterator抽象操作创建。
+**** CreateAsyncFromSyncIterator ( syncIteratorRecord )
+抽象操作CreateAsyncFromSyncIterator接受参数syncIteratorRecord。用于从同步的
+遍历器Record创建异步的遍历器Record。被调用时执行下列步骤：
+1. 让asyncIterator是!OrdinaryObjectCreate(%AsyncFromIteratorPrototype%,
+   << \[\[SyncIteratorRecord]] >>)
+2. 置asyncIterator.\[\[SyncIteratorRecord]]是syncIteratorRecord
+3. 让nextMethod是!Get(asyncIterator, "next")
+4. 让iteratorRecord是Record { \[\[Iterator]]:asyncIterator, \[\[NextMethod]]:nextMethod,
+   \[\[Done]]:false, }
+5. 返回iteratorRecord
+**** The %AsyncFromSyncIteratorPrototype% Object
+%AsyncFromSyncIteratorPrototype%对象
+. 有继承自Async-from-Sync Iterator Object的性质
+. 是基本对象
+. 有\[\[Prototype]]内部占位，值是%AsyncIteratorPrototype%
+. 有如下性质：
+***** %AsyncFromSyncIteratorPrototype%.next ( [ value ] )
+1. 让O让是this值。
+2. Assert：Type(O)是Object，而且O有\[\[SyncIteratorRecord]]内部占位
+3. 让promiseCapability是!NewPromiseCapability(%Promise%)
+4. 让syncIteratorRecord是O.\[\[SyncIteratorRecord]]
+5. 如果value存在，那么
+    a. 让result是IteratorNext(syncIteratorRecord, value)
+6. 否则
+    a. 让result是IteratorNext(syncIteratorRecord)
+7. IfAbruptRejectPromise(result, promiseCapability)
+8. 返回!AsyncFromSyncIteratorContinuation(result, promiseCapability)
+***** %AsyncFromSyncIteratorPrototype%.return ( [ value ] )
+1. 让O让是this值。
+2. Assert：Type(O)是Object，而且O有\[\[SyncIteratorRecord]]内部占位
+3. 让promiseCapability是!NewPromiseCapability(%Promise%)
+4. 让syncIterator是O.\[\[SyncIteratorRecord]].\[\[Iterator]]
+5. 让return是GetMethod(syncIterator, "return")
+6. IfAbruptRejectPromise(return, promiseCapability)
+7. 如果return是undefined，那么
+    a. 让iterResult是!CreateIterResultObject(value, true)
+    b. 执行!Call(promiseCapability.\[\[Resolve]], undefined, << iterResult >>)
+    c. 返回promiseCapability.\[\[Promise]]
+8. 如果value存在，那么
+    a. 让result是Call(return, syncIterator, << value >>)
+9. 否则
+    a. 让result是Call(return, syncIterator)
+10. IfAbruptRejectPromise(result, promiseCapability)
+11. 如果Type(result)不是Object，那么
+    a. 执行!Call(promiseCapability.\[\[Reject]], undefined,
+       << 新建的TypeError对象 >>)
+    b. 返回promiseCapability.\[\[Promise]]
+12. 返回!AsyncFromSyncIteratorContinuation(result, promiseCapability)
+***** %AsyncFromSyncIteratorPrototype%.throw ( [ value ] )
+****** 注意 在本规范里，总是提供value。但是为了与
+             %AsyncFromSyncIteratorPrototype%.return一致，保留了可选性。
+1. 让O让是this值。
+2. Assert：Type(O)是Object，而且O有\[\[SyncIteratorRecord]]内部占位
+3. 让promiseCapability是!NewPromiseCapability(%Promise%)
+4. 让syncIterator是O.\[\[SyncIteratorRecord]].\[\[Iterator]]
+5. 让throw是GetMethod(syncIterator, "throw")
+6. IfAbruptRejectPromise(throw, promiseCapability)
+7. 如果throw是undefined，那么
+    a. 执行!Call(promiseCapability.\[\[Reject]], undefined, << value >>)
+    b. 返回promiseCapability.\[\[Promise]]
+8. 如果value存在，那么
+    a. 让result是Call(throw, syncIterator, << value >>)
+9. 否则
+    a. 让result是Call(throw, syncIterator)
+10. IfAbruptRejectPromise(result, promiseCapability)
+11. 如果Type(result)不是Object，那么
+    a. 执行!Call(promiseCapability.\[\[Reject]], undefined,
+       << 新建的TypeError对象 >>)
+    b. 返回promiseCapability.\[\[Promise]]
+12. 返回!AsyncFromSyncIteratorContinuation(result, promiseCapability)
+***** Async-from-Sync Iterator Value Unwrap Functions
+Async-from-Sync遍历器值解包函数是匿名内建函数，用于
+AsyncFromSyncIteratorContinuation处理IteratorResult对象的"value"性质，
+以便于在结果是承诺时等待，和解包结果为一个新的未包装的IteratorResult
+对象。每个具体Async-from-Sync遍历器值解包函数都有\[\[Done]]内部占位。
+
+当具体Async-from-Sync遍历器值解包函数被带参数value调用时，执行下列步骤：
+1. 让F是活跃函数对象
+2. 返回!CreateIterResultObject(value, F.\[\[Done]])
+**** Properties of Async-from-Sync Iterator Instances
+Async-from-Sync Iterator实例是基本对象，继承%AsyncFromSyncIteratorPrototype%内置
+对象。Async-from-Sync Iterator实例被创建时初始化表69的内部占位。ECMAScript
+代码无法直接观测到Async-from-Sync Iterator实例。
+
+表69：Async-from-Sync Iterator实例的内部占位
+| 内部占位                 | 描述 |
+| \[\[SyncIteratorRecord]] | Record，根据GetIterator返回类型而不同，表述正在适配的原始同步遍历器。 |
+**** AsyncFromSyncIteratorContinuation ( result, promiseCapability )
+抽象操作AsyncFromSyncIteratorContinuation接受参数result和promiseCapability（
+PromiseCapabilityRecord）。被调用时执行下列步骤：
+1. 让done是IteratorComplete(result)
+2. IfAbruptRejectPromise(done, promiseCapability)
+3. 让value是IteratorValue(result)
+4. IfAbruptRejectPromise(value, promiseCapability)
+5. 让valueWrapper是PromiseResolve(%Promsie%, value)
+6. IfAbruptRejectPromise(valueWrapper, promiseCapability)
+7. 让steps是定义在Async-from-Sync Iterator Value Unwrap Function的算法
+8. 让length是Async-from-Sync Iterator Value Unwrap Function定义的函数的非可选参数
+   的数量
+9. 让onFulfilled是!CreateBuiltinFunction(steps, length, "", << \[\[Done]] >>)
+10. 置onFulfilled.\[\[Done]]是done
+11. 执行!PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapabiltiy)
+12. 返回promiseCapability.\[\[Promise]]
+** Promise Objects 755-775
+Promise是对象，用于承载延时计算（比如异步）的最终结果。
+Promise对象状态处于三种互斥状态：fulfilled、rejected和pending之一。比如Promise对象p，
+. 如果p.then(f, r)会马上添加调用f的Job到队列，p是fulfilled状态。
+. 如果p.then(f, r)会马上添加调用r的Job到队列，p是rejected状态。
+. 如果既不是fulfilled，也不是rejected，那么p就是pending状态。
+
+如果承诺不是pending状态，那么承诺是settled（已处理过），无论是fulfilled还是rejected。
+
+承诺如果是settled或者被"锁入"到其他承诺的状态，则是resolved。因此解决或者拒绝一个resolved的承诺没有
+差异。如果承诺不是resolved，那么是unresolved的。unresolved的承诺总是pending状态。但是resolved的
+承诺可以是pending、fulfilled或者rejected.
+*** Promise Abstract Operations
+**** PromiseCapability Records
+PromiseCapability Record是Record，封装一个承诺对象，伴随着解决或者拒绝这个承诺的函数。
+PromiseCapability Reocrd由抽象操作NewPromiseCapability产生。
+
+PromiseCapability Reocrd有列在表70的字段。
+表70：PromiseCapability Reocrd字段
+| Field Name    | Value    | 涵义                   |
+| \[\[Promise]] | Object   | 用作承诺的对象         |
+| \[\[Resolve]] | 函数对象 | 用于解决给定的承诺对象 |
+| \[\[Reject]]  | 函数对象 | 用于拒绝给定的承诺对象 |
+***** IfAbruptRejectPromise ( value, capability )
+IfAbrupRejectPromise是使用PromiseCapability Record的算法步骤序列。算法步骤形式：
+1. IfAbruptRejectPromise(value, capability)
+意味着：
+1. 如果value是意外完结，那么
+	  a. 执行?Call(capability.\[\[Reject]], undefined, << value.\[\[Value]] >>)
+		b. 返回capability.\[\[Promise]]
+2. 否则如果value是CompletionRecord，置value是value.\[\[Value]]
+**** PromiseReaction Records
+PromiseReaction是Record，存储当承诺变成resolved或者rejected某值时应当如何反应的信息。PromiseReaction
+记录由PerformPromiseThen抽象操作创建，由被NewPromiseReactionJob返回的AbstractClosure来使用。
+
+PromiseReaction记录有列在表71的字段。
+表71：PromiseReaction Reocrd字段
+| Field Name       | Value                                 | 涵义                                                                                                          |
+| \[\[Capability]] | PromiseCapability Record或者undefined | 本记录为其提供反应柄的承诺的PromiseCapability                                                                 |
+| \[\[Type]]       | Fulfill \vert Reject                  | 用于\[\[Handler]]是空时，允许根据类型使用规范行为                                                             |
+| \[\[Handler]]    | JobCallback Record \vert 空           | 是会被应用传入的值，返回值会支配派生的承诺的函数。如果\[\[Handler]]是空，会根据\[\[Type]]的值使用实现的函数。 |
+**** CreateResolvingFunctions ( promise )
+抽象操作CreateResolvingFunctions接受参数promise。被调用时执行下列步骤：
+1. 让alreadyResolved是Record { \[\[Value]]: false }
+2. 让stepsResolve是定义在PromiseResolveFunctions的算法步骤
+3. 让lengthResolve是PromiseResolveFunctions定义的函数的非可选参数的数量
+4. 让resolve是!CreateBultinFunction(stepsResolve, lengthResolve, "", << \[\[Promise]],
+	 \[\[AlreadyResolved]] >>)
+5. 置resolve.\[\[Promise]]是promise
+6. 置resolve.\[\[AlreadyResolved]]是alreadyResolved
+7. 让stepsReject是定义在PromiseRejectFunctions的算法步骤
+8. 让lengthReject是PromiseRejectFunctions定义的函数的非可选参数的数量
+9. 让reject是!CreateBultinFunction(stepsReject, lengthReject, "", << \[\[Promise]],
+	 \[\[AlreadyResolved]] >>)
+10. 置reject.\[\[Promise]]是promise
+11. 置reject.\[\[AlreadyResolved]]是alreadyResolved
+12. 返回Record { \[\[Resolve]]:resolve, \[\[Reject]]:reject }
+***** Promise Reject Functions
+PromiseRejectFunction是匿名内建函数，有\[\[Promise]]和\[\[AlreadyResolved]]内部占位。
+
+当PromiseRejectFunction被带参数reason调用时，执行下列步骤：
+1. 让F是活跃函数对象。
+2. Assert：F有\[\[Promise]]内部占位，且值是Object
+3. 让promise是F.\[\[Promise]]
+4. 让alreadyResolved是F.\[\[AlreadyResolved]]
+5. 如果alreadyResolved.\[\[Value]]是true，返回undefined
+6. 置alreadyResolved.\[\[Value]]是true
+7. 返回RejectPromise(promise, reason)
+
+PromiseRejectFunction的length性质是1_F
+***** Promise Resolve Functions
+Promise是匿名内建函数，有\[\[Promise]]和\[\[AlreadyResolved]]内部占位。
+
+当PromiseResolveFunction被带参数resolution调用时，执行下列步骤：
+1. 让F是活跃函数对象。
+2. Assert：F有\[\[Promise]]内部占位，且值是Object
+3. 让promise是F.\[\[Promise]]
+4. 让alreadyResolved是F.\[\[AlreadyResolved]]
+5. 如果alreadyResolved.\[\[Value]]是true，返回undefined
+6. 置alreadyResolved.\[\[Value]]是true
+7. 如果SameValue(resolution, promise)是true，那么
+	  a. 让selfResolutionError是新建的TypeError对象
+		b. 返回RejectPromise(promise, selfResolutionError)
+8. 如果Type(resolution)不是Object，那么
+	  a. 返回 FullfillPromise(promise, resolution)
+9. 让then是Get(resolution, "then")
+10. 如果then是意外完结，那么
+		a. 返回 RejectPromise(promise, then.\[\Value]])
+11. 让thenAction是then.\[\[Value]]
+12. 如果IsCallable(thenAction)是false，那么
+		a. 返回FuifillPromise(promise, resolution)
+13. 让thenJobCallback是HostMakeJobCallback(thenAction)
+14. 让job是NewPromiseResolveThenableJob(promise, resolution, thenJobCallback)
+15. 执行HostEnqueuePromiseJob(job.\[\[Job]], job.\[\[Realm]])
+16. 返回undefined
+
+PromiseResolveFunction的length性质是1_F
+**** FulfillPromise ( promise, value )
+抽象操作FulfillPromise接受参数promise和value。被调用时执行下列步骤：
+1. Assert：promise.\[\[PromiseState]]的值是pending
+2. 让reactions是promise.\[\[PromiseFulfillReactions]]
+3. 置promise.\[\[PromiseResult]]是value
+4. 置promise.\[\[PromiseFulfillReactions]]是undefined
+5. 置promise.\[\[PromiseRejectActions]]是undefined
+6. 置promise.\[\[PromiseState]]是fulfilled
+7. 返回TriggerPromiseReactions(reactions, value)
+**** NewPromiseCapability ( C )
+抽象操作NewPromiseCapability接受参数C。试图用C作为构造范，以内建Promise构造范的方式创建一个Promise
+对象，并提取resolve和reject函数。Promise对象添加resolve和reject函数，用于初始化一个新的
+PromiseCapability Record。被调用时执行下列步骤：
+1. 如果IsConstructor(C)是false，透支TypeError异常
+2. 注意：C假设是支持Promise构造范（27.2.3.1）参数习惯的构造范函数。
+3. 让promiseCapability是PromiseCapability Record { \[\[Promsie]]:undefined,
+   \[\[Resolve]]:undefined, \[\[Reject]]: undefined }
+4. 让steps是定义在GetCapabilitiesExecutor函数的算法步骤。
+5. 让length是GetCapabilitiesExecutor定义的函数的非可选参数的数量。
+6. 让executor是!CreateBultinFunction(steps, length, "", << \[\[Capability]] >>)。
+7. 置executor.\[\[Capability]]是promiseCapability。
+8. 让promise是?Construct(C, << executor >>)
+9. 如果IsCallable(promiseCapability.\[\[Resolve]])是false，投掷TypeError异常
+10. 如果IsCallable(promiseCapability.\[\[Reject]])是false，投掷TypeError异常
+11. 置promiseCapability.\[\[Promise]]是promise
+12. 返回promiseCapability
+***** 注意 本抽象操作支持Promise子类，可是说是泛型的，只要构造范能够根Promise构造范相同的方式调用一个
+           被传入的执行者函数参数。用于为所有的Promise子类生成静态方法。
+***** GetCapabilitiesExecutor Functions
+GetCapabilitiesExecutor函数是匿名内建函数，有\[\[Capability]]内部占位。
+
+当GetCapabilitiesExecutor函数被带参数resolve和reject函数调用时，执行下列步骤：
+1. 让F是活跃函数对象
+2. Assert：F有\[\[Capability]]内部占位，其值是PromiseCapability Record
+3. 让promiseCapability是F.\[\[Capability]]
+4. 如果promiseCapability.\[\[Resolve]]不是undefined，投掷TypeError异常。
+5. 如果promiseCapability.\[\[Reject]]不是undefined，投掷TypeError异常。
+6. 置promiseCapability.\[\[Resolve]]是resolve。
+7. 置promiseCapability.\[\[Reject]]是reject。
+8. 返回undefined
+
+GetCapabilitiesExecutor函数的length性质是2_F。
+**** IsPromise ( x )
+抽象操作IsPromise接受参数x。检查对象是否是承诺类型。被调用时执行下列步骤：
+1. 如果Type(x)不是Object，返回false
+2. 如果x没有\[\[PromiseState]]内部占位，返回false
+3. 返回true。
+**** RejectPromise ( promise, reason )
+抽象操作RejectPromise接受参数promise和reason。被调用时执行下列步骤：
+1. Assert：promise.\[\[PromiseState]]的值是pending
+2. 让reactions是promise.\[\[PromiseRejectReactions]]
+3. 置promise.\[\[PromiseResult]]是value
+4. 置promise.\[\[PromiseFulfillReactions]]是undefined
+5. 置promise.\[\[PromiseRejectActions]]是undefined
+6. 置promise.\[\[PromiseState]]是rejected
+7. 如果promise.\[\[PromiseIsHandled]]是false，执行HostPromiseRejectionTracker(promise, "reject")
+8. 返回TriggerPromiseReactions(reactions, reason)
+**** TriggerPromiseReactions ( reactions, argument )
+抽象操作TriggerPromiseReactions接受参数reactions（PromiseReaction Record的列表）和argument。将
+reactions的每个记录形成Job并加入队列。每个Job处理PromiseReaciton Record的\[\[Type]]和\[\[Handler]]，
+如果\[\[Handler]]不是空，会带给定arugment调用之。如果\[\[Handler]]是空，则行为由\[\[Type]]决定。被
+调用时执行下列步骤：
+1. 遍历reactions的元素记作reaction，做
+    a. 让job是NewPromiseReaction(reaction, argument)
+    b. 执行HostEnqueuePromiseJob(job.\[\[job]], job.\[\[Realm]])
+2. 返回undefined
+**** HostPromiseRejectionTracker ( promise, operation )
+主机定义的抽象操作HostPromiseRejectionTracker接受参数promise（Promise）和operation（"reject"或者
+"handle"）。允许主机环境跟踪拒绝。
+***** 注意1 HostPromiseRejectionTracker在两种场景下被调用。
+                . 当承诺没有带应用柄时，会被以reject作为operation参数的方式调用
+                . 当第一次向拒绝承诺添加应用柄，会被以handle作为operation参数的方式调用
+            常用的HostPromiseRejectionTracker实现会尝试通知开发者未持有的拒绝，然而也要小心的
+            通知，如果之前此类通知被新加的应用柄作废的话。
+***** 注意2 如果operation是handle，实现持有promise引用的方式不能干涉垃圾回收。如果operation是reject，
+            实现持有promise的引用，即使不希望这个拒绝被处理，或者不再当前代码路径上。
+*** Promise Jobs
+**** NewPromiseReactionJob ( reaction, argument )
+抽象操作NewPromiseReaction接受参数reaction和argument。返回新的JobAbstractClosure，为传入的值提供
+合适的应用柄，并使用应用柄的返回值来解决或者拒绝派生的联结此应用柄的承诺。被调用时执行下列步骤：
+1. 让job是新的、不带参数的、捕获reaction和argument的、被调用时执行下列步骤的JboAbstractClosure。
+    a. Assert：reaction是PromiseReaction Record
+    b. 让promiseCapability是reaction.\[\[Capability]]
+    c. 让type是reaction.\[\[Type]]
+    d. 让handler是reaction.\[\[Handler]]
+    e. 如果handler是空，那么
+        i. 如果type是Fullfill，让handlerResult是NormalCompletion(argument)
+       ii. 否则
+            1. Assert：type是Reject
+            2. 让handlerResult是ThrowCompletion(argument)
+    f. 否则，让handlerResult是HostCallJobCallback(handler, undefined, << argument >>)
+    g. 如果promiseCapability是undefined，那么
+        i. Assert：handlerResult不是意外完结
+       ii. 返回NormalCompletion(empty)
+    h. Assert：promiseCapabiltity是PromiseCapability Record
+    i. 如果handlerResult是意外完结，那么
+        i. 让status是Call(promiseCapability.\[\[Reject]], undefined,
+           << handlerResult.\[\[Value]] >>)
+    j. 否则
+        i. 让status是Call(promiseCapability.\[\[Resolve]], undefined,
+           << handlerResult.\[\[Value]] >>)
+    k.返回Completion(status)
+2. 让handlerRealm是null
+3. 如果reaction.\[\[Handler]]不是空，那么
+    a. 让getHandlerRealmResult是GetFunctionRealm(reaction.\[\[Handler]].\[\[Callback]])
+    b. 如果getHandlerRealmResult不是正常完结，置handlerRealm是getHandlerRealmResult.\[\[Value]]
+    c. 否则，置handlerRealm是当前RealmRecord
+    d. 注意：handler不是undefind，handlerRealm就永不会是null。当handler是在调的Proxy而且没有
+       ECMAScript代码在运行，handlerRealm被用于创建错误对象。
+4. 返回Record { \[\[Job]]:job, \[\[Realm]]:handlerRealm }
+**** NewPromiseResolveThenableJob ( promiseToResolve, thenable, then )
+抽象操作NewPromiseResolveThenableJob接受参数promiseToResolve、thenable和then。被调用时执行下列步骤：
+1. 让job是新的、不带参数的、捕获promiseToResolve、thenable和then的、被调用时执行下列步骤的
+   JboAbstractClosure。
+    a. 让resolvingFunctions是CreateResolvingFunctions(promiseToResolve)
+    b. 让thenCallResult是HostCallJobCallback(thne, thenable, << resolvingFunctions.\[\[Resolve]],
+       resolvingFunctions.\[\[Reject]] >> )
+    c. 如果thenCallResult是意外完结，那么
+        i. 让status是Call(resolvingFunctions.\[\[Reject]], undefined,
+           << thenCallResult.\[\[Value]] >>)
+       ii. 返回Completion(status)
+2. 让getThenRealmResult是GetFunctionRealm(then.\[\[Callback]])
+3. 如果getThenRealmResult是正常完结，让thenRealm是getThenResult.\[\[Value]]
+4. 否则，让thenRealm是当前RealmRecord
+5. 注意：thenResult不是null。当when.\[\[Callback]]是在调的Proxy而且没有ECMAScript代码在运行，
+   thenResult被用于创建错误对象。
+6. 返回Record { \[\[Job]]:job, \[\[Realm]]:thenResult }
+***** 注意 本Job使用提供的thenable和其then方法来解决给定的承诺。这个过程必须以job方式发生，来确保
+           评估then方法是在所有的环境代码完成评估之后发生的。
+*** The Promise Constructor
+Promise构造范：
+. 是%Promise%
+. 是全局对象上"Promise"性质的初始值
+. 作为构造范调用时创建并初始化新的Promise对象
+. 不试图可以函数调用，这种方式调用会投掷异常。
+. 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
+  继承Promise的特定行为，必须含有super调用，以使用Promise构造范创建
+  和初始化拥有支持Promsie和Promise.prototype内建方法所必需内部状态的子类实例。
+**** Promise ( executor )
+当Promise被带参数executor参数调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常
+2. 如果IsCallable(executor)是false，投掷TypeError异常
+3. 让promise是?OrdinaryCreateFromConstructor(NewTarget, "%Promsie.prototype%",
+   << \[\[PromiseState]], \[\[PromiseFulfillReactions]], \[\[PromsieRejectReactions]],
+   \[\[PromiseIsHandled]] >>)
+4. 置promise.\[\[PromiseState]]是pending
+5. 置promise.\[\[PromiseFulfillReactions]]是新的空列表
+6. 置promise.\[\[PromiseRejectReactions]]是新的空列表
+7. 置promise.\[\[PromiseIsHandled]]是false
+8. 让resolveFuncitons是CreateResolvingFunctions(promise)
+9. 让completion是Cal(executor, undefined, << resolvingFunctions.\[\[Resovle]],
+   resolvingFunctions.\[\[Reject]] >>)
+10. 如果completion是意外完结，那么
+    a. 执行?Call(resolvingFunctions.\[\[Reject]], undefined, << completion.\[\[Value]] >>)
+11. 返回promise
+***** 注意 executor参数必须是函数对象。被用于初始化和报告本Promise对象表示的延时动作可的完结。
+           executor被带两个参数resolve和reject调用。它们都是函数，会被executor函数报告延时
+           计算的最终完结或者失败。从executor函数返回，不意味着延时计算结束，只是意味着已经
+           接受了最终执行延时动作的请求。
+
+           传递给executor函数的resolve函数接受一个参数。executor的代码会最终调用resolve函数
+           表明期望解决联结的Promsie对象。传递给resolve函数的参数表示延时动作的最终结果值，
+           可以是实际满足的值，也可以是提供被满足值的Promise对象。
+           
+           传递给executor函数的reject函数接受一个参数。executor的代码会最终调用reject函数
+           表明期望拒绝联结的Promsie对象，其再也不会是满足的。传递给resolve函数的参数用作
+           承诺的拒绝值。一般是错误对象。
+
+           被Promise构造传递给executor函数的resolve和reject函数有能力实际解决和拒绝联结的承诺。
+           子类会有不同的构造范行为，如传入定制的resolve和reject值。
+*** Properties of the Promise Constructor
+Promise构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 有如下性质
+**** Promise.all ( iterable )
+all函数返回新的承诺，此承诺在被满足时返回传入all的承诺的满足值组成的数组，或者传入all的承诺一旦
+被拒绝时也拒绝原因。根据本算法解决传入的全部元素：
+1. 让C是this值
+2. 让promiseCapability是?NewPromiseCapability(C)
+3. 让promiseResolve是GetPromiseResolve(C)
+4. IfAbruptRejectPromise(promiseResolve, promiseCapability)
+5. 让iteratorRecord是GetIterator(iterable)
+6. IfAbruptRejectPromise(iteratorRecord, promiseCapability)
+7. 让result是PerformPromiseAll(iteratorRecord, C, promiseCapability, promiseResolve)
+8. 如果result是意外完结，那么
+    a. 如果iteratorRecord.\[\[Done]]是false，置result是IteratorClose(iteratorRecord, result)
+    b. IfAbruptRejectPromise(result, promiseCapability)
+10. 返回Completion(result)
+***** 注意 all函数要求this值是与Promise构造范参数习惯一致的构造范函数。
+***** GetPromiseResolve ( promiseConstructor )
+抽象操作GetPromsieResolve接受参数promiseConstructor。被调用时执行下列步骤：
+1. Assert：IsConstructor(promiseConstructor)是true
+2. 让promiseResolve是?Get(promiseConstructor, "resolve")
+3. 如果IsCallable(promiseResolve)是false，投掷TypeError异常
+4. 返回promiseResolve
+***** PerformPromiseAll ( iteratorRecord, constructor, resultCapability, promiseResolve )
+抽象操作PerformPromiseAll接受参数iteratorRecord、constructor、resultCapability（
+PromiseCapability Record）和promiseResolve。被调用时执行下列步骤：
+1. Assert：IsConstructor(constructor)是true
+2. Assert：IsCallable(promiseResolve)是true
+3. 让values是新的空列表
+4. 让remainingElementCount是Record { \[\[Value]]:1 }
+5. 让index是0
+6. 重复
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，那么
+        i. 置iteratorRecord.\[\[Done]]是true
+       ii. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] - 1
+      iii. 如果remainingElementsCount.\[\[Value]]是0, 那么
+            1. 让valuesArray是!CreateArrayFromList(values)
+            2. 执行?Call(resultCapability.\[\[Resolve]],undefined, << valuesArray >>)
+       iv. 返回resultCapability.\[\[Promise]]
+    e. 让nextValue是IteratorValue(next)
+    f. 如果nextValue是意外完结，置iteratorRecord.\[\[Done]]是true
+    g. ReturnIfAbrupt(nextValue)
+    h. 附加undefined到values
+    i. 让nextPromise是?Call(promiseResolve, constructor, << nextValue >> )
+    j. 让steps是定义在Promise.all Resolve Element Functions的算法步骤
+    k. 让length是Promise.all Resolve Element Functions定义的函数的非可选参数的数量。
+    l. 让onFulfilled是!CreateBultinFunction(steps, length, "", << \[\[AlreadyCalled]],
+       \[\[Index]], \[\[Values]], \[\[Capability]], \[\[RemainingElements]], >>)
+    m. 置onFulfilled.\[\[AlreadyCalled]]是false
+    n. 置onFulfilled.\[\[Index]]是index
+    o. 置onFulfilled.\[\[Values]]是values
+    p. 置onFulfilled.\[\[Capability]]是resultCapability
+    q. 置onFulfilled.\[\[RemainingElements]]是remainingElementsCount 
+    r. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] + 1
+    s. 执行?Invoke(nextPromise, "then", << onFulfilled, resultCapability.\[\[Reject]] >>)
+    t. 置index是index + 1
+***** Promise.all Resolve Element Functions
+Promise.all ResolveElementFunctions是匿名内建函数
+**** Promise.allSettled ( iterable )
+***** PerformPromiseAllSettled ( iteratorRecord, constructor, resultCapability, promiseResolve )
+***** Promise.allSettled Resolve Element Functions
+***** Promise.allSettled Reject Element Functions
+**** Promise.any ( iterable )
+***** PerformPromiseAny ( iteratorRecord, constructor, resultCapability, promiseResolve )
+***** Promise.any Reject Element Functions
+**** Promise.prototype
+**** Promise.race ( iterable )
+***** PerformPromiseRace ( iteratorRecord, constructor, resultCapability, promiseResolve )
+**** Promise.reject ( r )
+**** Promise.resolve ( x )
+***** PromiseResolve ( C, x )
+**** get Promise [ @@species ]
+*** Properties of the Promise Prototype Object
+**** Promise.prototype.catch ( onRejected )
+**** Promise.prototype.constructor
+**** Promise.prototype.finally ( onFinally )
+***** Then Finally Functions
+***** Catch Finally Functions
+**** Promise.prototype.then ( onFulfilled, onRejected )
+***** PerformPromiseThen ( promise, onFulfilled, onRejected [ , resultCapability ] )
+**** Promise.prototype [ @@toStringTag ]
+*** Properties of Promise Instances
+** GeneratorFunction Objects 775-794
+*** The GeneratorFunction Constructor
+**** GeneratorFunction ( p1, p2, … , pn, body )
+*** Properties of the GeneratorFunction Constructor
+**** GeneratorFunction.length
+**** GeneratorFunction.prototype
+*** Properties of the GeneratorFunction Prototype Object
+**** GeneratorFunction.prototype.constructor
+**** GeneratorFunction.prototype.prototype
+**** GeneratorFunction.prototype [ @@toStringTag ]
+*** GeneratorFunction Instances
+**** length
+**** name
+**** prototype
+** AsyncGeneratorFunction Objects
+*** The AsyncGeneratorFunction Constructor
+**** AsyncGeneratorFunction ( p1, p2, … , pn, body )
+*** Properties of the AsyncGeneratorFunction Constructor
+**** AsyncGeneratorFunction.length
+**** AsyncGeneratorFunction.prototype
+*** Properties of the AsyncGeneratorFunction Prototype Object
+**** AsyncGeneratorFunction.prototype.constructor
+**** AsyncGeneratorFunction.prototype.prototype
+**** AsyncGeneratorFunction.prototype [ @@toStringTag ]
+*** AsyncGeneratorFunction Instances
+**** length
+**** name
+**** prototype
+** Generator Objects
+*** Properties of the Generator Prototype Object
+**** Generator.prototype.constructor
+**** Generator.prototype.next ( value )
+**** Generator.prototype.return ( value )
+**** Generator.prototype.throw ( exception )
+**** Generator.prototype [ @@toStringTag ]
+*** Properties of Generator Instances
+*** Generator Abstract Operations
+**** GeneratorStart ( generator, generatorBody )
+**** GeneratorValidate ( generator, generatorBrand )
+**** GeneratorResume ( generator, value, generatorBrand )
+**** GeneratorResumeAbrupt ( generator, abruptCompletion, generatorBrand )
+**** GetGeneratorKind ( )
+**** GeneratorYield ( iterNextObj )
+**** Yield ( value )
+**** CreateIteratorFromClosure ( closure, generatorBrand, generatorPrototype )
+** AsyncGenerator Objects
+*** Properties of the AsyncGenerator Prototype Object
+**** AsyncGenerator.prototype.constructor
+**** AsyncGenerator.prototype.next ( value )
+**** AsyncGenerator.prototype.return ( value )
+**** AsyncGenerator.prototype.throw ( exception )
+**** AsyncGenerator.prototype [ @@toStringTag ]
+*** Properties of AsyncGenerator Instances
+*** AsyncGenerator Abstract Operations
+**** AsyncGeneratorRequest Records
+**** AsyncGeneratorStart ( generator, generatorBody )
+**** AsyncGeneratorValidate ( generator, generatorBrand )
+**** AsyncGeneratorResolve ( generator, value, done )
+**** AsyncGeneratorReject ( generator, exception )
+**** AsyncGeneratorResumeNext ( generator )
+***** AsyncGeneratorResumeNext Return Processor Fulfilled Functions
+***** AsyncGeneratorResumeNext Return Processor Rejected Functions
+**** AsyncGeneratorEnqueue ( generator, completion, generatorBrand )
+**** AsyncGeneratorYield ( value )
+**** CreateAsyncIteratorFromClosure ( closure, generatorBrand, generatorPrototype )
+** AsyncFunction Objects
+*** The AsyncFunction Constructor
+**** AsyncFunction ( p1, p2, … , pn, body )
+*** Properties of the AsyncFunction Constructor
+**** AsyncFunction.length
+**** AsyncFunction.prototype
+*** Properties of the AsyncFunction Prototype Object
+**** AsyncFunction.prototype.constructor
+**** AsyncFunction.prototype [ @@toStringTag ]
+*** AsyncFunction Instances
+**** length
+**** name
+*** Async Functions Abstract Operations
+**** AsyncFunctionStart ( promiseCapability, asyncFunctionBody )
 * Reflection 794-799
 * Memory Model 799-812
 * A Grammer Summary 812-841
