@@ -25490,7 +25490,7 @@ PromiseResolveFunction的length性质是1_F
 抽象操作NewPromiseCapability接受参数C。试图用C作为构造范，以内建Promise构造范的方式创建一个Promise
 对象，并提取resolve和reject函数。Promise对象添加resolve和reject函数，用于初始化一个新的
 PromiseCapability Record。被调用时执行下列步骤：
-1. 如果IsConstructor(C)是false，透支TypeError异常
+1. 如果IsConstructor(C)是false，投掷TypeError异常
 2. 注意：C假设是支持Promise构造范（27.2.3.1）参数习惯的构造范函数。
 3. 让promiseCapability是PromiseCapability Record { \[\[Promsie]]:undefined,
    \[\[Resolve]]:undefined, \[\[Reject]]: undefined }
@@ -25652,7 +25652,7 @@ Promise构造范：
 . 有\[\[Prototype]]内部占位，值是%Function.prototype%
 . 有如下性质
 **** Promise.all ( iterable )
-all函数返回新的承诺，此承诺在被满足时返回传入all的承诺的满足值组成的数组，或者传入all的承诺一旦
+all函数返回新的承诺，此承诺在传入all的承诺都满足时返回出具满足值组成的数组，或者传入all的承诺一旦
 被拒绝时也拒绝原因。根据本算法解决传入的全部元素：
 1. 让C是this值
 2. 让promiseCapability是?NewPromiseCapability(C)
@@ -25664,7 +25664,7 @@ all函数返回新的承诺，此承诺在被满足时返回传入all的承诺�
 8. 如果result是意外完结，那么
     a. 如果iteratorRecord.\[\[Done]]是false，置result是IteratorClose(iteratorRecord, result)
     b. IfAbruptRejectPromise(result, promiseCapability)
-10. 返回Completion(result)
+9. 返回Completion(result)
 ***** 注意 all函数要求this值是与Promise构造范参数习惯一致的构造范函数。
 ***** GetPromiseResolve ( promiseConstructor )
 抽象操作GetPromsieResolve接受参数promiseConstructor。被调用时执行下列步骤：
@@ -25709,25 +25709,319 @@ PromiseCapability Record）和promiseResolve。被调用时执行下列步骤：
     s. 执行?Invoke(nextPromise, "then", << onFulfilled, resultCapability.\[\[Reject]] >>)
     t. 置index是index + 1
 ***** Promise.all Resolve Element Functions
-Promise.all ResolveElementFunctions是匿名内建函数
+Promise.all ResolveElementFunction是匿名内建函数，用于解决规定的Promise.all元素。每个Promise.all
+ResolveElementFunction有\[\[Index]]、\[\[Values]]、\[\[Capability]]、\[\[RemainingElements]]和
+\[\[AlreadyCalled]]内建函数。
+
+当Promise.all ResolveElementFunction被带参数x调用时，执行下列步骤：
+1. 让F是活跃函数对象。
+2. 如果F.\[\[AlreadyCalled]]是true，返回undefined
+3. 置F.\[\[AlreadyCalled]]是true。
+4. 让index是F.\[\[Index]]
+5. 让values是F.\[\[Values]]
+6. 让promiseCapability是F.\[\[Capability]]
+7. 让remainingElementsCount是F.\[\[RemainingElements]]
+8. 置values[index]是x
+9. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] - 1
+10. 如果remainingElementsCount.\[\[Value]]是0，那么
+    a. 让valuesArray是!CreateArrayFromList(values)
+    b. 返回?Call(promiseCapability.\[\[Resolve]], undefined, << valuesArray >>)
+11. 返回undefined
+
+Promise.all ResolveElementFunction的length性质是1_F
 **** Promise.allSettled ( iterable )
+allSettled函数返回被用承诺状态快照数组满足的承诺，不过需要在初始的所有承诺都是settled状态，无论是
+fulfilled还是rejected。根据本算法解决传入的全部元素：
+1. 让C是this值
+2. 让promiseCapability是?NewPromiseCapability(C)
+3. 让promiseResolve是GetPromiseResolve(C)
+4. IfAbruptRejectPromise(promiseResolve, promiseCapability)
+5. 让iteratorRecord是GetIterator(iterable)
+6. IfAbruptRejectPromise(iteratorRecord, promiseCapability)
+7. 让result是PerformPromiseAllSettled(iteratorRecord, C, promiseCapability, promiseResolve)
+8. 如果result是意外完结，那么
+    a. 如果iteratorRecord.\[\[Done]]是false，置result是IteratorClose(iteratorRecord, result)
+    b. IfAbruptRejectPromise(result, promiseCapability)
+9. 返回Completion(result)
+***** 注意 allSettled函数要求this值是与Promise构造范参数习惯一致的构造范函数。
 ***** PerformPromiseAllSettled ( iteratorRecord, constructor, resultCapability, promiseResolve )
+抽象操作PerformPromiseAllSettled接受参数iteratorRecord、constructor、resultCapability（
+PromiseCapability Record）和promiseResolve。被调用时执行下列步骤：
+1. Assert：IsConstructor(constructor)是true
+2. Assert：IsCallable(promiseResolve)是true
+3. 让values是新的空列表
+4. 让remainingElementCount是Record { \[\[Value]]:1 }
+5. 让index是0
+6. 重复
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，那么
+        i. 置iteratorRecord.\[\[Done]]是true
+       ii. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] - 1
+      iii. 如果remainingElementsCount.\[\[Value]]是0, 那么
+            1. 让valuesArray是!CreateArrayFromList(values)
+            2. 执行?Call(resultCapability.\[\[Resolve]],undefined, << valuesArray >>)
+       iv. 返回resultCapability.\[\[Promise]]
+    e. 让nextValue是IteratorValue(next)
+    f. 如果nextValue是意外完结，置iteratorRecord.\[\[Done]]是true
+    g. ReturnIfAbrupt(nextValue)
+    h. 附加undefined到values
+    i. 让nextPromise是?Call(promiseResolve, constructor, << nextValue >> )
+    j. 让stepsFulfilled是定义在Promise.allSettled Resolve Element Functions的算法步骤
+    k. 让lengthFulfilled是Promise.allSettled Resolve Element Functions定义的函数的非可选参数的数量。
+    l. 让onFulfilled是!CreateBultinFunction(stepsFulfilled, lengthFulfilled, "",
+       << \[\[AlreadyCalled]], \[\[Index]], \[\[Values]], \[\[Capability]],
+       \[\[RemainingElements]], >>)
+    m. 让alreadyCalled是Record { \[\[Value]]:false }
+    n. 置onFulfilled.\[\[AlreadyCalled]]是allreadyCalled
+    o. 置onFulfilled.\[\[Index]]是index
+    p. 置onFulfilled.\[\[Values]]是values
+    q. 置onFulfilled.\[\[Capability]]是resultCapability
+    r. 置onFulfilled.\[\[RemainingElements]]是remainingElementsCount 
+    s. 让stepsRejected是定义在Promise.allSettled Reject Element Functions的算法步骤
+    t. 让lengthRejected是Promise.allSettled Reject Element Functions定义的函数的非可选参数的数量。
+    u. 让onRejected是!CreateBultinFunction(stepsRejected, lengthRejected, "",
+       << \[\[AlreadyCalled]], \[\[Index]], \[\[Values]], \[\[Capability]],
+       \[\[RemainingElements]], >>)
+    v. 置onRejected.\[\[AlreadyCalled]]是allreadyCalled
+    w. 置onRejected.\[\[Index]]是index
+    x. 置onRejected.\[\[Values]]是values
+    y. 置onRejected.\[\[Capability]]是resultCapability
+    z. 置onRejected.\[\[RemainingElements]]是remainingElementsCount 
+   aa. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] + 1
+   ab. 执行?Invoke(nextPromise, "then", << onFulfilled, onRejected >>)
+   ac. 置index是index + 1
 ***** Promise.allSettled Resolve Element Functions
+Promise.allSettled ResolveElementFunction是匿名内建函数，用于解决规定的Promise.all元素。每个
+Promise.allSettled ResolveElementFunction有\[\[Index]]、\[\[Values]]、\[\[Capability]]、
+\[\[RemainingElements]]和\[\[AlreadyCalled]]内建函数。
+
+当Promise.allSettled ResolveElementFunction被带参数x调用时，执行下列步骤：
+1. 让F是活跃函数对象。
+2. 让alreadyCalled是F.\[\[AlreadyCalled]]
+3. 如果alreadyCalled.\[\[Value]]是true，返回undefined
+4. 置allreadyCalled.\[\[Value]]是true。
+5. 让index是F.\[\[Index]]
+6. 让values是F.\[\[Values]]
+7. 让promiseCapability是F.\[\[Capability]]
+8. 让remainingElementsCount是F.\[\[RemainingElements]]
+9. 让obj是!OrdinaryObjectCreate(%Object.prototytpe%)
+10. 执行!CreateDataPropertyOrThrow(obj, "status", "fulfilled")
+11. 执行!CreateDataPropertyOrThrow(obj, "value", x)
+12. 置values[index]是obj
+13. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] - 1
+14. 如果remainingElementsCount.\[\[Value]]是0，那么
+    a. 让valuesArray是!CreateArrayFromList(value)
+    b. 返回?Call(promiseCapability.\[\[Resolve]], undefined, << valuesArray >>)
+15. 返回undefined
+
+Promise.allSettled ResolveElementFunction的length性质是1_F
 ***** Promise.allSettled Reject Element Functions
+Promise.allSettled RejectElementFunction是匿名内建函数，用于拒绝规定的Promise.all元素。每个
+Promise.allSettled RejectElementFunction有\[\[Index]]、\[\[Values]]、\[\[Capability]]、
+\[\[RemainingElements]]和\[\[AlreadyCalled]]内建函数。
+
+当Promise.allSettled RejectElementFunction被带参数x调用时，执行下列步骤：
+1. 让F是活跃函数对象。
+2. 让alreadyCalled是F.\[\[AlreadyCalled]]
+3. 如果alreadyCalled.\[\[Value]]是true，返回undefined
+4. 置allreadyCalled.\[\[Value]]是true。
+5. 让index是F.\[\[Index]]
+6. 让values是F.\[\[Values]]
+7. 让promiseCapability是F.\[\[Capability]]
+8. 让remainingElementsCount是F.\[\[RemainingElements]]
+9. 让obj是!OrdinaryObjectCreate(%Object.prototytpe%)
+10. 执行!CreateDataPropertyOrThrow(obj, "status", "rejected")
+11. 执行!CreateDataPropertyOrThrow(obj, "reason", x)
+12. 置values[index]是obj
+13. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] - 1
+14. 如果remainingElementsCount.\[\[Value]]是0，那么
+    a. 让valuesArray是!CreateArrayFromList(values)
+    b. 返回?Call(promiseCapability.\[\[Resolve]], undefined, << valuesArray >>)
+15. 返回undefined
+
+Promise.allSettled RejectElementFunction的length性质是1_F
 **** Promise.any ( iterable )
+any函数返回新的承诺，此承诺在传入any的某个承诺满足时出具其满足值，或者传入any的承诺都
+被拒绝时以持有拒绝原因AggregateError来拒绝。根据本算法解决传入的全部元素：
+1. 让C是this值
+2. 让promiseCapability是?NewPromiseCapability(C)
+3. 让promiseResolve是GetPromiseResolve(C)
+4. IfAbruptRejectPromise(promiseResolve, promiseCapability)
+5. 让iteratorRecord是GetIterator(iterable)
+6. IfAbruptRejectPromise(iteratorRecord, promiseCapability)
+7. 让result是PerformPromiseAny(iteratorRecord, C, promiseCapability, promiseResolve)
+8. 如果result是意外完结，那么
+    a. 如果iteratorRecord.\[\[Done]]是false，置result是IteratorClose(iteratorRecord, result)
+    b. IfAbruptRejectPromise(result, promiseCapability)
+9. 返回Completion(result)
+***** 注意 any函数要求this值是与Promise构造范参数习惯一致的构造范函数。
 ***** PerformPromiseAny ( iteratorRecord, constructor, resultCapability, promiseResolve )
+抽象操作PerformPromiseAny接受参数iteratorRecord、constructor、resultCapability（
+PromiseCapability Record）和promiseResolve。被调用时执行下列步骤：
+1. Assert：IsConstructor(constructor)是true
+2. Assert：IsCallable(promiseResolve)是true
+3. 让errors是新的空列表
+4. 让remainingElementCount是Record { \[\[Value]]:1 }
+5. 让index是0
+6. 重复
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，那么
+        i. 置iteratorRecord.\[\[Done]]是true
+       ii. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] - 1
+      iii. 如果remainingElementsCount.\[\[Value]]是0, 那么
+            1. 让valuesArray是!CreateArrayFromList(values)
+            2. 执行?Call(resultCapability.\[\[Resolve]],undefined, << valuesArray >>)
+       iv. 返回resultCapability.\[\[Promise]]
+    e. 让nextValue是IteratorValue(next)
+    f. 如果nextValue是意外完结，置iteratorRecord.\[\[Done]]是true
+    g. ReturnIfAbrupt(nextValue)
+    h. 附加undefined到values
+    i. 让nextPromise是?Call(promiseResolve, constructor, << nextValue >> )
+    j. 让stepsRejected是定义在Promise.any Reject Element Functions的算法步骤
+    k. 让lengthRejected是Promise.any Reject Element Functions定义的函数的非可选参数的数量。
+    l. 让onRejected是!CreateBultinFunction(steps, length, "", << \[\[AlreadyCalled]],
+       \[\[Index]], \[\[Errors]], \[\[Capability]], \[\[RemainingElements]], >>)
+    m. 置onRejected.\[\[AlreadyCalled]]是false
+    n. 置onRejected.\[\[Index]]是index
+    o. 置onRejected.\[\[Errors]]是errors
+    p. 置onRejected.\[\[Capability]]是resultCapability
+    q. 置onRejected.\[\[RemainingElements]]是remainingElementsCount 
+    r. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] + 1
+    s. 执行?Invoke(nextPromise, "then", << resultCapability.\[\[Resolve]], onRejected >>)
+    t. 置index是index + 1
 ***** Promise.any Reject Element Functions
+Promise.any RejectElementFunction是匿名内建函数，用于拒绝规定的Promise.any元素。每个
+Promise.any RejectElementFunction有\[\[Index]]、\[\[Errors]]、\[\[Capability]]、
+\[\[RemainingElements]]和\[\[AlreadyCalled]]内建函数。
+
+当Promise.any RejectElementFunction被带参数x调用时，执行下列步骤：
+1. 让F是活跃函数对象。
+2. 如果F.\[\[AlreadyCalled]]是true，返回undefined
+3. 置F.\[\[AlreadyCalled]]是true。
+4. 让index是F.\[\[Index]]
+5. 让errors是F.\[\[Errors]]
+6. 让promiseCapability是F.\[\[Capability]]
+7. 让remainingElementsCount是F.\[\[RemainingElements]]
+8. 置errors[index]是x
+9. 置remainingElementsCount.\[\[Value]]是remainingElementsCount.\[\[Value]] - 1
+10. 如果remainingElementsCount.\[\[Value]]是0，那么
+    a. 让error是新建的AggregateError对象
+    b. 执行!DefinePropertyOrThrow(error, "error", PropertyDescriptor{ \[\[Configurable]]:true,
+       \[\[Enumerable]]:false, \[\[Writable]]:true, \[\[Value]]:!CreateArrayFromList(errors) })
+    b. 返回?Call(promiseCapability.\[\[Reject]], undefined, << error >>)
+11. 返回undefined
+
+Promise.any RejectElementFunction的length性质是1_F
 **** Promise.prototype
+Promise.prototype的初始值是Promise原型对象
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 **** Promise.race ( iterable )
+race函数返回新的承诺，此承诺在传入any的某个承诺是settled时保持相同的settled。根据本算法解决传入
+的全部元素：
+1. 让C是this值
+2. 让promiseCapability是?NewPromiseCapability(C)
+3. 让promiseResolve是GetPromiseResolve(C)
+4. IfAbruptRejectPromise(promiseResolve, promiseCapability)
+5. 让iteratorRecord是GetIterator(iterable)
+6. IfAbruptRejectPromise(iteratorRecord, promiseCapability)
+7. 让result是PerformPromiseRace(iteratorRecord, C, promiseCapability, promiseResolve)
+8. 如果result是意外完结，那么
+    a. 如果iteratorRecord.\[\[Done]]是false，置result是IteratorClose(iteratorRecord, result)
+    b. IfAbruptRejectPromise(result, promiseCapability)
+9. 返回Completion(result)
+***** 注意1 如果iterable是空的，或者iterable的承诺都没settle，那么返回的pending承诺就不会是settled。
+***** 注意2 race函数要求this值是与Promise构造范参数习惯一致的构造范函数。他还期望this值提供
+            resolve方法。
 ***** PerformPromiseRace ( iteratorRecord, constructor, resultCapability, promiseResolve )
+抽象操作PerformPromiseRace接受参数iteratorRecord、constructor、resultCapability（
+PromiseCapability Record）和promiseResolve。被调用时执行下列步骤：
+1. Assert：IsConstructor(constructor)是true
+2. Assert：IsCallable(promiseResolve)是true
+3. 重复
+    a. 让next是IteratorStep(iteratorRecord)
+    b. 如果next是意外完结，置iteratorRecord.\[\[Done]]是true
+    c. ReturnIfAbrupt(next)
+    d. 如果next是false，那么
+        i. 置iteratorRecord.\[\[Done]]是true
+       ii. 返回resultCapability.\[\[Promise]]
+    e. 让nextValue是IteratorValue(next)
+    f. 如果nextValue是意外完结，置iteratorRecord.\[\[Done]]是true
+    g. ReturnIfAbrupt(nextValue)
+    h. 附加undefined到values
+    i. 让nextPromise是?Call(promiseResolve, constructor, << nextValue >> )
+    j. 执行?Invoke(nextPromise, "then", << resultCapability.\[\[Resolve]],
+       resultCapability.\[\[Reject]] >>)
 **** Promise.reject ( r )
+reject函数返回以传入参数拒绝的承诺。
+1. 让C是this值
+2. 让promiseCapability是?NewPromiseCapability(C)
+3. 执行?Call(promiseCapability.\[\[Reject]], undefined, << r >>)
+4. 返回promiseCapability.\[\[Promise]]
+***** 注意 reject函数要求this值是与Promise构造范参数习惯一致的构造范函数。
 **** Promise.resolve ( x )
+resolve函数返回以传入参数解决的承诺，或者如果参数是this构造范创建的承诺，则直接返回参数。
+1. 让C是this值
+2. 如果Type(C)不是Object，投掷TypeError异常
+3. 返回?PromiseResolve(C, x)
+***** 注意 resolve函数要求this值是与Promise构造范参数习惯一致的构造范函数。
 ***** PromiseResolve ( C, x )
+抽象操作PromiseResolve接受参数C（构造范）和x（ECMAScript语言值）。返回解决x的新承诺。被调用时执行
+下列步骤：
+1. Assert：Type(C)是Object
+2. 如果IsPromise(x)是true，那么
+    a. 让xConstructor是?Get(x, "constructor")
+    b. 如果SameValue(xConstructor, C)是true，返回x
+3. 让promiseCapability是?NewPromiseCapability(C)
+4. 执行?Call(promiseCapability.\[\[Resolve]],undefined, << x >>)
+5. 返回promiseCapability.\[\[Promise]]
 **** get Promise [ @@species ]
+Promise[@@species]是访问性质，对应的set访问函数是undefined。它的get访
+问函数被调用时，执行如下步骤：
+1. 返回this值
+
+本函数的"name"性质是"get[Symbol.species]"
+***** 注意 Promise原型的方法一般使用他们的this值上的构造范创建派生对象。
+           子类的构造范会重写@@species来修改默认的构造范赋值。
 *** Properties of the Promise Prototype Object
+Promise原型对象
+. 是%Promise.prototype%
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 是基本对象
+. 没有\[\[PromiseState]]内部占位，也无Promise实例上的其他内部占位
 **** Promise.prototype.catch ( onRejected )
+当catch方法被带参数onRejected调用时，执行下列步骤：
+1. 让promise是this值
+2. 返回?Invoke(promise, "then", << undefined, onRejected >>)
 **** Promise.prototype.constructor
+Promise.prototype.constructor的初始值是%Promise%
 **** Promise.prototype.finally ( onFinally )
+当finally方法被带参数onFinally调用时，执行下列步骤：
+1. 让promise是this值
+2. 如果Type(promise)不是Object，投掷TypeError异常
+3. 让C是?SpeciesConstructor(promise, %Promise%)
+4. Assert：IsConstructor(C)是true
+5. 如果IsCallable(onFinally)是false，那么
+    a. 让thenFinally是onFinally
+    b. 让catchFinally是onFinally
+6. 否则
+    a. 让stepsThenFinally是定义在Then Finally Functions的算法步骤
+    b. 让lengthThenFinally是Then Finally Function定义的函数的非可选参数的数量。
+    c. 让thenFinally是!CreateBultinFunction(stepsFinally, lengthFinally, "",
+       << \[\[Constructor]], \[\[OnFinally]] >>)。
+    d. 置thenFinally.\[\[Constructor]]是C
+    e. 置thenFinally.\[\[OnFinally]]是onFinally
+    f. 让stepsThenFinally是定义在Then Finally Functions的算法步骤
+    g. 让lengthThenFinally是Then Finally Function定义的函数的非可选参数的数量。
+    h. 让thenFinally是!CreateBultinFunction(stepsFinally, lengthFinally, "",
+       << \[\[Constructor]], \[\[OnFinally]] >>)。
+    i. 置thenFinally.\[\[Constructor]]是C
+    j. 置thenFinally.\[\[OnFinally]]是onFinally
+7. 返回?Invoke(promise, "then", << thenFinally, catchFinally >>)
 ***** Then Finally Functions
 ***** Catch Finally Functions
 **** Promise.prototype.then ( onFulfilled, onRejected )
