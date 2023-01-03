@@ -26011,16 +26011,16 @@ Promise.prototype.constructor的初始值是%Promise%
 6. 否则
     a. 让stepsThenFinally是定义在Then Finally Functions的算法步骤
     b. 让lengthThenFinally是Then Finally Function定义的函数的非可选参数的数量。
-    c. 让thenFinally是!CreateBultinFunction(stepsFinally, lengthFinally, "",
+    c. 让thenFinally是!CreateBultinFunction(stepsThenFinally, lengthThenFinally, "",
        << \[\[Constructor]], \[\[OnFinally]] >>)。
     d. 置thenFinally.\[\[Constructor]]是C
     e. 置thenFinally.\[\[OnFinally]]是onFinally
-    f. 让stepsThenFinally是定义在Then Finally Functions的算法步骤
-    g. 让lengthThenFinally是Then Finally Function定义的函数的非可选参数的数量。
-    h. 让thenFinally是!CreateBultinFunction(stepsFinally, lengthFinally, "",
+    f. 让stepsCatchFinally是定义在Catch Finally Functions的算法步骤
+    g. 让lengthCatchFinally是Catch Finally Function定义的函数的非可选参数的数量。
+    h. 让catchFinally是!CreateBultinFunction(stepsCatchFinally, lengthCatchFinally, "",
        << \[\[Constructor]], \[\[OnFinally]] >>)。
-    i. 置thenFinally.\[\[Constructor]]是C
-    j. 置thenFinally.\[\[OnFinally]]是onFinally
+    i. 置catchFinally.\[\[Constructor]]是C
+    j. 置catchFinally.\[\[OnFinally]]是onFinally
 7. 返回?Invoke(promise, "then", << thenFinally, catchFinally >>)
 ***** Then Finally Functions
 ***** Catch Finally Functions
