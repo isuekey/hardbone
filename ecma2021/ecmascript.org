@@ -20832,8 +20832,8 @@ Array构造范：
 . 是%Array%
 . 全局对象上"Array"性质的初始值
 . 被当作构造范调用时，创建并初始化新的Array奇异对象
-. 当作函数而不是构造范是，也创建并初始化新的Array奇异对象。因此函数调用
-  Array(...)与对象创建表达式new Array(...)，在形同参数时，等价。
+. 当作函数而不是构造范时，也创建并初始化新的Array奇异对象。因此函数调用
+  Array(...)与对象创建表达式new Array(...)，在相同参数时，等价。
 . 是函数，不同数量和类型的参数，行为不同
 . 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
   如果要继承Array的奇异行为，必须含有super调用，以使用Array构造范初始化一
@@ -23086,7 +23086,7 @@ Map构造范：
 . 不试图可以函数调用，这种方式调用会投掷异常。
 . 被设计成可继承。可以用在定义class时的extends语句里。子类的构造范如果要
   继承Map的特定行为，必须含有super调用，以使用Map构造范创建和初始化拥有支
-  持内建Map.prototype内建方法所必需内部状态的子类实例。
+  持Map.prototype内建方法行为所必需内部状态的子类实例。
 **** Map ( [ iterable ] )
 当Map被带可选参数iterable调用时，执行下列步骤：
 1. 如果NewTarget是undefined，投掷TypeError异常。
@@ -26023,40 +26023,247 @@ Promise.prototype.constructor的初始值是%Promise%
     j. 置catchFinally.\[\[OnFinally]]是onFinally
 7. 返回?Invoke(promise, "then", << thenFinally, catchFinally >>)
 ***** Then Finally Functions
+ThenFinallyFunction是匿名内建函数，有\[\[Constructor]]和\[\[OnFinally]]内部占位。\[\[Constructor]]
+内部占位的值是似Promise的构造范函数对象，\[\[OnFinally]]内部占位的值是函数对象。
+
+当ThenFinallyFunction被带参数value调用时，执行下列步骤：
+1. 让F是活跃函数对象。
+2. 让onFinally是F.\[\[OnFinally]]
+3. Assert：IsCallable(onFinally)是true
+4. 让result是?Call(onFinally, undefined)
+5. 让C是F.\[\[Constructor]]
+6. Assert：IsCallable(C)是true
+7. 让promise是?PromiseResolve(C, result)
+8. 让valueThunk是返回value的函数。
+9. 返回？Invoke(promise, "then", << valueThunk >>)
+
+ThenFinallyFunction函数的"length"性质1_F
 ***** Catch Finally Functions
+CatchFinallyFunction是匿名内建函数，有\[\[Constructor]]和\[\[OnFinally]]内部占位。\[\[Constructor]]
+内部占位的值是似Promise的构造范函数对象，\[\[OnFinally]]内部占位的值是函数对象。
+
+当CatchFinallyFunction被带参数reason调用时，执行下列步骤：
+1. 让F是活跃函数对象。
+2. 让onFinally是F.\[\[OnFinally]]
+3. Assert：IsCallable(onFinally)是true
+4. 让result是?Call(onFinally, undefined)
+5. 让C是F.\[\[Constructor]]
+6. Assert：IsCallable(C)是true
+7. 让promise是?PromiseResolve(C, result)
+8. 让thrower是投掷reason的函数。
+9. 返回？Invoke(promise, "then", << thrower >>)
+
+CatchFinallyFunction函数的"length"性质1_F
 **** Promise.prototype.then ( onFulfilled, onRejected )
+当then方法被带参数onFulfilled和onRejected调用时，执行下列步骤：
+1. 让promise是this值
+2. 如果IsPromise(promise)是false，投掷TypeError异常
+3. 让C是?SpeciesConstructor(promise, %Promise%)
+4. 让resultCapability是?NewPromiseCapability(C)
+5. 返回PerformPromise(promise, onFulfilled, onRejected, resultCapability)
 ***** PerformPromiseThen ( promise, onFulfilled, onRejected [ , resultCapability ] )
+抽象操作PerformPromiseThen接受参数promsie、onFulfilled、onRejected和可选参数resultCapability（
+PromiseCapabilityRecord）。在promise上使用onFulfilled和onRejected执行"then"操作。如果传入了
+resultCapability，通过修改resultCapability的promise来存储结果。如果没有传入，PerformPromiseThen被
+规范内部操作调用，与result五官。被调用时执行下列步骤：
+1. Assert：IsPromise(promise)是true
+2. 如果resultCapability不存在，那么
+    a. 置resultCapability是undefined
+3. 如果IsCallable(onFulfilled)是false，那么
+    a. 让onFulfilledJobCallable是empty
+4. 否则
+    a. 让onFulfilledJobCallable是HostMakeJobCallback(onFulfilled)
+5. 如果IsCallable(onRejected)是false，那么
+    a. 让onRejectedJobCallback是empty
+6. 否则
+    a. 让onRejectedJobCallback是HostMakeJobCallback(onRejected)
+7. 让fulfillReaction是PromiseReaction { \[\[Capability]]:resultCapability, \[\[Type]]:Fulfill,
+   \[\[Handler]]:onFulfilledJobCallback }
+8. 让rejectReaction是PromiseReaction { \[\[Capability]]:resultCapability, \[\[Type]]:Reject,
+   \[\[Handler]]:onRejectedJobCallback }
+9. 如果promise.\[\[PromiseState]]是pending，那么
+    a. 附加fulfillReaction到promise.\[\[PromsieFulfillReactoins]]列表的末端
+    b. 附加rejectReaction到promise.\[\[PromiseRejectReactions]]列表的末端
+10. 否则如果promise.\[\[PromiseState]]是fulfilled，那么
+    a. 让value是promise.\[\[PromiseResult]]
+    b. 让fulfillJob是NewPromiseReactionJob(fulfillReaction, value)
+    c. 执行HostEnqueuePromiseJob(fulfillJob.\[\[Job]], fulfillJob.\[\[Realm]])
+11. 否则
+    a. Assert：promise.\[\[PromiseState]]的值是rejected
+    b. 让reason是promise.\[\[PromiseResult]]
+    c. 如果promise.\[\[PromiseIsHandled]]是false，执行HostPromiseRejectionTracker(promise,
+       "handle")。
+    d. 让rejectJbo是NewPromiseReactionJob(rejectReaction, reason)
+    e. 执行HostEnqueuePromsieJob(rejectJob.\[\[Job]], rejectJob.\[\[Realm]])
+12. 置promsie.\[\[PromsieIsHandled]]是true
+13. 如果resultCapability是undefined，那么
+    a. 返回undefined
+14. 否则
+    a. 返回resultCapability.\[\[Promise]]
 **** Promise.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"Promise"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }
 *** Properties of Promise Instances
-** GeneratorFunction Objects 775-794
+Promise实例是基本对象，继承了Promise原型对象（内置%Promise.prototype%）上的性质。
+Promsie实例在创建是初始化了列在表72中内部占位。
+表72
+| 内部占位                      | 描述                                                                                        |
+| \[\[PromiseState]]            | pending、fulfilled或者rjeected。负责管理promise在之后调用then方法时的反映。                 |
+| \[\[PromiseResult]]           | 已经是fulfilled或者rejected的promise的置。只有在\[\[PromiseState]]不是pending时，才有意义。 |
+| \[\[PromiseFulfillReactions]] | promise从pending跃迁到fulfilled时，promise需要处理PromiseReactionRecords列表                |
+| \[\[PromiseRejectReactions]]  | promise从pending跃迁到rejected时，promise需要处理PromsieReactionRecords列表                 |
+| \[\[PromiseIsHandled]]        | 布尔值，用于指明promsie是否已经处理了fulfillment或者rejection扣；用在未处理的rejection跟踪  |
+** GeneratorFunction Objects
+GeneratorFunction对象是函数，一般由评估GeneratorDeclaration、GeneratorExpressions和
+GeneratorMethods语句创建。也可以通过调用内部的%GeneratorFunction%来创建。
+#+CAPTION: (Informative): Generator Objects Relationsips
+#+NAME:   fig:SED-HR4049
+[[./img/generator_object_relationships.png]]
 *** The GeneratorFunction Constructor
+GeneratorFunction构造范：
+. 是%GeneratorFunction%
+. 是Function的子类
+. 当作函数而不是构造范时，也创建并初始化新的GeneratorFunction对象。因此函数调用
+   GeneratorFunction(...)与对象创建表达式new GeneratorFunction(...)，在相同参数时，等价。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承GeneratorFunction构造范的行为，必须含有super调用，以使用GeneratorFunctin构造范创建
+  和初始化拥有支持GeneratorFunction内建方法行为所必需内部占位的子类实例。所有用于定义Generator函数
+  对象的ECMAScript句法形式都是直接创建GeneratorFunction实例。没有句法创建GeneratorFunction子类的
+  实例。
 **** GeneratorFunction ( p1, p2, … , pn, body )
+最后的参数规定了Generator函数的执行体（执行代码）；其前的参数规定了形式参数。
+
+当GeneratorFunction函数被带参数p1、p2、...、pn和body（当n是0时，没有p参数，而且也可以不提供body）调
+用时，执行下列步骤：
+1. 让C是活跃函数对象。
+2. 让args是被\[\[Call]]或者\[\[Constructor]]传入本函数的argumentsList
+3. 返回?CreateDynamicFunction(C, NewTarget, generator, args)
+***** 注意 查看20.2.1.1的注意
 *** Properties of the GeneratorFunction Constructor
+GeneratorFunction构造范：
+. 是继承了Function构造范的标准内建函数对象
+. 有\[\[Prototype]]内部占位，值是%Function%
+. 有"name"性质，值是"GeneratorFunction"
+. 有如下性质：
 **** GeneratorFunction.length
+是数据性质，值是1。此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }。
 **** GeneratorFunction.prototype
+GeneratorFunction.prototype的初始值是GeneratorFunction原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:false }
 *** Properties of the GeneratorFunction Prototype Object
+GeneratorFunction原型对象：
+. 是%GeneratorFunciton.prototype%（见Figure 5）
+. 是基本对象
+. 不是函数对象，没有\[\[ECMAScriptCode]]内部占位，也没有表29和表73列出的内部占位
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
 **** GeneratorFunction.prototype.constructor
+GeneratorFunction.prototype.constructor的初始值是%GeneratorFunction%
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }。
 **** GeneratorFunction.prototype.prototype
+GeneratorFunction.prototype.prototype的初始值是Generator原型对象。
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }。
 **** GeneratorFunction.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"GeneratorFunction"字符串
+                  
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
 *** GeneratorFunction Instances
+每个GeneratorFunction实例是ECMAScript函数对象，有列在表29的内部占位。不过实例的
+\[\[IsClassConstructor]]内部占位值是false。
+
+每个GeneratorFunction实例有如下的自有性质：
 **** length
+在20.2.4.1中给出的Function实例上"length"性质的规范也适用GeneratorFunction实例。
 **** name
+在20.2.4.2中给出的Function实例上"name"性质的规范也适用GeneratorFunction实例。
 **** prototype
-** AsyncGeneratorFunction Objects
+每当有GeneratorFunction被创建了，就有另一个基本对象也被创建，作为generatorFunction的"prototype"性质
+的值。这个prototype性质的值用于初始化在generatorFunction调用\[\[Call]]时新建的Generator对象的
+\[\[Prototype]]内部占位。
+
+此性质的属性为{ \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]:false }
+***** 注意 不同于Function实例，GeneratorFunction的"prototype"性质值的对象没有值是
+           GeneratorFunction实例的"constructor"性质。
+** AsyncGeneratorFunction Objects 778-794
+AsyncGeneratorFunction对象是函数，一般由评估AsyncGeneratorDeclaration、AsyncGeneratorExpressions和
+AsyncGeneratorMethods语句创建。也可以通过调用内部的%AsyncGeneratorFunction%来创建。
 *** The AsyncGeneratorFunction Constructor
+AsyncGeneratorFunction构造范：
+. 是%AsyncGeneratorFunction%
+. 是Function的子类
+. 当作函数而不是构造范时，也创建并初始化新的AsyncGeneratorFunction对象。因此函数调用
+   AsyncGeneratorFunction(...)与对象创建表达式new AsyncGeneratorFunction(...)，在相同参数时，等价。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
+  如果要继承AsyncGeneratorFunction构造范的行为，必须含有super调用，以使用AsyncGeneratorFunctin构造
+  范创建和初始化拥有支持AsyncGeneratorFunction内建方法行为所必需内部占位的子类实例。所有用于定义
+  AsyncGenerator函数对象的ECMAScript句法形式都是直接创建AsyncGeneratorFunction实例。没有句法创建
+  AsyncGeneratorFunction子类的实例。
 **** AsyncGeneratorFunction ( p1, p2, … , pn, body )
+最后的参数规定了AsyncGenerator函数的执行体（执行代码）；其前的参数规定了形式参数。
+
+当AsyncGeneratorFunction函数被带参数p1、p2、...、pn和body（当n是0时，没有p参数，而且也可以不提供
+body）调用时，执行下列步骤：
+1. 让C是活跃函数对象。
+2. 让args是被\[\[Call]]或者\[\[Constructor]]传入本函数的argumentsList
+3. 返回?CreateDynamicFunction(C, NewTarget, asyncGenerator, args)
+***** 注意 查看20.2.1.1的注意
 *** Properties of the AsyncGeneratorFunction Constructor
+AsyncGeneratorFunction构造范：
+. 是继承了Function构造范的标准内建函数对象
+. 有\[\[Prototype]]内部占位，值是%Function%
+. 有"name"性质，值是"AsyncGeneratorFunction"
+. 有如下性质：
 **** AsyncGeneratorFunction.length
+是数据性质，值是1。此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }。
 **** AsyncGeneratorFunction.prototype
+AsyncGeneratorFunction.prototype的初始值是AsyncGeneratorFunction原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,\[\[Configurable]]:false }。
 *** Properties of the AsyncGeneratorFunction Prototype Object
+AsyncGeneratorFunction原型对象：
+. 是%AsyncGeneratorFunciton.prototype%
+. 是基本对象
+. 不是函数对象，没有\[\[ECMAScriptCode]]内部占位，也没有表29和表74列出的内部占位
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
 **** AsyncGeneratorFunction.prototype.constructor
+AsyncGeneratorFunction.prototype.constructor的初始值是%AsyncGeneratorFunction%
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }。
 **** AsyncGeneratorFunction.prototype.prototype
+AsycnGeneratorFunction.prototype.prototype的初始值是AsyncGenerator原型对象。
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }。
 **** AsyncGeneratorFunction.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"AsyncGeneratorFunction"字符串
+                  
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
 *** AsyncGeneratorFunction Instances
+每个AsyncGeneratorFunction实例是ECMAScript函数对象，有列在表29的内部占位。不过实例的
+\[\[IsClassConstructor]]内部占位值是false。
+
+每个AsyncGeneratorFunction实例有如下的自有性质：
 **** length
+"length"性质的值是整数，用于指明AsyncGeneratorFunction期望的参数数量。然而语言允许函数以其他数量
+的参数进行调用。以其他数量参数调用AsyncGeneratorFunction时的行为受函数影响。
 **** name
+在20.2.4.2中给出的Function实例上"name"性质的规范也适用AsyncGeneratorFunction实例。
+此性质的属性为{ \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]:true }
 **** prototype
-** Generator Objects
+每当有AsyncGeneratorFunction被创建了，就有另一个基本对象也被创建，作为asyncGeneratorFunction的
+"prototype"性质的值。这个prototype性质的值用于初始化在generatorFunction调用\[\[Call]]时新建的
+AsyncGenerator对象的\[\[Prototype]]内部占位。
+
+此性质的属性为{ \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]:false }
+***** 注意 不同于Function实例，AsyncGeneratorFunction的"prototype"性质值的对象没有值是
+           AsyncGeneratorFunction实例的"constructor"性质。
+** Generator Objects 781-794
 *** Properties of the Generator Prototype Object
 **** Generator.prototype.constructor
 **** Generator.prototype.next ( value )
