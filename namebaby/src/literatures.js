@@ -7,9 +7,9 @@ const loadLiteratureDetailOfSomeDir = async (dirPath, resolved = {}) => {
   for await ( const dirent of dir) {
     const resolvedPath = path.resolve(dirPath, dirent.name);
     if(dirent.isDirectory()) {
-      resolved[dirent.name] = await loadLiteratureDetailOfSomeDir(resolvedPath, {});
+      await loadLiteratureDetailOfSomeDir(resolvedPath, resolved);
     } else if (dirent.isFile()) {
-      resolved[dirent.name] = await loadLiteratureDetailOfSomeFile(resolvedPath);
+      resolved[resolvedPath] = await loadLiteratureDetailOfSomeFile(resolvedPath);
     }
   }
   return resolved;
@@ -60,12 +60,62 @@ exports.loadLiteratureDetails = async (...libPaths) => {
   });
 };
 
-const generateGoodName = (literatureDetails={}, parentKey="", validStrokeScope={}, size=2) => {
+const generateGoodName = (literatureDetails={}, parentKey="", validStrokeScope={}, size=2, result={}, masterParts, rule) => {
+  // console.log('a', masterParts);
   const literatureEntries = Object.entries(literatureDetails).forEach(([key, val]) => {
     const currentKey = [parentKey, key].filter(ele => !!ele).join('/');
-    console.log('currentKey', currentKey);
+    // console.log('currentKey', currentKey, val);
+    if(Array.isArray(val)) {
+      result[currentKey] = queryGoodName(val, validStrokeScope, size, {}, masterParts, rule);
+    } else if( typeof val == "object") {
+      const subResult = result[currentKey] || {};
+      result[currentKey] = generateGoodName(val, parentKey, validStrokeScope, size, subResult, masterParts, rule);
+    } else {
+      throw new Error('数据类型不正确');
+    } 
   });
-  
+  return result;
+};
+const queryGoodName = (literatureDetails=[], validStrokeScope={}, size=2, result={}, masterParts, rule='some') => {
+  const fullLength = getLiteratureFullLength(literatureDetails);
+  let start = 0;
+  literatureDetails.forEach((syntax, idx, arr) => {
+    const charArray = Array.from(syntax);
+    const charArrayLength = charArray.length;
+    charArray.forEach((char, charIdx) => {
+      const charResult = new Array(size).fill('');
+      const names = charResult.map((crEle, crIdx) => {
+        if(crIdx == 0) return char;
+        if((charIdx + crIdx) < charArrayLength) return charArray[charIdx+crIdx];
+        /**
+        if(start + crIdx < fullLength) {
+          const tempString = literatureDetails.slice(idx, idx + size).join('');
+          const tempArray = Array.from(tempString);
+          return tempArray[charIdx + crIdx];
+        }**/
+        return '';
+      });
+      const strokeSum = names.map(word => wordStroke.wordStrokeMapping[word] || 0).reduce((sum, cur) => sum+(cur * 1), 0);
+      // console.log(strokeSum, names);
+      start+=1;
+      if(!validStrokeScope[strokeSum]) return;
+      if(!masterParts) {
+        result[names.join('')] = strokeSum;
+        return;
+      }
+      if(names[rule](someName => masterParts[someName])) {
+        result[names.join('')] = strokeSum;
+        return;
+      }
+    });
+  });
+  return result;
+};
+
+const getLiteratureFullLength = (literatureDetails=[]) => {
+  return literatureDetails.reduce((sum, cur) => {
+    return sum + Array.from(cur).length;
+  }, 0);
 };
 
 exports.generateGoodName = generateGoodName;

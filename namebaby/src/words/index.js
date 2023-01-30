@@ -5,6 +5,8 @@ const zone4 = require('./15to17.js');
 const zone5 = require('./18to22.js');
 const zone6 = require('./23toupper.js');
 
+const masterParts = require('./master_part.js');
+
 const strokeWordMapping = {
   ...zone1.strokeWordMapping,
   ...zone2.strokeWordMapping,
@@ -18,10 +20,26 @@ exports.strokeWordMapping = strokeWordMapping;
 
 const wordStrokeMapping = Object.entries(strokeWordMapping).reduce((sum, [stroke, wordArray]) => {
   wordArray.forEach(word => {
-    sum[word] = stroke;
+    sum[word] = stroke * 1;
   });
   return sum;
 }, {});
 
 exports.wordStrokeMapping = wordStrokeMapping;
 
+const getWordMasterPartsMapping = (masterPartList=[]) => {
+  return masterPartList.filter(ele => masterParts.masterPart[ele]).reduce((sum, part) => {
+    masterParts.masterPart[part].reduce((wordSum, item) => {
+      wordSum[item]=item;
+      return wordSum;
+    }, sum);
+    return sum;
+  }, {});
+};
+exports.getWordMasterPartsMapping = getWordMasterPartsMapping;
+
+const getMasterPartsWordArray = (masterPartList=[], extentions={})=> {
+  return masterPartList.map(ele => masterParts.masterPart[ele] || []).flat().concat(Object.keys(extentions));
+};
+
+exports.getMasterPartsWordArray = getMasterPartsWordArray;
