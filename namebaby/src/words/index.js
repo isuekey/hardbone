@@ -27,14 +27,14 @@ const wordStrokeMapping = Object.entries(strokeWordMapping).reduce((sum, [stroke
 
 exports.wordStrokeMapping = wordStrokeMapping;
 
-const getWordMasterPartsMapping = (masterPartList=[]) => {
+const getWordMasterPartsMapping = (masterPartList=[], extensions={}) => {
   return masterPartList.filter(ele => masterParts.masterPart[ele]).reduce((sum, part) => {
     masterParts.masterPart[part].reduce((wordSum, item) => {
       wordSum[item]=item;
       return wordSum;
     }, sum);
     return sum;
-  }, {});
+  }, {...extensions});
 };
 exports.getWordMasterPartsMapping = getWordMasterPartsMapping;
 
