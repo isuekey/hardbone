@@ -5,7 +5,8 @@ const literatures = require('./src/literatures.js');
 const words = require('./src/words');
 const randoms = require('./src/randoms.js');
 // const extensionRange = '日煦旭星昴暄时用';
-const extensionRange = '屹';
+// const extensionRange = '品保重春点洞厚界看奎亮美勉思省型星宣昡音映盈勇宥昭';
+const extensionRange = '辰赤兑甫谷含宏即系均君克利良伶免妙伸身彤位我吾系孝辛言邑余志住';
 const extensionWordScope = extensionRange.split('').reduce((sum, cur) => {
   sum[cur]=cur;
   return sum;
@@ -55,7 +56,8 @@ exports.exportGoodName = exportGoodName;
 // exportGoodName(2, [6, 15], '山土钅'.split(''), 'every');
 // exportGoodName(2, [6, 15], '山土钅'.split(''), 'every');
 // exportGoodName(2, [6, 15], '钅阝'.split(''), 'some');
-exportGoodName(2, [6, 15], '日月山土金钅阝'.split(''), 'some', extensionWordScope);
+// exportGoodName(2, [6, 15], '日月山土金钅阝'.split(''), 'some', extensionWordScope);
+exportGoodName(2, [6, 15], ''.split(''), 'some', extensionWordScope);
 const exportRandomName = async (size, familyNameStrokes=[], parts, rule="some", extension={}, scope=words.wordStrokeMapping, fsAction='appendFile', dist="./dist", fileName="randomNameResult.txt") => {
   const validStrokes = nameStrokes.getGoodNameStrokesWithRule(validRule, ...familyNameStrokes);
   // console.log('goods name strokes', validStrokes);
