@@ -1,0 +1,90 @@
+{
+  "/media/liuhanru/mywork/hardbone/namebaby/lib": {
+    "/media/liuhanru/mywork/hardbone/namebaby/lib/诗经.txt": {
+      "洵美": 18,
+      "思须": 18,
+      "是保": 18
+    },
+    "/media/liuhanru/mywork/hardbone/namebaby/lib/shangshu_fusheng.txt": {
+      "修思": 18,
+      "胤保": 18,
+      "胥保": 18,
+      "宣重": 18,
+      "重篾": 26,
+      "保厘": 18,
+      "适重": 18,
+      "轻重": 18
+    },
+    "/media/liuhanru/mywork/hardbone/namebaby/lib/大学中庸.txt": {
+      "度思": 18,
+      "春秋": 18,
+      "思修": 18,
+      "信重": 18
+    }
+  }
+}
+
+{
+  "/media/liuhanru/mywork/hardbone/namebaby/lib": {
+    "/media/liuhanru/mywork/hardbone/namebaby/lib/诗经.txt": {
+      "言掇": 18,
+      "言袺": 18,
+      "我庶": 18,
+      "我梁": 18,
+      "我笱": 18,
+      "悠我": 18,
+      "维我": 18,
+      "我谋": 18,
+      "谓我": 18,
+      "我谓": 18,
+      "我骐": 18,
+      "晤言": 18
+    },
+    "/media/liuhanru/mywork/hardbone/namebaby/lib/shangshu_fusheng.txt": {
+      "言庸": 18,
+      "克谐": 18,
+      "志惟": 18,
+      "敕我": 18,
+      "赤埴": 18,
+      "惟我": 18,
+      "我商": 18,
+      "检身": 18,
+      "克庸": 18,
+      "逸言": 18,
+      "谗言": 18,
+      "惟君": 18,
+      "言惟": 18,
+      "惟克": 18,
+      "庶位": 18,
+      "商邑": 18,
+      "克商": 18,
+      "戚我": 18,
+      "敢言": 18,
+      "君惟": 18,
+      "我惟": 18,
+      "我教": 18,
+      "邑营": 18,
+      "邑商": 18,
+      "即康": 18,
+      "敢含": 18,
+      "惟孝": 18,
+      "教我": 18,
+      "邑谋": 18,
+      "庶言": 18,
+      "我庶": 18,
+      "惟志": 18,
+      "惟良": 18,
+      "君麻": 18,
+      "冕彤": 18,
+      "惟均": 18,
+      "谝言": 18
+    },
+    "/media/liuhanru/mywork/hardbone/namebaby/lib/大学中庸.txt": {
+      "谓身": 18,
+      "言偾": 18,
+      "位焉": 18,
+      "庸言": 18,
+      "系焉": 18
+    }
+  }
+}
