@@ -57,7 +57,7 @@ exports.exportGoodName = exportGoodName;
 // exportGoodName(2, [6, 15], '山土钅'.split(''), 'every');
 // exportGoodName(2, [6, 15], '钅阝'.split(''), 'some');
 // exportGoodName(2, [6, 15], '日月山土金钅阝'.split(''), 'some', extensionWordScope);
-exportGoodName(2, [6, 15], ''.split(''), 'some', extensionWordScope);
+// exportGoodName(2, [6, 15], ''.split(''), 'some', extensionWordScope);
 const exportRandomName = async (size, familyNameStrokes=[], parts, rule="some", extension={}, scope=words.wordStrokeMapping, fsAction='appendFile', dist="./dist", fileName="randomNameResult.txt") => {
   const validStrokes = nameStrokes.getGoodNameStrokesWithRule(validRule, ...familyNameStrokes);
   // console.log('goods name strokes', validStrokes);
@@ -75,7 +75,7 @@ exports.exportRandomName = exportRandomName;
 // exportRandomName(2, [6, 15], '日月山土金'.split(''), 'some', extensionWordScope);
 // exportRandomName(2, [6, 15], '山钅'.split(''), 'some', extensionWordScope);
 // exportRandomName(2, [6, 15], '日山土金钅'.split(''), 'some', extensionWordScope);
-
+/**
 exportRandomName(2, [6, 15], ''.split(''), 'some', extensionWordScope, extensionWordScope,'writeFile');
 exportRandomName(2, [6, 15], '日'.split(''), 'some', extensionWordScope, extensionWordScope);
 exportRandomName(2, [6, 15], '月'.split(''), 'some', extensionWordScope, extensionWordScope);
@@ -84,4 +84,22 @@ exportRandomName(2, [6, 15], '土'.split(''), 'some', extensionWordScope, extens
 exportRandomName(2, [6, 15], '金'.split(''), 'some', extensionWordScope, extensionWordScope);
 exportRandomName(2, [6, 15], '钅'.split(''), 'some', extensionWordScope, extensionWordScope);
 exportRandomName(2, [6, 15], '阝'.split(''), 'some', extensionWordScope, extensionWordScope);
+**/
+const allwaysTrue = () => true;
+const selectNamesFromLiteratures = async (size, familyNameStrokes=[1], wordRule=allwaysTrue, nameRule=allwaysTrue, libPath='./lib', fsAction='writeFile', dist="./dist", fileName="selecteNameFromLiteratures.txt" ) => {
+  // const literatureDetails = await literatures.loadLiteratureDetails(libPath);
+  const libPaths=libPath.split(',');
+  const selectedNames = await literatures.selectNames(libPaths, familyNameStrokes);
+  const distPath = path.resolve(dist, ['base',familyNameStrokes.join('_'), fileName].join('.'));
+  return fs[fsAction](distPath, JSON.stringify(selectedNames, void 0, 2)).then(ok => {
+    console.log('fd', ok);
+    return 'ok';
+  }).catch(err => {
+    console.log('err', err);
+  });
+};
 
+exports.selectNamesFromLiteratures = selectNamesFromLiteratures;
+selectNamesFromLiteratures(2, [6]);
+selectNamesFromLiteratures(2, [15]);
+selectNamesFromLiteratures(2, [6, 15]);

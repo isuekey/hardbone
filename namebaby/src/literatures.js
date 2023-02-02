@@ -1,6 +1,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const wordStroke = require('./words/index.js');
+const nameStrokes = require('./strokes.js');
 const literatureData = {};
 const loadLiteratureDetailOfSomeDir = async (dirPath, resolved = {}) => {
   const dir = await fs.opendir(dirPath);
@@ -45,16 +46,13 @@ const loadLiteratureDetailOfSomeFile = async (filePath) => {
 };
 
 
-
-exports.loadLiteratureDetails = async (...libPaths) => {
-  const distinctPathArray = Array.from(new Set(libPaths));
+const loadLiteratureDetails = async (...fullLibPaths) => {
+  const distinctPathArray = Array.from(new Set(fullLibPaths));
   return Promise.all(distinctPathArray.map(libp => {
-    const resolved = literatureData[libp] || {};
-    literatureData[libp] = resolved;
-    return loadLiteratureDetailOfSomeDir(libp, resolved);
+    return loadLiteratureDetailOfSomeDir(libp, {});
   })).then(respArray => {
-    return libPaths.reduce((sum, cur, curIdx) => {
-      sum[cur] = respArray[curIdx];
+    return respArray.reduce((sum, cur) => {
+      sum = Object.assign(sum, cur);
       return sum;
     }, {});
   });
@@ -118,4 +116,66 @@ const getLiteratureFullLength = (literatureDetails=[]) => {
   }, 0);
 };
 
+const selectNamesFromLiterature = (literatureDetailSet={}, validStrokes=[]) => {
+  if(!Object.values(literatureDetailSet).length) return {};
+  if(!validStrokes.length) return {};
+  const nameSize = validStrokes[0].length;
+  if(!nameSize) return {};
+  return Object.entries(literatureDetailSet).reduce((sum, [literatureKey, literatureValues]) => {
+    const literatureLength = literatureValues.lenth;
+    literatureValues.forEach((syntax, syntaxIdx, arr) => {
+      const syntaxArray = Array.from(syntax);
+      const syntaxArrayLength = syntaxArray.length;
+      syntaxArray.forEach((word, wordIdx) => {
+        const namePrepared = [];
+        let leftStrokes = validStrokes;
+        for(let nameIdx=0; nameIdx < nameSize; ++nameIdx) {
+          let word = '';
+          const isInArray = wordIdx + nameIdx < syntaxArrayLength;
+          const isInLiterature = nameIdx + syntaxIdx < literatureLength;
+          if(isInArray) {
+            word = syntaxArray[wordIdx + nameIdx];
+          } else if(isInLiterature) {
+            word = Array.from(literatureValues[nameIdx + syntaxIdx])[0];
+          } else {
+            break;
+          }
+          const nextWordLeftStrokes = leftStrokes.filter((validStrokeList) => {
+            return validStrokeList[0] == wordStroke.wordStrokeMapping[word];
+          });
+          if(!nextWordLeftStrokes.length) {
+            break;
+          };
+          namePrepared.push(word);
+          leftStrokes = nextWordLeftStrokes.map(ele => ele.slice(1));
+          if(nameIdx + 1 == nameSize) {
+            const name = namePrepared.join('');
+            sum[name] = (sum[name] || []);
+            sum[name].push(literatureKey);
+          }
+        }
+      });
+    });
+    return sum;
+  }, {});
+};
+
+const selectNames = async (libPaths=[], familyNameStrokes=[1]) => {
+  const validStrokeRanges = nameStrokes.goodsNamesStrokesRange2(...familyNameStrokes);
+  // console.log('validStrokeRanges', validStrokeRanges.length, validStrokeRanges);
+  if(!validStrokeRanges.length) return {};
+  const validStrokes = validStrokeRanges.map(ele => ele.slice(1));
+  // if(!isConfirm) throw('unknown error');
+  // console.log('libPaths', libPaths.length);
+  if(libPaths.length == 0) return {};
+  const fullPaths = libPaths.map(libPath => path.resolve(libPath));
+  const details = await loadLiteratureDetails(...fullPaths);
+  // console.log('selectedNames', details);
+  const names = selectNamesFromLiterature(details, validStrokes);
+  // console.log(names);
+  return names;
+};
+
+exports.loadLiteratureDetails = loadLiteratureDetails;
 exports.generateGoodName = generateGoodName;
+exports.selectNames = selectNames;

@@ -26263,33 +26263,208 @@ AsyncGenerator对象的\[\[Prototype]]内部占位。
 此性质的属性为{ \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]:false }
 ***** 注意 不同于Function实例，AsyncGeneratorFunction的"prototype"性质值的对象没有值是
            AsyncGeneratorFunction实例的"constructor"性质。
-** Generator Objects 781-794
+** Generator Objects
+Generator对象是GeneratorFunction的实例，而且同时遵循Iterator和Iterable接口。
+
+Generator实例都继承创建此实例的GeneratorFunction的prototype性质的初始值。Generator实例间接继承内在
+%GeneratorFunction.prototype.prototype%的GeneratorPrototype性质
 *** Properties of the Generator Prototype Object
+Generator原型对象
+. 是%GeneratorFunciton.prototype.prototype%
+. 是基本对象
+. 不是Generator实例，也没有\[\[GeneratorState]]内部占位
+. 有\[\[Prototype]]内部占位，值是%IteratorPrototype%
+. 性质被所有的Generator实例间接继承
 **** Generator.prototype.constructor
+Gnerator.prototype.constructor的初始值是%GeneratorFunction%.prototype%
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }。
 **** Generator.prototype.next ( value )
+next方法执行如下步骤：
+1. 让g是this值
+2. 返回?GeneratorResume(g, value, empty)
 **** Generator.prototype.return ( value )
+return方法执行如下步骤：
+1. 让g是this值
+2. 让C是Completion { \[\[Type]]:return, \[\[Value]]: value, \[\[Target]]:empty }
+3. 返回?GeneratorResumeAbrupt(g, C, empty)
 **** Generator.prototype.throw ( exception )
+throw方法执行如下步骤：
+1. 让g是this值
+2. 让C是ThrowCompletion(execption)
+3. 返回?GeneratorResumeAbrupt(g, C, empty)
 **** Generator.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"Generator"
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
 *** Properties of Generator Instances
+创建并按照表73中所列的内部占位初始化Generator实例
+
+表73 Genrator实例的内部占位
+| 内部占位               | 描述                                                                                         |
+| \[\[GeneratorState]]   | 此生成器的当前执行状态。可能是：undefined,suspendedStart,suspendedYield,executing和completed |
+| \[\[GeneratorContext]] | 执行此生成器的代码时的执行背景                                                               |
+| \[\[GeneratorBrand]]   | 用于区别不同类型生成器的标记。用ECMAScript源文本声明的生成器的\[\[GeneratorBrand]]总是empty  |
 *** Generator Abstract Operations
 **** GeneratorStart ( generator, generatorBody )
+抽象操作GeneratorStart接受参数generator和generatorBody（ParseNode或者无参的AbastractClosure）。被调
+用时执行下列步骤：
+1. Assert：generator.\[\[GeneratorState]]是undefined
+2. 让genContext是运行时执行背景。
+3. 置genContext的Generator组件是generator
+4. 置genContext的代码评估状态为会在执行背景恢复评估时执行如下步骤：
+    a. 如果generatorBody是ParseNdoe，那么
+        i. 让result是评估generatorBody的结果
+    b. 否则
+        i. Assert：generatorBody是无参数的AbstractClosure
+       ii. 让result是generatorBody()
+    c. Assert：如果在这里返回，此generator要么投掷异常，要么是有返回值，或隐式，或显式。
+    d. 从执行背景栈移除genContext，存储此时执行背景栈的顶部执行背景为运行时执行背景。
+    e. 置generator.\[\[GeneratorState]]是completed
+    f. 一旦generator进入了completed状态，就不会在变了。这表明联结的执行背景再也不会唤醒。此刻所有
+       联结到此generator的执行状态都可以舍弃。
+    g. 如果result.\[\[Type]]是normal，让resultValue是undefined
+    h. 否则如果result.\[\[Type]]是return，让resultValue是result.\[\[Value]]
+    i. 否则
+        i. Assert：result.\[\[Type]]是throw
+       ii. 返回Completion(result)
+    j. 返回CreateIterResultObject(resultValue, true)
+5. 置generator.\[\[GeneratorContext]]是genContext
+6. 置generator.\[\[GeneratorContext]]是suspendedStart
+7. 返回NormalCompletion(undefined)
 **** GeneratorValidate ( generator, generatorBrand )
+抽象操作GeneratorValidate接受参数generator和generatorBrand。被调用时执行下列步骤：
+1. 执行?RequireInternalSlot(generator, \[\[GeneratorState]])
+2. 执行?RequireInternalSlot(generator, \[\[GeneratorBrand]])
+3. 如果generator.\[\[GeneratorBrand]]与generatorBrand的值不一致，投掷TypeError异常
+4. Assert：generator也有\[\[GeneratorContext]]内部占位
+5. 让state是generator.\[\[GeneratorState]]
+6. 如果state是executing，投掷TypeError异常
+7. 返回state
 **** GeneratorResume ( generator, value, generatorBrand )
+抽象操作GeneratorResume接受参数generator、value和generatorBrand。被调用时执行下列步骤：
+1. 让state是?GeneratorValidate(generator, generatorBrand)
+2. 如果state是complete，返回CreateIterResultObject(undefined, true)
+3. Assert：state是suspendedStart或者suspendedYield
+4. 让genContext是generator.\[\[GeneratorContext]]
+5. 让methodContext是运行时执行背景。
+6. 挂起methodContext
+7. 置generator.\[\[GeneratorState]]是executing
+8. 推送genContext到执行背景栈上；genContext现在是运行时执行背景
+9. 恢复genContext的已挂起的评估，并用NormalCompletion(value)作为那个挂起操作的结果。让result是
+   恢复的计算的返回值。
+10. Assert：在这里返回的话，genContext已经从执行背景栈上移除，而且methodContext是当前的运行时执
+    行背景。
+11. 返回Completion(result)
 **** GeneratorResumeAbrupt ( generator, abruptCompletion, generatorBrand )
+抽象操作GeneratorResumeAbrupt接受参数generator、abruptCompletion（CompletionRecord其值return或者
+throw）和generatorBrand。被调用时执行下列步骤：
+1. 让state是?GeneratorValidate(generator, generatorBrand)
+2. 如果state是suspendedStart，那么
+    a. 置generator.\[\[GeneratorState]]是completed
+    b. 一旦generator进入了completed状态，就不会在变了。这表明联结的执行背景再也不会唤醒。此刻所有
+       联结到此generator的执行状态都可以舍弃。
+    c. 置state是completed
+3. 如果state是completed，那么
+    a. 如果abruptCompletion.\[\[Type]]是return，那么
+        i. 返回CreateIterResultObject(abruptCompletion.\[\[Value]], true)
+    b. 返回Completion(abruptCompletion)
+4. Assert：state是suspendedYield
+5. 让genContext是generator.\[\[GeneratorContext]]
+6. 让methodContext是运行时执行背景
+7. 挂起methodContext
+8. 置generator.\[\[GeneratorState]]是executing
+9. 推送genContext到执行背景栈上；genContext现在是运行时执行背景
+10. 恢复genContext的已挂起的评估，并用NormalCompletion(value)作为那个挂起操作的结果。让result是
+    恢复的计算的返回值。
+11. Assert：在这里返回的话，genContext已经从执行背景栈上移除，而且methodContext是当前的运行时执
+    行背景。
+12. 返回Completion(result)
 **** GetGeneratorKind ( )
+抽象操作GetGeneratorKind不接受参数。被调用时执行下列步骤：
+1. 让genContext是运行时执行背景
+2. 如果genContext没有Generator组件，返回non-generator
+3. 让generator是genContext的Generator组件
+4. 如果generator有\[\[AsyncGeneratorState]]内部占位，返回async
+5. 否则，返回sync
 **** GeneratorYield ( iterNextObj )
+抽象操作GeneratorYield接受参数iterNextObj。被调用时执行下列步骤：
+1. Assert：iterNextObj是实现了IteratorResult接口的对象。
+2. 让genContext是运行时执行背景
+3. Assert：genContext是某个生成器的执行背景
+4. 让generator是genContext的Generator组件
+5. Assert：GetGeneratorKind()是sync
+6. 置generator.\[\[GneratorState]]是suspendedYield
+7. 从执行背景栈移除genContext，存储此时执行背景栈的顶部执行背景为运行时执行背景。
+8. 置genContext的代码评估状态为会在执行背景带一个Completion resumptionValue来恢复评估时执行如下步骤：
+    a. 返回resumptionValue
+    b. 注意：这会回到最初调用此抽象操作的YieldExpression的评估。
+9. 返回NormalCompletion(iterNextObj)
+10. 注意：这会回到最早恢复评估genContext的操作的评估。
 **** Yield ( value )
+抽象操作Yield接受参数value（ECMAScript语言值）。被调用时执行下列步骤：
+1. 让generatorKind是!GetGeneratorKind()
+2. 如果generatorKind是async，返回?AsyncGeneratorKind(value)
+3. 其他，返回?GeneratorYield(!CreateIterResultObject(value, false))
 **** CreateIteratorFromClosure ( closure, generatorBrand, generatorPrototype )
-** AsyncGenerator Objects
+抽象操作CreateIteratorFromClosure接受参数closure（无参的AbastractClosure）、generatorBrand和
+generatorPrototype（Object）。被调用时执行下列步骤：
+1. 注意：closure可以用Yield速记获取IteratorResult对象。
+2. 让iternalSlotsList是<< \[\[GeneratorState]], \[\[GeneratorContext]], \[\[GeneratorBrand]] >>
+3. 让generator是!OrdinaryObjectCreate(generatorPrototype, internalSlotsList)
+4. 置generator.\[\[GneratorBrand]]是generatorBrand
+5. 置generator.\[\[GneratorState]]是undefined
+6. 执行!GeneratorState(generator, closure)
+7. 返回generator
+** AsyncGenerator Objects 785-794
+AsyncGenerator对象是AsyncGeneratorFunction的实例，遵循AsyncIterator和AsyncIterable接口。
+
+AsyncGenerator实例都继承创建此实例的AsyncGeneratorFunction的prototype性质的初始值。AsyncGenerator实
+例间接继承内在%AsyncGeneratorFunction.prototype.prototype%的AsyncGeneratorPrototype性质。
 *** Properties of the AsyncGenerator Prototype Object
+AsyncGenerator原型对象
+. 是%AsyncGeneratorFunciton.prototype.prototype%
+. 是基本对象
+. 不是AsyncGenerator实例，也没有\[\[AsyncGeneratorState]]内部占位
+. 有\[\[Prototype]]内部占位，值是%AsyncIteratorPrototype%
+. 性质被所有的AsyncGenerator实例间接继承
 **** AsyncGenerator.prototype.constructor
+AsyncGnerator.prototype.constructor的初始值是%AsyncGeneratorFunction%.prototype%
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }。
 **** AsyncGenerator.prototype.next ( value )
+1. 让generator是this值
+2. 让completion是NormalCompletion(value)
+3. 返回!AsyncGeneratorEnqueue(generator, value, empty)
 **** AsyncGenerator.prototype.return ( value )
+1. 让generator是this值
+2. 让completion是Completion  { \[\[Type]]:return, \[\[Value]]: value, \[\[Target]]:empty }
+3. 返回!AsyncGeneratorEnqueue(generator, completion, empty)
 **** AsyncGenerator.prototype.throw ( exception )
+1. 让generator是this值
+2. 让completion是ThrowCompletion(exception)
+3. 返回!AsyncGeneratorEnqueue(generator, completion, empty)
 **** AsyncGenerator.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"AsyncGenerator"
+
+此性质的属性是{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
 *** Properties of AsyncGenerator Instances
+创建并按照表74中所列的内部占位初始化AsyncGenerator实例
+
+表73 AsyncGenrator实例的内部占位
+| 内部占位                    | 描述                                                                                                         |
+| \[\[AsyncGeneratorState]]   | 此生成器的当前执行状态。可能是：undefined,suspendedStart,suspendedYield,executing,awaiting-return和completed |
+| \[\[AsyncGeneratorContext]] | 执行此异步生成器的代码时的执行背景                                                                           |
+| \[\[AsyncGeneratorQueue]]   | AsyncGeneratorRequest的列表，表示恢复异步生成器的请求。                                                      |
+| \[\[GeneratorBrand]]        | 用于区别不同类型生成器的标记。用ECMAScript源文本声明的异步生成器的\[\[GeneratorBrand]]总是empty              |
 *** AsyncGenerator Abstract Operations
 **** AsyncGeneratorRequest Records
+AsyncGeneratorRequest是Record值，用于存储如何恢复异步生成器的信息，包含满足或者拒绝对应承诺的能力。
+
+表75：AsyncGeneratorRequestRecord字段
+| Field Name       | Value                   | Meaning |
+| \[\[Completion]] | Completion记录          |         |
+| \[\[Capability]] | PromiseCapabilityRecord |         |
 **** AsyncGeneratorStart ( generator, generatorBody )
 **** AsyncGeneratorValidate ( generator, generatorBrand )
 **** AsyncGeneratorResolve ( generator, value, done )
@@ -26300,7 +26475,7 @@ AsyncGenerator对象的\[\[Prototype]]内部占位。
 **** AsyncGeneratorEnqueue ( generator, completion, generatorBrand )
 **** AsyncGeneratorYield ( value )
 **** CreateAsyncIteratorFromClosure ( closure, generatorBrand, generatorPrototype )
-** AsyncFunction Objects
+** AsyncFunction Objects 792-794
 *** The AsyncFunction Constructor
 **** AsyncFunction ( p1, p2, … , pn, body )
 *** Properties of the AsyncFunction Constructor
