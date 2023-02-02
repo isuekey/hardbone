@@ -87,7 +87,6 @@ exportRandomName(2, [6, 15], '阝'.split(''), 'some', extensionWordScope, extens
 **/
 const allwaysTrue = () => true;
 const selectNamesFromLiteratures = async (size, familyNameStrokes=[1], wordRule=allwaysTrue, nameRule=allwaysTrue, libPath='./lib', fsAction='writeFile', dist="./dist", fileName="selecteNameFromLiteratures.txt" ) => {
-  // const literatureDetails = await literatures.loadLiteratureDetails(libPath);
   const libPaths=libPath.split(',');
   const selectedNames = await literatures.selectNames(libPaths, familyNameStrokes);
   const distPath = path.resolve(dist, ['base',familyNameStrokes.join('_'), fileName].join('.'));
