@@ -26190,7 +26190,7 @@ GeneratorFunction.prototype.prototype的初始值是Generator原型对象。
 此性质的属性为{ \[\[Writable]]:true, \[\[Enumerable]]:false, \[\[Configurable]]:false }
 ***** 注意 不同于Function实例，GeneratorFunction的"prototype"性质值的对象没有值是
            GeneratorFunction实例的"constructor"性质。
-** AsyncGeneratorFunction Objects 778-794
+** AsyncGeneratorFunction Objects
 AsyncGeneratorFunction对象是函数，一般由评估AsyncGeneratorDeclaration、AsyncGeneratorExpressions和
 AsyncGeneratorMethods语句创建。也可以通过调用内部的%AsyncGeneratorFunction%来创建。
 *** The AsyncGeneratorFunction Constructor
@@ -26202,7 +26202,7 @@ AsyncGeneratorFunction构造范：
 . 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范
   如果要继承AsyncGeneratorFunction构造范的行为，必须含有super调用，以使用AsyncGeneratorFunctin构造
   范创建和初始化拥有支持AsyncGeneratorFunction内建方法行为所必需内部占位的子类实例。所有用于定义
-  AsyncGenerator函数对象的ECMAScript句法形式都是直接创建AsyncGeneratorFunction实例。没有句法创建
+  AsyncGenerator函数对象的ECMAScript句法形式都是创建AsyncGeneratorFunction直接实例。没有句法创建
   AsyncGeneratorFunction子类的实例。
 **** AsyncGeneratorFunction ( p1, p2, … , pn, body )
 最后的参数规定了AsyncGenerator函数的执行体（执行代码）；其前的参数规定了形式参数。
@@ -26330,7 +26330,7 @@ throw方法执行如下步骤：
        ii. 返回Completion(result)
     j. 返回CreateIterResultObject(resultValue, true)
 5. 置generator.\[\[GeneratorContext]]是genContext
-6. 置generator.\[\[GeneratorContext]]是suspendedStart
+6. 置generator.\[\[GeneratorState]]是suspendedStart
 7. 返回NormalCompletion(undefined)
 **** GeneratorValidate ( generator, generatorBrand )
 抽象操作GeneratorValidate接受参数generator和generatorBrand。被调用时执行下列步骤：
@@ -26357,7 +26357,7 @@ throw方法执行如下步骤：
     行背景。
 11. 返回Completion(result)
 **** GeneratorResumeAbrupt ( generator, abruptCompletion, generatorBrand )
-抽象操作GeneratorResumeAbrupt接受参数generator、abruptCompletion（CompletionRecord其值return或者
+抽象操作GeneratorResumeAbrupt接受参数generator、abruptCompletion（CompletionRecord，其值return或者
 throw）和generatorBrand。被调用时执行下列步骤：
 1. 让state是?GeneratorValidate(generator, generatorBrand)
 2. 如果state是suspendedStart，那么
@@ -26395,10 +26395,10 @@ throw）和generatorBrand。被调用时执行下列步骤：
 4. 让generator是genContext的Generator组件
 5. Assert：GetGeneratorKind()是sync
 6. 置generator.\[\[GneratorState]]是suspendedYield
-7. 从执行背景栈移除genContext，存储此时执行背景栈的顶部执行背景为运行时执行背景。
+7. 从执行背景栈移除genContext，再用此时执行背景栈的顶部执行背景为运行时执行背景。
 8. 置genContext的代码评估状态为会在执行背景带一个Completion resumptionValue来恢复评估时执行如下步骤：
     a. 返回resumptionValue
-    b. 注意：这会回到最初调用此抽象操作的YieldExpression的评估。
+    b. 注意：这会回到最初调用此抽象操作的YieldExpression码型的评估。
 9. 返回NormalCompletion(iterNextObj)
 10. 注意：这会回到最早恢复评估genContext的操作的评估。
 **** Yield ( value )
@@ -26414,9 +26414,9 @@ generatorPrototype（Object）。被调用时执行下列步骤：
 3. 让generator是!OrdinaryObjectCreate(generatorPrototype, internalSlotsList)
 4. 置generator.\[\[GneratorBrand]]是generatorBrand
 5. 置generator.\[\[GneratorState]]是undefined
-6. 执行!GeneratorState(generator, closure)
+6. 执行!GeneratorStart(generator, closure)
 7. 返回generator
-** AsyncGenerator Objects 785-794
+** AsyncGenerator Objects
 AsyncGenerator对象是AsyncGeneratorFunction的实例，遵循AsyncIterator和AsyncIterable接口。
 
 AsyncGenerator实例都继承创建此实例的AsyncGeneratorFunction的prototype性质的初始值。AsyncGenerator实
@@ -26462,34 +26462,306 @@ AsyncGnerator.prototype.constructor的初始值是%AsyncGeneratorFunction%.proto
 AsyncGeneratorRequest是Record值，用于存储如何恢复异步生成器的信息，包含满足或者拒绝对应承诺的能力。
 
 表75：AsyncGeneratorRequestRecord字段
-| Field Name       | Value                   | Meaning |
-| \[\[Completion]] | Completion记录          |         |
-| \[\[Capability]] | PromiseCapabilityRecord |         |
+| Field Name       | Value                   | Meaning                          |
+| \[\[Completion]] | Completion记录          | 用于恢复AsyncGenerator的完结记录 |
+| \[\[Capability]] | PromiseCapabilityRecord | 联结到本请求的承诺能力                      |
 **** AsyncGeneratorStart ( generator, generatorBody )
+抽象操作AsyncGeneratorStart接受参数generator和generatorBody（ParseNode或者无参的AbastractClosure）。
+被调用时执行下列步骤：
+1. Assert：generator是AsyncGenerator实例
+2. Assert：generator.\[\[AsyncGeneratorState]]是undefined
+3. 让genContext是运行时执行背景。
+4. 置genContext的Generator组件是generator
+5. 置genContext的代码评估状态为会在执行背景恢复评估时执行如下步骤：
+    a. 如果generatorBody是ParseNdoe，那么
+        i. 让result是评估generatorBody的结果
+    b. 否则
+        i. Assert：generatorBody是无参数的AbstractClosure
+       ii. 让result是generatorBody()
+    c. Assert：如果在这里返回，此generator要么投掷异常，要么是有返回值，或隐式，或显式。
+    d. 从执行背景栈移除genContext，再用此时执行背景栈的顶部执行背景为运行时执行背景。
+    e. 置generator.\[\[AsyncGeneratorState]]是completed
+    f. 如果result.\[\[Type]]是normal，让resultValue是undefined
+    g. 否则
+        i. 让resultValue是result.\[\[Value]]
+       ii. 如果result.\[\[Type]]不是return，那么
+            a. 返回!AsyncGeneratorReject(generator, resultValue)
+    h. 返回!AsyncGeneratorResolve(generator, resultValue, true)
+6. 置generator.\[\[AsyncGeneratorContext]]是genContext
+7. 置generator.\[\[AsyncGeneratorState]]是suspendedStart
+8. 置generator.\[\[AsyncGeneratorQueue]]是新的空列表
+9. 返回undefined
 **** AsyncGeneratorValidate ( generator, generatorBrand )
+抽象操作AsyncGeneratorValidate接受参数generator和generatorBrand。被调用时执行下列步骤：
+1. 执行?RequireInternalSlot(generator, \[\[AsyncGeneratorContext]])
+2. 执行?RequireInternalSlot(generator, \[\[AsyncGeneratorState]])
+3. 执行?RequireInternalSlot(generator, \[\[AsyncGeneratorQueue]])
+4. 如果generator.\[\[GeneratorBrand]]与generatorBrand的值不一致，投掷TypeError异常
 **** AsyncGeneratorResolve ( generator, value, done )
+抽象操作AsyncGeneratorResolve接受参数generator、value和done（Boolean）。被调用时执行下列步骤：
+1. Assert：generator是AsyncGenerator实例
+2. 让queue是generator.\[\[AsyncGeneratorQueue]]
+3. Assert：queue不是空列表
+4. 让next是queue的第一个元素
+5. 从queue中移除第一个元素
+6. 让promiseCapability是next.\[\[Capability]]
+7. 让iteratorResult是!CreateIterResultObject(value, done)
+8. 执行!Call(promiseCapability.\[\[Resolve]], undefined, << iteratorResult >> )
+9. 执行!AsyncGeneratorResumeNext(generator)
+10. 返回undefined
 **** AsyncGeneratorReject ( generator, exception )
+抽象操作AsyncGeneratorReject接受参数generator和exception。被调用时执行下列步骤：
+1. Assert：generator是AsyncGenerator实例
+2. 让queue是generator.\[\[AsyncGeneratorQueue]]
+3. Assert：queue不是空列表
+4. 让next是queue的第一个元素
+5. 从queue中移除第一个元素
+6. 让promiseCapability是next.\[\[Capability]]
+7. 执行!Call(promiseCapability.\[\[Reject]], undefined, << exception >> )
+8. 执行!AsyncGeneratorResumeNext(generator)
+9. 返回undefined
 **** AsyncGeneratorResumeNext ( generator )
+抽象操作AsyncGeneratorResumeNext接受参数generator。被调用时执行下列步骤：
+1. Assert：generator是AsyncGenerator实例
+2. 让state是generator.\[\[AsyncGeneratorState]]
+3. Assert：state不是executing
+4. 如果state是awaiting-return，返回undefined
+5. 让queue是generator.\[\[AsyncGeneratorQueue]]
+6. 如果queue是空列表，返回undefined
+7. 让next是queue的第一个元素
+8. Assert：next是AsyncGeneratorRequest记录
+9. 让completion是next.\[\[Completion]]
+10. 如果completion是意外完结，那么
+    a. 如果state是suspendedStart，那么
+        i. 置generator.\[\[AsyncGeneratorState]]是completed
+       ii. 置state是completed
+    b. 如果state是completed，那么
+        i. 如果completion.\[\[Type]]是return，那么
+            1. 置generator.\[\[AsyncGeneratorState]]是awaiting-return
+            2. 让promise是?PromiseResolve(%Promise%, completion.\[\[Value]])
+            3. 让stepsFulfilled是定义在AsyncGeneratorResumeNext Return Processor
+               Fulfilled Functions的算法步骤
+            4. 让lengthFulfilled是定义在AsyncGeneratorResumeNext Return Processor
+               Fulfilled Functions函数的非可选参数的数量
+            5. 让onFulfilled是!CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, "",
+               << \[\[Generator]] >>)
+            6. 置onFulfilled.\[\[Generator]]是generator
+            7. 让stepsRejected是定义在AsyncGeneratorResumeNext Return Processor
+               Rejected Functions的算法步骤
+            8. 让lengthRejected是定义在AsyncGeneratorResumeNext Return Processor
+               Rejected Functions函数的非可选参数的数量
+            9. 让onRejected是!CreateBuiltinFunction(stepsRejected, lengthRejected, "",
+               << \[\[Generator]] >>)
+           10. 置onRejected.\[\[Generator]]是generator
+           11. 执行!PerformPromiseThen(promise, onFulfilled, onRejected)
+           12. 返回undefined
+       ii. 否则
+            1. Assert：completion.\[\[Type]]是throw
+            2. 执行!AsyncGeneratorReject(generator, completion.\[\[Value]])
+            3. 返回undefined
+11. 否则如果state是completed，返回!AsyncGeneratorResolve(generator, undefined, true)
+12. Assert：state是suspendedStart或者suspendedYield
+13. 让genContext是generator.\[\[AsyncGeneratorContext]]
+14. 让callerContext是运行时执行背景。
+15. 挂起callerContext
+16. 置generator.\[\[AsyncGeneratorState]]是executing
+17. 推送genContext到执行背景栈上；genContext现在是运行时执行背景
+18. 恢复genContext的已挂起的评估，并用completion作为那个挂起操作的结果。让result是
+    恢复的计算的返回值。
+19. Assert：result不会是意外完结
+20. Assert：在这里返回的话，genContext已经从执行背景栈上移除，而且callerContext是当前的运行时执
+    行背景。
+21. 返回undefined
 ***** AsyncGeneratorResumeNext Return Processor Fulfilled Functions
+"AsyncGeneratorResumeNextReturn Processor Fulfilled Functions"函数是匿名内建函数，作为
+AsyncGeneratorResumeNext规范的一部分，用于拆解传递到AsyncGenerator.prototype.return(value)方法的
+承诺。每个"AsyncGeneratorResumeNextReturn Processor Fulfilled Functions"函数都有\[\[Generator]]内部
+占位。
+
+当"AsyncGeneratorResumeNextReturn Processor Fulfilled Functions"函数被带参数value调用时，执行如下
+步骤：
+1. 让F是活跃函数对象
+2. 置F.\[\[Generator]].\[\[AsyncGeneratorState]]是completed
+3. 返回!AsyncGeneratorResolve(F.\[\[Generator]], value, true)
+
+"AsyncGeneratorResumeNextReturn Processor Fulfilled Functions"函数的length性质是1_F
 ***** AsyncGeneratorResumeNext Return Processor Rejected Functions
+"AsyncGeneratorResumeNextReturn Processor Rejected Functions"函数是匿名内建函数，作为
+AsyncGeneratorResumeNext规范的一部分，用于拆解传递到AsyncGenerator.prototype.return(value)方法的
+承诺。每个"AsyncGeneratorResumeNextReturn Processor Rejected Functions"函数都有\[\[Generator]]内部
+占位。
+
+当"AsyncGeneratorResumeNextReturn Processor Rejected Functions"函数被带参数reason调用时，执行如下
+步骤：
+1. 让F是活跃函数对象
+2. 置F.\[\[Generator]].\[\[AsyncGeneratorState]]是completed
+3. 返回!AsyncGeneratorReject(F.\[\[Generator]], reason)
+
+"AsyncGeneratorResumeNextReturn Processor Rejected Functions"函数的length性质是1_F
 **** AsyncGeneratorEnqueue ( generator, completion, generatorBrand )
+抽象操作AsyncGeneratorEnqueue接受参数generator、completion（CompletionRecord）和generatorBrand。
+被调用时执行下列步骤：
+1. 让promiseCapability是!NewPromiseCapability(%Promise%)
+2. 让check是AsyncGeneratorValdiate(generator, genratorBrand)
+3. 如果check是意外完结，那么
+    a. 让badGeneratorError是新的TypeError对象
+    b. 执行!Call(promiseCapability.\[\[Reject]], undefined, << badGeneratorError >>)
+    c. 返回promiseCapability.\[\[Promise]]
+4. 让queue是generator.\[\[AsyncGeneratorQueue]]
+5. 让request是AsyncGeneratorRequest { \[\[Competion]]:completion,
+   \[\[Capability]]: promiseCapability }
+6. 追加request到queue的末端
+7. 让state是generator.\[\[AsyncGeneratorState]]
+8. 如果state不是executing，那么
+    a. 执行!AsyncGeneratorResumeNext(generator)
+9. 返回promiseCapability.\[\[Promise]]
 **** AsyncGeneratorYield ( value )
+抽象操作AsyncGeneratorYield接受参数value。被调用时执行下列步骤：
+1. 让genContext是运行时执行背景
+2. Assert：genContext是某个生成器的执行背景
+3. 让generator是genContext的Generator组件
+4. Assert：GetGeneratorKind()是async
+5. 置value是?Await(value)
+6. 置generator.\[\[AsyncGneratorState]]是suspendedYield
+7. 从执行背景栈移除genContext，再用此时执行背景栈的顶部执行背景为运行时执行背景。
+8. 置genContext的代码评估状态为会在执行背景带一个Completion resumptionValue来恢复评估时执行如下步骤：
+    a. 如果resumptionValue.\[\[Type]]不是return，返回Completion(resumptionValue)
+    b. 让awaited是Await(resumptionValue.\[\[Value]])
+    c. 如果awaited.\[\[Type]]是throw，返回Completion(awaited)
+    d. Assert：awaited.\[\[Type]]是normal
+    b. 返回Completion { \[\[Type]]:return, \[\[Value]]:awaited.\[\[Value]], \[\[Target]]:empty }
+    b. 注意： 上述返回步骤，会回到最初调用此抽象操作的YieldExpression码型的评估。
+9. 返回!AsyncGeneratorResolve(generator, value, false)
+10. 注意：这会回到最早恢复评估genContext的操作的评估。
 **** CreateAsyncIteratorFromClosure ( closure, generatorBrand, generatorPrototype )
-** AsyncFunction Objects 792-794
+抽象操作CreateAsyncIteratorFromClosure接受参数closure（无参的AbastractClosure）、generatorBrand和
+generatorPrototype（Object）。被调用时执行下列步骤：
+1. 注意：closure可以用Await速记和Yield速记获取IteratorResult对象。
+2. 让iternalSlotsList是<< \[\[AsyncGeneratorState]], \[\[AsyncGeneratorContext]],
+   \[\[AsyncGeneratorQueue]], \[\[GeneratorBrand]] >>
+3. 让generator是!OrdinaryObjectCreate(generatorPrototype, internalSlotsList)
+4. 置generator.\[\[GneratorBrand]]是generatorBrand
+5. 置generator.\[\[AsyncGneratorState]]是undefined
+6. 执行!AsyncGeneratorStart(generator, closure)
+7. 返回generator
+** AsyncFunction Objects
+AsyncFunction对象是从评估AsyncFunctionDeclarations、AsyncFunctionExpression、AsyncMethods和
+AsyncArrowFunctions来创建的函数。也可以通过调用内在%AsyncFucntion%来创建。
 *** The AsyncFunction Constructor
+AsyncFunction构造范：
+. 是%AsyncFunction%
+. 是Function的子类
+. 当作函数而不是构造范时，也创建并初始化新的AsyncFunction对象。因此函数调用AsyncFunction(...)与
+  对象创建表达式new AsyncFunction(...)，在相同参数时，等价。
+. 被设计成可继承。也就是说可以用在定义class时的extends语句里。子类的构造范如果要继承
+  AsyncFunction构造范的行为，必须含有super调用，以使用AsyncFunctin构造范创建和初始化
+  拥有支持AsyncFunction内建方法行为所必需内部占位的子类实例。所有用于定义异步函数对象的
+  ECMAScript句法形式都是创建AsyncFunction的直接实例。没有句法创建AsyncFunction子类的实例。
 **** AsyncFunction ( p1, p2, … , pn, body )
+最后的参数规定了异步函数的执行体（执行代码）；其前的参数规定了形式参数。
+
+当AsyncFunction函数被带参数p1、p2、...、pn和body（当n是0时，没有p参数，而且也可以不提供
+body）调用时，执行下列步骤：
+1. 让C是活跃函数对象。
+2. 让args是被\[\[Call]]或者\[\[Constructor]]传入本函数的argumentsList
+3. 返回?CreateDynamicFunction(C, NewTarget, async, args)
+***** 注意 查看20.2.1.1的注意
 *** Properties of the AsyncFunction Constructor
+AsyncFunction构造范：
+. 是继承了Function构造范的标准内建函数对象
+. 有\[\[Prototype]]内部占位，值是%Function%
+. 有"name"性质，值是"AsyncFunction"
+. 有如下性质：
 **** AsyncFunction.length
+是数据性质，值是1。此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,
+\[\[Configurable]]:true }。
 **** AsyncFunction.prototype
+AsyncFunction.prototype的初始值是AsyncGeneratorFunction原型对象
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false,\[\[Configurable]]:false }。
 *** Properties of the AsyncFunction Prototype Object
+AsyncFunction原型对象：
+. 是%AsyncFunciton.prototype%
+. 是基本对象
+. 不是函数对象，没有\[\[ECMAScriptCode]]内部占位，也没有表29列出的内部占位
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
 **** AsyncFunction.prototype.constructor
+AsyncFunction.prototype.constructor的初始值是%AsyncFunction%
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }。
 **** AsyncFunction.prototype [ @@toStringTag ]
+@@toStringTag性质的初始值是"AsyncFunction"字符串
+                  
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
 *** AsyncFunction Instances
+每个AsyncFunction实例是ECMAScript函数对象，有列在表29的内部占位。不过实例的
+\[\[IsClassConstructor]]内部占位值是false。AsyncFunction实例不是构造范，没有\[\[Constructor]]内部
+方法。AsyncFunction实例没有"prototype"性质，因为他们都不具备构造性。
+
+每个AsyncFunction实例有如下的自有性质：
 **** length
+在20.2.4.1中给出的Function实例上"length"性质的规范也适用AsyncFunction实例。
 **** name
+在20.2.4.2中给出的Function实例上"name"性质的规范也适用AsyncFunction实例。
 *** Async Functions Abstract Operations
 **** AsyncFunctionStart ( promiseCapability, asyncFunctionBody )
+抽象草AsyncFunctionStart接受参数promiseCapability（PromcieCapabilityRecord）和asyncFunctionBody。
+被调用时执行下列步骤：
+1. 让runningContext是运行时执行背景
+2. 让asyncContext是runningContext的复本
+3. 注意：执行状态的备份是下列步骤用于恢复执行的。如果恢复当前执行背景，则定义不明。
+4. 置asyncContext的代码评估状态为会在执行背景恢复评估时执行如下步骤：
+    a. 让result是评估asyncFunctionBody的结果
+    b. Assert：如果在这里返回，此generator要么投掷异常，要么是有返回值，或隐式，或显式。所有等待中的
+       都变成完成。
+    c. 从执行背景栈移除asyncContext，存储此时执行背景栈的顶部执行背景为运行时执行背景。
+    d. 如果result.\[\[Type]]是normal，那么
+        i. 执行!Call(promiseCapability.\[\[Resolve]], undefined, << undefined >>)
+    e. 否则如果result.\[\[Type]]是return，那么
+        i. 执行!Call(promiseCapability.\[\[Resolve]], undefined, << result.\[\[Value]] >>)
+    f. 否则
+        i. Assert：result.\[\[Type]]是throw
+       ii. 执行!Call(promiseCapability.\[\[Reject]], undefined, << result.\[\[Value]] >>)
+    g. 返回
+5. 推送asyncContext到执行背景栈上；asyncContext现在是运行时执行背景
+6. 恢复genContext的已挂起的评估。让result是恢复的计算的返回值。
+7. Assert：在这里返回的话，asyncContext已经从执行背景栈上移除，而且runningContext是当前的运行时执
+    行背景。
+8. Assert：result是正常完结，值是undefined。完成值的来源可能是Await，或者此异步函数没有等待内容时，
+   就是上述的步骤4.g
+9. 返回
 * Reflection 794-799
+** The Reflect Object
+Reflect对象：
+. 是%Reflect%
+. 是全局对象"Math"性质的初始值
+. 是基本对象
+. 有\[\[Prototype]]内部占位，值是%Object.prototype%
+. 不是函数对象
+. 没有\[\[Constructor]]内部方法；不能与new操作符合用
+. 没有\[\[Call]]内部方法；不能作为函数调用
+*** Reflect.apply ( target, thisArgument, argumentsList )
+*** Reflect.construct ( target, argumentsList [ , newTarget ] )
+*** Reflect.defineProperty ( target, propertyKey, attributes )
+*** Reflect.deleteProperty ( target, propertyKey )
+*** Reflect.get ( target, propertyKey [ , receiver ] )
+*** Reflect.getOwnPropertyDescriptor ( target, propertyKey )
+*** Reflect.getPrototypeOf ( target )
+*** Reflect.has ( target, propertyKey )
+*** Reflect.isExtensible ( target )
+*** Reflect.ownKeys ( target )
+*** Reflect.preventExtensions ( target )
+*** Reflect.set ( target, propertyKey, V [ , receiver ] )
+*** Reflect.setPrototypeOf ( target, proto )
+*** Reflect [ @@toStringTag ]
+** Proxy Objects
+*** The Proxy Constructor
+**** Proxy ( target, handler )
+*** Properties of the Proxy Constructor
+**** Proxy.revocable ( target, handler )
+***** Proxy Revocation Functions
+** Module Namespace Objects
+*** @@toStringTag
 * Memory Model 799-812
 * A Grammer Summary 812-841
 * B Additional ECMAScript Features for Web Browsers 841-866

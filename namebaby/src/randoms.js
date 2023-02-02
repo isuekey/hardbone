@@ -1,4 +1,5 @@
 const words = require('./words');
+const strokes = require('./strokes.js');
 
 const generateRandomNames = (relatedWords=[], validStrokeScope={}, size=2, result={}, rule="some", scope={}) => {
   // console.log('rule', scope, rule);
@@ -23,3 +24,25 @@ const generateRandomNames = (relatedWords=[], validStrokeScope={}, size=2, resul
 };
 
 exports.generateRandomNames = generateRandomNames;
+
+const selectNames = async (masterPartStr='', familyNameStrokes=[], extension={}) => {
+  if(!familyNameStrokes.length) return {};
+  if(!masterPartStr) return {};
+  const validates = strokes.goodsNamesStrokesRange2(...familyNameStrokes.map(ele => ele >>0));
+  if(!validates.length) return {};
+  const masterPartList = Array.from(masterPartStr);
+  const masterPartWordScope = words.getWordMasterPartsMapping(masterPartList, extension);
+  const randomNameResult = validates.map(ele => ele.slice(1)).reduce((sum, nameStrokeArray) => {
+    const key = nameStrokeArray.join(',');
+    const wordBaseArray = nameStrokeArray.map(ele => {
+      return (words.strokeWordMapping[ele] || []).filter(word => masterPartWordScope[word]).join(',');
+    });
+    if(wordBaseArray.every(arr => arr.length)){
+      sum[key] = wordBaseArray;
+    }
+    return sum;
+  }, {});
+  return randomNameResult;
+};
+
+exports.selectNames = selectNames;

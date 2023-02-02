@@ -28,7 +28,8 @@ const wordStrokeMapping = Object.entries(strokeWordMapping).reduce((sum, [stroke
 exports.wordStrokeMapping = wordStrokeMapping;
 
 const getWordMasterPartsMapping = (masterPartList=[], extensions={}) => {
-  return masterPartList.filter(ele => masterParts.masterPart[ele]).reduce((sum, part) => {
+  const distinctMasterPartList = Array.from(new Set(masterPartList));
+  return distinctMasterPartList.filter(ele => masterParts.masterPart[ele]).reduce((sum, part) => {
     masterParts.masterPart[part].reduce((wordSum, item) => {
       wordSum[item]=item;
       return wordSum;
@@ -39,7 +40,8 @@ const getWordMasterPartsMapping = (masterPartList=[], extensions={}) => {
 exports.getWordMasterPartsMapping = getWordMasterPartsMapping;
 
 const getMasterPartsWordArray = (masterPartList=[], extentions={})=> {
-  return masterPartList.map(ele => masterParts.masterPart[ele] || []).flat().concat(Object.keys(extentions));
+  const distinctMasterPartList = Array.from(new Set(masterPartList));
+  return distinctMasterPartList.map(ele => masterParts.masterPart[ele] || []).flat().concat(Object.keys(extentions));
 };
 
 exports.getMasterPartsWordArray = getMasterPartsWordArray;
