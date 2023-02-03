@@ -15466,10 +15466,10 @@ key和value调用时，执行下列步骤：
        执行!CreateDataPropertyOrThrow(descriptors, key, descriptor)
 5. 返回descriptors
 **** Object.getOwnPropertyNames(O)
-当getOwnerPropertyNames被调用时，执行下列步骤
+当getOwnPropertyNames被调用时，执行下列步骤
 1. 返回?GetOwnPropertyKeys(O, string)
 **** Object.getOwnPropertySymbols(O)
-当getOwnerPropertySymbols被调用时，执行下列步骤
+当getOwnPropertySymbols被调用时，执行下列步骤
 1. 返回?GetOwnPropertyKeys(O, symbol)
 ***** GetOwnPropertyKeys(O, type)
 抽象操作GetOwnPropertyKeys接受参数O和type（string或者symbol）。被调用时执行
@@ -26741,28 +26741,228 @@ Reflect对象：
 . 没有\[\[Constructor]]内部方法；不能与new操作符合用
 . 没有\[\[Call]]内部方法；不能作为函数调用
 *** Reflect.apply ( target, thisArgument, argumentsList )
+当apply方法被带参数target、thiArgument和arugmentsList调用时，执行下列步骤：
+1. 如果IsCallable(target)是false，投掷TypeError异常
+2. 让args是?CreateListFromArrayLike(argumentsList)
+3. 执行PrepareForTailCall()
+4. 返回?Call(target, thisArgument, args)
 *** Reflect.construct ( target, argumentsList [ , newTarget ] )
+当constructor方法被带参数target、thiArgument和newTarget调用时，执行下列步骤：
+1. 如果IsConstructor(target)是false，投掷TypeError异常
+2. 如果newTarget不存在，置newTarget是target
+3. 如果IsConstructor(newTarget)是false，投掷TypeError异常
+4. 让args是?CreateListFromArrayLike(argumentsList)
+5. 返回?Construct(target, args, newTarget)
 *** Reflect.defineProperty ( target, propertyKey, attributes )
+当defineProperty方法被带参数target、propertyKey和attributes调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 让key是?ToPropertyKey(propertyKey)
+3. 让desc是?ToPropertyDescriptor(attributes)
+4. 返回?target.\[\[DefineOwnProperty]](key, desc)
 *** Reflect.deleteProperty ( target, propertyKey )
+当deleteProperty方法被带参数target和propertyKey调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 让key是?ToPropertyKey(propertyKey)
+3. 返回?target.\[\[Delete]](key)
 *** Reflect.get ( target, propertyKey [ , receiver ] )
+当get方法被带参数target、propertyKey和receiver调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 让key是?ToPropertyKey(propertyKey)
+3. 如果receiver不存在，那么
+    a. 置receiver是target
+4. 返回?target.\[\[Get]](key, receiver)
 *** Reflect.getOwnPropertyDescriptor ( target, propertyKey )
+当getOwnPropertyDescriptor方法被带参数target和propertyKey调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 让key是?ToPropertyKey(propertyKey)
+3. 让desc是?target.\[\[GetOwnProperty]](key)
+4. 返回FromPropertyDescriptor(desc)
 *** Reflect.getPrototypeOf ( target )
+当getPrototypeOf方法被带参数target调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 返回?target.\[\[GetPrototypeOf]]()
 *** Reflect.has ( target, propertyKey )
+当has方法被带参数target和propertyKey调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 让key是?ToPropertyKey(propertyKey)
+3. 返回?target.\[\[HasProperty]](key)
 *** Reflect.isExtensible ( target )
+当isExtensible方法被带参数target调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 返回?target.\[\[IsExtensible]]()
 *** Reflect.ownKeys ( target )
+当ownKeys方法被带参数target调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 让keys是?target.\[\[OwnPropertyKeys]]()
+3. 返回CreateArrayFromList(keys)
 *** Reflect.preventExtensions ( target )
+当preventExtensions方法被带参数target调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 返回?target.\[\[PreventExtensions]]()
 *** Reflect.set ( target, propertyKey, V [ , receiver ] )
+当set方法被带参数target、propertyKey、V和receiver调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 让key是?ToPropertyKey(propertyKey)
+3. 如果receiver不存在，那么
+    a. 置receiver是target
+4. 返回?target.\[\[Set]](key, V, receiver)
 *** Reflect.setPrototypeOf ( target, proto )
-*** Reflect [ @@toStringTag ]
+当setPrototypeOf方法被带参数target和proto调用时，执行下列步骤：
+1. 如果Type(target)不是Object，投掷TypeError异常
+2. 如果Type(proto)不是Object，且proto不是null，投掷TypeError异常
+3. 返回?target.\[\[SetPrototypeOf]](proto)
+*** Reflect [ @@toStringTag ]n
+@@toStringTag性质的初始值是"Reflect"字符串
+                  
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:true }
 ** Proxy Objects
 *** The Proxy Constructor
+Proxy构造范：
+. 是%Proxy%
+. 是全局对象上"Proxy"性质的初始值
+. 作为构造范调用时创建并初始化新的Proxy奇异对象
+. 不试图可以函数调用，这种方式调用会投掷异常。
 **** Proxy ( target, handler )
+当Promise被带参数target和handler参数调用时，执行下列步骤：
+1. 如果NewTarget是undefined，投掷TypeError异常
+2. 返回?ProxyCreate(target, handler)
 *** Properties of the Proxy Constructor
+Promise构造范：
+. 有\[\[Prototype]]内部占位，值是%Function.prototype%
+. 没有"prototype"星置，因为Proxy奇异对象没有需要初始化的\[\[Prototype]]内部占位。
+. 有如下性质
 **** Proxy.revocable ( target, handler )
+Proxy.revocalbe函数用于创建可作废的Proxy对象。当Proxy.revocable被带参数target和handler调用时，
+执行如下步骤：
+1. 让p是?ProxyCreate(target, handler)
+2. 让steps是定义在Proxy Revocation Functions的算法步骤
+3. 让length是Proxy Revocation Functions定义的函数的非可选参数的数量。
+4. 让revoker是!CreateBuiltinFunction(steps, length, "", << \[\[RevocableProxy ]] >> )
+5. 置revoker.\[\[RevocableProxy]]是p
+6. 让result是!OrdinaryObjectCreate(%Object.prototype%)
+7. 执行!CreateDataPropertyOrThrow(result, "proxy", p)
+8. 执行!CreateDataPropertyOrThrow(result, "revoke", revoker)
+9. 返回result
 ***** Proxy Revocation Functions
+ProxyRevocationFunction实例匿名内建函数，有能力作废特定的Proxy对象。
+
+每个ProxyRevocationFunction实例有\[\[RevocableProxy]]内部占位。
+
+当ProxyRevocationFunction实例被调用时，执行下列步骤：
+1. 让F是活跃对象
+2. 让p是F.\[\[RevocableProxy]]
+3. 如果p是null，返回undefined
+4. 置F.\[\[RevocableProxy]]是null
+5. Assert：p是Proxy对象
+6. 置p.\[\[ProxyTarget]]是null
+7. 置p.\[\[ProxyHandler]]是null
+8. 返回undefined
+
+ProxyRevocationFunction实例的length性质是1_F
 ** Module Namespace Objects
+ModuleNamespace对象是模块命名空间奇异对象，使在运行时根据性质访问模块导出的绑定。ModuleNamespaceObject
+没有构造范函数。为模块提供的此类对象是在使用包含NameSpaceImport的ImportDeclaration来引入模块时创建的。
+
+除了在10.4.6中规定的性质，ModuleNamespace对象还有下列性质：
 *** @@toStringTag
-* Memory Model 799-812
+@@toStringTag性质的初始值是"Module"字符串
+
+此性质的属性为{ \[\[Writable]]:false, \[\[Enumerable]]:false, \[\[Configurable]]:false }
+* Memory Model
+内存一致模型，或者说内存模型，规定了ShareDataBlock事件的可能顺序。事件由访问SharedArrayBuffer备份的
+TypedArray实例和由Atomics对象的方法唤起。当程序没有数据竞争（随后有定义），事件顺序表现为顺序一致，就
+是说与每个施动者动作的进入离开顺序一致。当程序有数据竞争时，共享内存的操作可能不是顺序的。比如，程序可
+能展示出违反因果关系的行为和其他惊诧。这些惊诧源于编译器转换和CPU设计（比如：非序的执行和推测）。内存
+模型定义了程序按顺序显示的行为和从数据竞争中取值的精确条件。也就是说，没有未定义的行为。
+
+内存模型定义为由SharedArrayBuffer的抽象操作或者评估Atomics对象方法引入的事件的关系约束。
+** 注意 本节提供了由SharedArrayBuffer的抽象操作引入的事件上的公理模型。需要强调的是，不同于本规范的
+        其他部分，这个模型没有可以解释的算法性。由抽象操作产生的非确定性事件是ECMAScript评估的操作
+        语义与内存模型的公理语义的接口。这些事件的语义是通过考虑评估中的全部事件图来定义的。既不是
+        StaticSemantics也不是RuntimeSemantics。没有证实的算法实现，但是有整套约束可以明确特定事件
+        图是允许的或者不允许的。
+** Memory Model Fundamentals
+共享内存访问（读取和写入）被分为两组，原子访问和数据访问，定义如下。原子访问是顺序一致的，也就是，在
+施动者集群里有全部施动者都同意的严格的所有事件总顺序。非原子访问在施动者集群里没有全部施动者都同意
+的严格的所有事件总顺序，也就是，无序的。
+*** 注意1  要保证没有排序弱于顺序一致性，但是强于无序的，比如发布-获取。
+SharedDataBlock事件是ReadSharedMemory、WriteSharedMemory或者ReadModifyWriteSharedMemory记录。
+表76：ReadSharedMemory事件字段
+| 字段名称          | 值                     | 含义                                               |
+| \[\[Order]]       | SeqCst \vert Unordered | 最弱的顺序，由事件的内部模型保证                   |
+| \[\[NoTear]]      | Boolean                | 本事件是否允许从多个写入事件上读取本事件相同的范围 |
+| \[\[Block]]       | SharedDataBlock        | 事件操作的块                                       |
+| \[\[ByteIndex]]   | 非负整数               | 在\[\[Block]]上读取的字节地质                      |
+| \[\[ElementSize]] | 非负整数               | 读取的大小                                         |
+
+表77：WirteSharedMemory事件字段
+| 字段名称          | 值                     | 含义                                               |
+| \[\[Order]]       | SeqCst \vert Unordered \vert Init | 最弱的顺序，由事件的内部模型保证                   |
+| \[\[NoTear]]      | Boolean                | 本事件是否允许从多个读取事件上读取本事件相同的范围 |
+| \[\[Block]]       | SharedDataBlock        | 事件操作的块                                       |
+| \[\[ByteIndex]]   | 非负整数               | 在\[\[Block]]上写入的字节地质                      |
+| \[\[ElementSize]] | 非负整数               | 写入的大小                                         |
+| \[\[Payload]]     | 列表                   | 给其他事件读取的字节值列表                                      |
+
+表78：ReadModifyWirteSharedMemory事件字段
+| 字段名称          | 值                          | 含义                                |
+| \[\[Order]]       | SeqCst                      | Read-Modify-Write事件总是顺序一致的 |
+| \[\[NoTear]]      | true                        | Read-Modify-Write事件不允许割裂     |
+| \[\[Block]]       | SharedDataBlock             | 事件操作的块                        |
+| \[\[ByteIndex]]   | 非负整数                    | 在\[\[Block]]上写入的字节地质       |
+| \[\[ElementSize]] | 非负整数                    | 写入的大小                          |
+| \[\[Payload]]     | 列表                        | 传递给\[\[ModifyOp]]的字节值列表    |
+| \[\[ModifyOp]]    | Read-Modify-Write的修改函数 | 从读取的字节值列表和\[\[Payload]]返回一个修改后的字节值列表的抽象闭包。 |
+
+这些事件由抽象操作或者Atomics对象上的方法引入。
+
+有些操作可能也进入Synchronize事件。Synchronize事件没有字段，纯粹是为了直接约束其他事件的许可顺序。
+
+在ShareDataBlock和Synchronize事件外，还有主机规范的事件。
+
+让ReadSharedMemory、WriteSharedMemory或者ReadModifyWriteSharedMemory事件的范围是[ \[\[ByteIndex]],
+\[\[ByteIndex]] + \[\[ElementSize]] - 1 ]上的连续整数构成集。两个事件的范围相等是说事件有相同的
+\[\[Block]]，而且范围集相等。两个事件部分重叠是说事件有相同的\[\[Block]]，范围集不相等，且交集不空。
+两个事件不相交时说事件没有相同的\[\[Block]]或者既不相等也没有部分重叠。
+*** 注意2 主机定义的同步事件例子，应当认为是：从一个施动者发送SharedArrayBuffer到另一个（比如，在
+          浏览器的postMessage），开始和关闭施动者，和在施动者集群里通过频道而不是共享内存来通讯。
+          假设这些事件像其他SharedArrayBuffer事件在评估时附加到施动者顺序。
+
+在候选执行里的事件按照下列定义的关系进行排序。
+** Agent Events Records
+AgentEventsRecord是有如下字段的Record。
+
+表79：AgentEventRecord字段
+| 字段名称                    | 值                      | 含义                               |
+| \[\[AgentSignifier]]        | 允许检测相等的值        | 施动者的评估按照此顺序发生的       |
+| \[\[EventList]]             | 事件的列表              | 在评估是附加事件的列表             |
+| \[\[AgentSynchronizesWith]] | Synchronize事件对的列表 | 由操作性语义引入的Synchronizeg关系 |
+
+** Chosen Value Records
+** Candidate Executions
+** Abstract Operations for the Memory Model 803-812
+*** EventSet ( execution )
+*** SharedDataBlockEventSet ( execution )
+*** HostEventSet ( execution )
+*** ComposeWriteEventBytes ( execution, byteIndex, Ws )
+*** ValueOfReadEvent ( execution, R )
+** Relations of Candidate Executions
+*** agent-order
+*** reads-bytes-from
+*** reads-from
+*** host-synchronizes-with
+*** synchronizes-with
+*** happens-before
+** Properties of Valid Executions
+*** Valid Chosen Reads
+*** Coherent Reads
+*** Tear Free Reads
+*** Sequentially Consistent Atomics
+*** Valid Executions
+** Races
+** Data Races
+** Data Race Freedom
+** Shared Memory Guidelines
 * A Grammer Summary 812-841
 * B Additional ECMAScript Features for Web Browsers 841-866
 * C The Strict Mode of ECMAScript 866-867

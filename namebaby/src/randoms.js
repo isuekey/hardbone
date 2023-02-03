@@ -25,13 +25,15 @@ const generateRandomNames = (relatedWords=[], validStrokeScope={}, size=2, resul
 
 exports.generateRandomNames = generateRandomNames;
 
-const selectNames = async (masterPartStr='', familyNameStrokes=[], extension={}) => {
+const selectNames = async (familyNameStrokes=[], withinMasterPartStr='',  extension={}) => {
   if(!familyNameStrokes.length) return {};
-  if(!masterPartStr) return {};
   const validates = strokes.goodsNamesStrokesRange2(...familyNameStrokes.map(ele => ele >>0));
   if(!validates.length) return {};
-  const masterPartList = Array.from(masterPartStr);
-  const masterPartWordScope = words.getWordMasterPartsMapping(masterPartList, extension);
+  let masterPartWordScope = words.wordStrokeMapping;
+  if(withinMasterPartStr) {
+    const masterPartList = Array.from(withinMasterPartStr);
+    masterPartWordScope = words.getWordMasterPartsMapping(masterPartList, extension);
+  }
   const randomNameResult = validates.map(ele => ele.slice(1)).reduce((sum, nameStrokeArray) => {
     const key = nameStrokeArray.join(',');
     const wordBaseArray = nameStrokeArray.map(ele => {

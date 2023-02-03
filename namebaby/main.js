@@ -105,7 +105,7 @@ selectNamesFromLiteratures(2, [15]);
 selectNamesFromLiteratures(2, [6, 15]);
 **/
 const selectNamesFromMasterParts = async (size, familyNameStrokes=[1], masterParts='', wordRule=allwaysTrue, nameRule=allwaysTrue, fsAction='writeFile', dist="./dist", fileName="selecteNameFromMasterParts.txt" ) => {
-  const selectedNames = await randoms.selectNames(masterParts, familyNameStrokes);
+  const selectedNames = await randoms.selectNames(familyNameStrokes, masterParts);
   const distPath = path.resolve(dist, ['base',familyNameStrokes.join('_'), fileName].join('.'));
   return fs[fsAction](distPath, JSON.stringify(selectedNames, void 0, 2)).then(ok => {
     console.log('fd', ok);
@@ -116,6 +116,8 @@ const selectNamesFromMasterParts = async (size, familyNameStrokes=[1], masterPar
 };
 
 exports.selectNamesFromMasterParts = selectNamesFromMasterParts;
-selectNamesFromMasterParts(2, [6, 15], '日月山土金钅阝');
-selectNamesFromMasterParts(2, [6], '日月山土金钅阝');
-selectNamesFromMasterParts(2, [15], '日月山土金钅阝');
+selectNamesFromMasterParts(2, [6, 15], '日月山土金釒阝');
+selectNamesFromMasterParts(2, [6], '日月山土金阝釒');
+selectNamesFromMasterParts(2, [15], '日月山土金阝釒');
+selectNamesFromMasterParts(2, [9, 15], '日月山土金阝釒');
+// selectNamesFromMasterParts(2, [6, 15], '');
