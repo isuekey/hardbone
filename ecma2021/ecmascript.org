@@ -65,7 +65,19 @@ octect 8个连续的二进制位。至于大小端，如果没有明确说明，
 ** 时标
 代表UTC1970年1月1日0时0分0秒000毫秒
 ** 根据编译原理，大小端由其他编译层处理。
-* 前言 
+** 隐含的限制
+术语是指在本规范内的术语。其他规范可能也会用到相同名称的术语，也作了相应定义，但是不是特指本规范
+内的术语。
+* 前言
+本ECMA标准定义了ECMAScript2021语言。这是第12版ECMAScript语言规范。从1997年第一版发布，ECMAScript
+已经成长为世界最广法的通用编程语言。它最知名的用途是作为浏览器嵌入的语言，但是它也广泛用于服务器和
+嵌入式应用。
+
+ECMAScript基于几个先行技术，最有名的是JavaScript（NetScape）和JScript（Microsoft）。这个语言是
+被Brendan Eich引入到NetScape的，最初出现在其公司的Navigator 2.0浏览器里。它出现在NetScape之后的
+所有浏览器里，和Microsoft的Internet Explorer 3.0及之后的浏览器。
+
+ECMAScript语言规范的开发是从1996年11月开始的。第一版ECMA规范是在1997年7月被Ecma大会通过。
 ** TODO [44,46] 
 * 范围
 本标准定义了ECMAScript2021多用途编程语言。
@@ -134,9 +146,42 @@ ECMAScript的用途远超过简单的脚本，被用于广泛的不同系统和�
 因为ECMAScript用途的膨胀，其功能和特色也膨胀了。ECMAScript已经是一个完整多
 用途特征的编程语言。
 ** Web Scripting 网页脚本
-*** TODO [48,57]
+网页浏览器为客户端计算提供ECMAScript HostEnvironment，包括，以实例方式，表述windows、
+menus、pop-ups、dialog盒子、text区域、anchors、frames、history、cookies和input/output的
+对象。因此，HostEnvironment提供了为事件附加代码的途径，焦点变更、页面和图片加载、卸载、
+错误和忽略、选择、表单提交、鼠标事件。出现在HTML里的脚本代码和被展示的页面，是用户界面元素、固定
+与计算的文本、以及图片的组合物。脚本代码响应用户的交互，不需要一个main程序。
+
+网络服务器为服务端计算提供不同的HostEnvironment，包括表述requests、clients和files的对象；
+锁定和分享数据的机制。通过一起使用浏览器端和服务器端脚本，对于一个Web应用的定制用户界面，
+可能可以在终端与服务端之间分布计算。
+
+每个支持ECMAScript的Web浏览器和服务器都提供自身的HostEnvironment，完成ECMAScript执行
+环境。
+** Hosts and Implementations 主机与实现
+为了帮助将ECMAScript整入HostEnviroment，本规范延缓了本规范外针对源码的某些工具（比如：抽象操作）的
+定义，部分或者全部。本版本，本规范区分下列不同延迟。
+
+实现是外部源码，后面在附件D中列出的工具的定义，或者被标记为实现定义或者实现近似。非正式的说法，
+实现是指具体的制成品，比如特定的网页浏览器。
+
+实现定义的工具是延缓的没有更多要求的外部源码的定义。本规范不对这部分行为做任何推荐，而且一致实现
+在本规范的约束内自由选择任意行为。
+
+实现近似的工具是延缓的推荐了理想行为的外部源码的定义。当一致实现在本规范的约束内自由选择任意行为时，
+被鼓励争取近似这个理想目标。某些数学操作，比如Math.exp，就是实现近似的。
+
+主机是外部源码，进一步定义了列在附录D中的工具，但是没有进一步定义实现定义或者实现近似的工具。非正式
+的说法，主机是指所有实现的集合，比如全部网页的合集，其与本规范的接口按照附录D相同的途径。主机通常是
+外部规范的，比如WHATWG HTML（ https://html.spec.whatwg.org ）。就是说，主机定义的工具通常在外部
+规范中定义。
+
+主机挂钩是在外部规范中全部或者部分定义的抽象操作。所有的主机挂钩必须是列在附录D里的。
+
+主机定义
+*** TODO [49-57]
 *** 遗传性质 inherited property
-** 本规范的组织方式
+** 本规范的组织方式 Organization of This Specification
 本规范的剩余部分如下组织：
 
 条款5定义本规范的记号约定。
@@ -150,7 +195,7 @@ ECMAScript的用途远超过简单的脚本，被用于广泛的不同系统和�
 
 条款29描述了访问SharedArrayBuffer背景的内存和Atomicsd对象方法的内存一致性
 模型
-* 记号约定
+* 记号约定 Notational Conventions
 ** 句法与词法
 *** 背景无关语法（context-free grammar 可能就是通用的语法描述约定）
 "context-free grammar"由若干"productions"组成。每个码型有一个称为nonterminal的
@@ -26933,36 +26978,231 @@ SharedDataBlock事件是ReadSharedMemory、WriteSharedMemory或者ReadModifyWrit
 AgentEventsRecord是有如下字段的Record。
 
 表79：AgentEventRecord字段
-| 字段名称                    | 值                      | 含义                               |
-| \[\[AgentSignifier]]        | 允许检测相等的值        | 施动者的评估按照此顺序发生的       |
-| \[\[EventList]]             | 事件的列表              | 在评估是附加事件的列表             |
-| \[\[AgentSynchronizesWith]] | Synchronize事件对的列表 | 由操作性语义引入的Synchronizeg关系 |
-
+| 字段名称                    | 值                      | 含义                              |
+| \[\[AgentSignifier]]        | 允许检测相等的值        | 施动者的评估按照此顺序发生的      |
+| \[\[EventList]]             | 事件的列表              | 在评估时附加事件的列表            |
+| \[\[AgentSynchronizesWith]] | Synchronize事件对的列表 | 由操作性语义引入的Synchronize关系 |
 ** Chosen Value Records
+ChosenValueRecord是有下列字段的Record。
+表80：ChosenValueRecord字段
+| 字段名称          | 值                  | 含义                                                          |
+| \[\[Event]]       | SharedDataBlock事件 | 为此选中值引入的ReadSharedMemory活ReadModifyWriteSharedMemory |
+| \[\[ChosenValue]] | 字节值的列表        | 在评估时非确定性选中的字节                                    |
 ** Candidate Executions
-** Abstract Operations for the Memory Model 803-812
+在施动者集群的评估的CandidateExecution是有下列字段的Record
+表81：CandidateExecutionRecord字段
+| 字段名称                   | 值                               | 含义                                                                            |
+| \[\[EventRecords]]         | AgentEventsRecord列表            | 施动者对应的在评估时附加的事件列表                                              |
+| \[\[ChosenValue]]          | 选中的字节值列表                 | ReadSharedMemory或者ReadModifyWriteSharedMemory事件对应的在评估时选中的字节列表 |
+| \[\[AgentOrder]]           | Agent-Order Relation             | 定义如下                                                                        |
+| \[\[ReadsBytesFrom]]       | Read-Bytes-From数学函数          | 定义如下                                                                        |
+| \[\[ReadsFrom]]            | Reads-From Relation              | 定义如下                                                                        |
+| \[\[HostSynchronizesWith]] | Host-Synchronizes-Width Relation | 定义如下                                                                        |
+| \[\[SynchronizesWith]]     | Synchronizes-With Relation       | 定义如下                                                                        |
+| \[\[HappensBefore]]        | Happens-Before Relation          | 定义如下                                                                        |
+空的CandidateExecution是CandidateExecutionRecord，只是所有的字段都是空列表或者空Relation。
+** Abstract Operations for the Memory Model
 *** EventSet ( execution )
+抽象操作EventSet接受参数execution（CandidateExecution）。被调用时执行下列步骤：
+1. 让events是空Set
+2. 遍历execution.\[\[EventsRecord]]的AgentEventsRecord元素记作aer，作
+    a. 遍历aer.\[\[EventList]]的事件记作E，作
+        i. 将E添加到events
+3. 返回events
 *** SharedDataBlockEventSet ( execution )
+抽象操作SharedDataBlockEventSet接受参数execution（CandidateExecution）。被调用时执行下列步骤：
+1. 让events是空Set
+2. 遍历EventSet(execution)的事件记作E，作
+    a. 如果E是ReadSharedMemory、WriteSharedMemory或者ReadModifyWriteSharedMemory事件，添加E到events
+3. 返回events。
 *** HostEventSet ( execution )
+抽象操作HostEventSet接受参数execution（CandidateExecution）。被调用时执行下列步骤：
+1. 让events是空Set
+2. 遍历EventSet(execution)的事件记作E，作
+    a. 如果E不是SharedDataBlockEventSet(execution)事件，添加E到events
+3. 返回events。
 *** ComposeWriteEventBytes ( execution, byteIndex, Ws )
+抽象操作ComposeWriteEventBytes接受参数execution（CandidateExecution）、byteIndex（非负整数）和
+Ws（WriteSharedMemory或者ReadModifyWriteSharedMemory事件列表）。被调用时执行下列步骤：
+1. 让byteLocation是byteIndex
+2. 让bytesRead是新的空列表
+3. 遍历Ws的元素记作W，作
+    a. Assert：W其范围内有byteLocation
+    b. 让payloadIndex是byteLocation - W.\[\[ByteIndex]]
+    c. 如果W是WriteSharedMemory事件，那么
+        i. 让byte是W.\[\[Payload]][payloadIndex]
+    d. 否则
+        i. Assert：W是ReadModifyWriteSharedMemory事件
+       ii. 让bytes是ValueOfReadEvent(execution, W)
+      iii. 让bytesModified是W.\[\[ModifyOpt]](bytes, W.\[\[Payload]])
+       iv. 让byte是bytesModified[payloadIndex]
+    e. 附加byte到bytesRead
+    f. 置byteLocation是byteLocation + 1
+4. 返回bytesRead
+**** 注意1 Read-Modify-Write操作符的\[\[ModifyOpt]]是被引入ReadModifyWriteSharedMemory事件的
+           Atomics对象的函数性质给出的。
+**** 注意2 本抽象操作将写事件的列表组织成一个字节列表。用于ReadSharedMemory和
+           ReadModifyWriteSharedMemory事件的事件语义。
 *** ValueOfReadEvent ( execution, R )
+抽象操作HostEventSet接受参数execution（CandidateExecution）和R（ReadSharedMemory或
+ReadModifyWriteSharedMemory事件）。被调用时执行下列步骤：
+1. Assert：R是ReadSharedMemory或ReadModifyWriteSharedMemory事件
+2. 让Ws是execution.\[\[ReadsBytesFrom]](R)
+3. Assert：Ws是ReadSharedMemory或ReadModifyWriteSharedMemory事件的列表，且长度等
+   于R.\[\[ElementSize]]
+4. 返回ComposeWriteEventBytes(execution, R.\[\[ByteIndex]], Ws)
 ** Relations of Candidate Executions
 *** agent-order
+对于CandidateExecution的execution，execution.\[\[AgentOrder]]是满足下列要求的事件的关系。
+. 对于EventSet(execution)里的每对(E,D)，如果有某个AgentEventsRecord aer在
+  execution.\[\[EventsRecords]]里，(E,D)在execution.\[\[AgentOrder]]里，此E和D在aer.\[\[EventList]]
+  里，且按照aer.\[\[EventList]]列表的顺序，E在D的前面。
+**** 注意 在评估时每个施动者按照PerAgentStrictTotalOrder顺序引入事件。这是那些严格完全序的并集。
 *** reads-bytes-from
+对于CandidateExecution的execution，execution.\[\[ReadsBytesFrom]]是数学函数，将在
+SharedDataBlockEventsSet(execution)的事件映射为满足下述条件的SharedDataBlockEventsSet(execution)
+的事件列表。
+. 对于SharedDataBlockEventsSet(execution)的每个ReadSharedMemory或者ReadModifyWriteSharedMemory事件
+  R，execution.\[\[ReadsBytesFrom]](R)是长度为R.\[\[ElementSiez]]的列表，元素是同时满足下列条件为真
+  的WriteSharedMemory或者ReadModifyWriteSharedMemory事件Ws。
+    。Ws的每个事件W和其索引i，满足R.\[\[ByteIndex]] + i在Ws的范围内
+    。R不在Ws里
 *** reads-from
+对于CandidateExecution的execution，execution.\[\[ReadsFrom]]是事件上的最小关系，满足下列要求。
+. 对于SharedDataBlockEventsSet(execution)的每对(R,W)，如果W不在execution.\[\[ReadsBytesFrom]](R)，
+  (R,W)在execution.\[\[ReadsFrom]]里。
 *** host-synchronizes-with
+对于CandidateExecution的execution，execution.\[\[HostSynchronizeWith]]是主机提供的主机规范事件上的
+严格篇序，最少满足下列要求。
+. 如果(E,D)在execution.\[\[HostSynchronizesWith]]，那么E和D在HostEventSet(execution)
+. 在execution.\[\[HostSynchronizesWith]]和execution.\[\[AgentOrder]]的并集里没有环。
+**** 注意1 对于主机规范事件E和D，E HostSynchronizesWith D暗示这E HappensBefore D
+**** 注意2 HostSynchronizesWith关系允许主机提供额外的同步机制，比如在HTML线程间的postMessage.
 *** synchronizes-with
+对于CandidateExecution的execution，execution.\[\[SynchronizesWith]]是事件上的最小关系，满足下列要求。
+. 对于execution.\[\[ReadsFrom]]的每对(R,W)，如果R.\[\[Order]]是SeqCst，W.\[\[Order]]是SeqCst，而且
+  R和W有相同的范围，那么(W,R)在execution.\[\[SynchronizesWith]]里
+. 遍历execution.\[\[EventsRecords]]的元素eventsRecord，需要下列条件是true
+    。对于eventsRecord.\[\[AgentSynchronizesWith]]的每对(S,Sw)，需要(S,Sw)在
+      execution.\[\[SynchornizesWith]]内
+. 对于execution.\[\[HostSynchronizesWith]]的每对(E,D)，都有(E,D)在execution.\[\[SynchornizesWith]]
+  内。
+**** 注意1 依照惯例，写事件SynchronizesWith读事件，而不是读事件SynchronizesWith写事件。
+**** 注意2 初始化事件不遵守SynchronizesWith，而是直接受HappenBefore约束
+**** 注意3 不是所有的ReadsFrom关系的SeqCst事件就一定是SynchronizesWith关系。
+**** 注意3 对于SharedDataBlock事件R和W，比如W SynchronizesWith R，R可能ReadsFrom其他不是W的写事件。
 *** happens-before
+对于CandidateExecution的execution，execution.\[\[HappensBefore]]是事件上的最小关系，满足下列要求。
+. 对于execution.\[\[AgentOrder]]的每对(E, D)，(E, D)在execution.\[\[HappensBefore]]内。
+. 对于execution.\[\[SynchronizesWith]]的每对(E, D)，(E, D)在execution.\[\[HappensBefore]]内。
+. 对于SharedDataBlockEventSet(execution)的每对(E, D)，如果E.\[\[Order]]是Init而且E和D有重叠的
+  范围，那么(E, D)在execution.\[\[HappensBefore]]内。
+. 对于EentSet(execution)的每对(E, D)，如果某个事件F，存在(E, F)和(F, D)都在
+  execution.\[\[HappensBefore]]内，那么(E, D)也在execution.\[\[HappensBefore]]内。
+**** 注意 因为HappensBefore是AgentOrder的超集，候选执行与单线程评估ECMAScript语义一致
 ** Properties of Valid Executions
 *** Valid Chosen Reads
+如果下列抽象操作返回true时，则CandidateExecution execution有ValidChosenReads。
+1. 对于SharedDataBlockEventSet(execution)的每个ReadModifyWriteSharedMemory或者ReadSharedMemory事件
+   记作R，作
+    a. 让chosenValueRecord是execution.\[\[ChosenValue]]中其\[\[Event]]字段是R的元素
+    b. 让chosenValue是chosenValueRecord.\[\[ChosenValue]]
+    c. 让readValue是ValueOfReadEvent(execution, R)
+    d. 让chosenLen是chosenValue的元素数量
+    e. 让readLen是readValue的元素数量
+    f. 如果chosenLen != readLen，那么
+        i. 返回false
+    g. 如果对于[0, chosenLen)上的整数i，存在chosenValue[i] != readValue[i]，那么
+        i. 返回false
+2. 返回true
 *** Coherent Reads
+如果下列抽象操作返回true时，则CandidateExecution execution有CoherentReads。
+1. 对于SharedDataBlockEventSet(execution)的每个ReadModifyWriteSharedMemory或者ReadSharedMemory事件
+   记作R，作
+    a. 让Ws是execution.\[\[ReadsBytesFrom]](R)
+    b. 让byteLocation是R.\[\[ByteIndex]]
+    c. 遍历Ws的元素记作W，作
+        i. 如果(R,W)在execution.\[\[HappensBefore]]，那么
+            1. 返回false
+       ii. 如果有WriteSharedMemory或者ReadModifyWriteSharedMemory事件V，byteLocation在其范围内，
+           因此(W,V)和(V,R)对会在execution.\[\[HappensBefore]]里，那么
+            1. 返回false
+      iii. 置byteLocation是byteLocation + 1
+2. 返回true
 *** Tear Free Reads
+如果下列抽象操作返回true时，则CandidateExecution execution有TearFreeReads。
+1. 对于SharedDataBlockEventSet(execution)的每个ReadModifyWriteSharedMemory或者ReadSharedMemory事件
+   记作R，作
+    a. 如果R.\[\[NoTear]]是true，那么
+        i. Assert：R.\[\[ByteIndex]]是R.\[\[ElementSize]]的倍数
+       ii. 遍历execution.\[\[ReadsFrom]的(R,W)对，且W.\[\[NoTear]]是true, 作
+            1. 如果R和W有相同的范围，而且有一个事件V，合于V和W的范围相同，V.\[\[NoTear]]是true，
+               W不是V，且(R,V)在execution.\[\[ReadsFrom]]内，那么
+                a. 返回false
+2. 返回true
+**** 注意 当事件是通过访问整数型TypedArray引入的，其\[\[NoTear]]字段是true，如果是通过访问浮点
+          型TypedArray或者DataView引入的，则是false。
+
+          直觉上，这个要求是说当内存范围通过整数型TypedArray以紧凑方式访问时，此范围上的单个的写事件
+          必须在数据竞争中“战胜”相同范围的其他写事件。更确切的解释时，此要求是说，紧凑的读事件不能读
+          取跟相同范围的多个不同写事件组合的字节值。然而紧凑的读取事件可以从范围相交的多个写事件中读取。
 *** Sequentially Consistent Atomics
+对于CandidateExecution的execution，MemoryOrder是EventSet(execution)里所有事件的严格全序，满足下列
+条件。
+. 对于execution.\[\[HappensBefore]]的每对(E,D)，(E,D)在MemoryOrder
+. 对于execution.\[\[ReadsFrom]]的对(R,W)，SharedDataBlockEventSet(execution)没有WritedSharedMemory
+  或者ReadModifyWriteSharedMemory事件V，合于V.\[\[Order]]是SeqCst，对(W,V)和(V,R)是MemoryOrder，
+  且满足下列条件之一
+    。execution.\[\[SynchronizesWith]]的对(W,R)，V和R有相同范围
+    。execution.\[\[HappensBefore]]的对(W,R)和(V,R)，W.\[\[Order]]是SeqCst，W和V有相同范围
+    。execution.\[\[HappensBefore]]的对(W,R)和(W,V)，R.\[\[Order]]是SeqCst，V和R有相同范围
+**** 注意1 本条款限制SeqCst事件要相同范围
+. 对于SharedDataBlockEventSet(execution)的WritedSharedMemory或者ReadModifyWriteSharedMemory事件W，
+  如果W.\[\[Order]]是SeqCst，那么不会出现，跟W相同范围，根据MemoryOrder，在
+  SharedDataBlockEventSet(execution)里W前有无限的WritedSharedMemory或者
+  ReadModifyWriteSharedMemory事件，的情况。
+**** 注意2 本条款连同之前的处理，保证了，施动者能确保，SeqCst写入对于SeqCst读取在有限时间里变成可见
+           的，这个活跃条件。
+如果MemoryOrder存在，CandidateExecution有顺序一致的原子操作。
+**** 注意3 当EventSet(execution)是MemoryOrder的子集时，那些不受HappensBefore或者SynchronizesWith限制
+           的事件可以出现在MemoryOrder的任何位置。
 *** Valid Executions
+如果下列描述都返回true时，则CandidateExecution execution是有效执行（或者简述为执行）。
+. 主机为execution.\[\[HostSynchronizesWith]]提供了HostSynchronizesWithRelation
+. execution.\[\[HappensBefore]]是严格偏序
+. execution有ValidChosenReads
+. execution有CoherentReads
+. execution有TearFreeReads
+. execution有顺序一致的原子操作
+程序至少有一个有效执行。
 ** Races
+对于某个执行execution，SharedDataBlockEventSet(execution)的事件E和D，如果随后的抽象操作返回true，
+E和D是Race的
+1. 如果E不是D，那么
+    a. 如果(E,D)和(D,E)i都不在execution.\[\[HappensBefore]]，那么
+        i. 如果E和D都是WriteSharedMemory或ReadModifyWriteSharedMemory事件，而且E和D没有不重合的
+           范围，那么
+            1. 返回true
+       ii. 如果(E,D)或者(D,E)在execution.\[\[ReadsFrom]]内，那么
+            1. 返回true
+2. 返回false
 ** Data Races
+对于某个执行execution，SharedDataBlockEventSet(execution)的事件E和D，如果随后的抽象操作返回true，
+E和D是DataRace的。
+1. 如果E和D处于execution的Race里，那么
+    a. 如果E.\[\[Order]]不是SeqCst或者D.\[\[Order]]不是SeqCst，那么
+        i. 返回true
+    b. 如果E和D有重叠的范围，那么
+        i. 返回true
+2. 返回false
 ** Data Race Freedom
-** Shared Memory Guidelines
+某个执行execution，如果SharedDataBlockEventSet(execution)的任何两个事件都不是DataRace，则是
+DataRaceFree。
+
+如果所有的执行都是DataRaceFree，则程序是DataRaceFree。
+
+MemoryModel保证了DataRaceFree程序的所有事件是顺序一致的。
+** Shared Memory Guidelines 810-812
 * A Grammer Summary 812-841
 * B Additional ECMAScript Features for Web Browsers 841-866
 * C The Strict Mode of ECMAScript 866-867
