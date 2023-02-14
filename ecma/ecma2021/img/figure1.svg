@@ -1,0 +1,45 @@
+<svg version="1.1"
+     width="1024" height="512"
+     xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="4" width="1012" height="500"
+        fill="transparent" stroke-width="8" stroke="black"/>
+  <rect x="10%" y="10%" width="20%" height="30%"
+        fill="transparent" stroke-width="4" stroke="black"/>
+  <rect x="35%" y="20%" width="10%" height="25%"
+        fill="transparent" stroke-width="4" stroke="black"/>
+  <g transform="translate(102.4, 320)">
+    <rect x="0" y="0" width="80" height="160"
+          fill="transparent" stroke-width="4" stroke="black"/>
+    <text x="10" y="30" font-weight="700" color="black">cf1</text>
+    <text x="10" y="90" color="black">q1</text>
+    <text x="10" y="120" color="black">q2</text>
+  </g>
+  <g transform="translate(256, 320)">
+    <rect x="0" y="0" width="80" height="160"
+          fill="transparent" stroke-width="4" stroke="black"/>
+    <text x="10" y="30" font-weight="700" color="black">cf2</text>
+    <text x="10" y="90" color="black">q1</text>
+    <text x="10" y="120" color="black">q2</text>
+  </g>
+  <g transform="translate(409.6, 320)">
+    <rect x="0" y="0" width="80" height="160"
+          fill="transparent" stroke-width="4" stroke="black"/>
+    <text x="10" y="30" font-weight="700" color="black">cf3</text>
+    <text x="10" y="90" color="black">q1</text>
+    <text x="10" y="120" color="black">q2</text>
+  </g>
+  <g transform="translate(563.2, 320)">
+    <rect x="0" y="0" width="80" height="160"
+          fill="transparent" stroke-width="4" stroke="black"/>
+    <text x="10" y="30" font-weight="700" color="black">cf4</text>
+    <text x="10" y="90" color="black">q1</text>
+    <text x="10" y="120" color="black">q2</text>
+  </g>
+  <g transform="translate(716.4, 320)">
+    <rect x="0" y="0" width="80" height="160"
+          fill="transparent" stroke-width="4" stroke="black"/>
+    <text x="10" y="30" font-weight="700" color="black">cf5</text>
+    <text x="10" y="90" color="black">q1</text>
+    <text x="10" y="120" color="black">q2</text>
+  </g>
+</svg>

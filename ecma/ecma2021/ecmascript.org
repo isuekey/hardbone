@@ -254,9 +254,200 @@ menus、pop-ups、dialog盒子、text区域、anchors、frames、history、cooki
 
 主机挂钩是在外部规范中全部或者部分定义的抽象操作。所有的主机挂钩必须是列在附录D里的。
 
-主机定义
-*** TODO [49-57]
-*** 遗传性质 inherited property
+主机定义工具是延缓在外部源码中定义的，没有在附录D中列出并限定。不是主机的实现可以提供主机定义工具的
+定义。
+
+主机环境是特指为全部主机定义工具的定义。主机环境通常包含，作为全局对象的主机定义性质，允许获取输入
+和提供输出，的对象或者函数。
+
+主机和实现可能通过此文定义的语言类型、规范类型、抽象操作、语法码型、内在对象、和内在符号，与本规范
+结合。
+** ECMAScript Overview
+后文是ECMAScript的概览，没有涉及语言的全部。本概览也不是标准的一部分。
+
+ECMAScript是基于对象的：基础语言和主机工具都是通过对象提供的，ECMAScript程序是一群相互通信的对象。
+在ECMAScript中，object是可数性质的库藏，每个性质的属性明确其用法-比如当Writable属性置为false，任何
+试图对此性质执行赋值的ECMAScript代码都会失败。性质可以用于持有其他对象、基础值或者函数。基础值是
+随后列出的内建类型：Undefined、Null、Boolean、Number、BigInt、String和Symbol的成员；对象是内建
+类型：Object的成员；函数是可调用对象。联结在对象上，通过性质调用的函数称作方法。
+
+ECMAScript定义了若干内建对象，绕过了ECMAScript实例的定义。这些内舰队向包含在全局对象里；这些对象是
+语言运行时语义的基础，包括Object、Function、Boolean、Symbol和各种Error对象；表示和操作数值的对象
+包括Math、Number和Date；文本处理对象String和RegExp；Array与九种不同的其元素是特定数字数据表示的
+TypedArray是索引型库藏对象；键型库藏对象Map和Set实例；支持结构型数据的对象，包括JSON，以及
+ArrayBuffer、SharedArrayBuffer和DataView实例；支持控制抽象的对象，包括生成器函数和Promise对象；
+反射对象，包括Proxy和Reflect
+
+ECMAScript还定义了一套内建操作符。ECMAScript操作符包括各种一元操作、乘法操作、加法操作、二进制移位
+操作、关系操作、相等操作、二进制位操作、二进制逻辑操作、赋值操作、和逗号操作。
+
+大型ECMAScript程序通过modules支持，其允许程序被拆分成多个语句和生命的序列。每个module（模块）显示标记
+其使用的来自其他模块的声明，也可以将其声明提供给其他module使用。
+
+ECMAScript句法故意类似Java句法。ECMAScript句法是宽松的，能够作为易用的脚本语言服务。比如，变量不需
+要声明类型，而且性质不联结类型，函数定义定义不需要处在在调用他们的文本前。
+*** Objects
+尽管ECMAScript包含类定义的句法，ECMAScript对象不是完全类基的，比如C++、Smalltalk或者Java。对象可以
+以多种方式创建，包括通过文法标记、或者通过创建对象的构造范，随后初始化其全部或者部分性质的初始值。
+每个构造范是函数，有prototype性质，拥有实现基于原型的继承和性质共享。以new表达式使用构造范创建的对象；
+比如，new Date(2009, 11)创建了一个新的Date实例。不以new来调用构造范，有不同后果，依赖构造范行为。
+比如，Date()产生一个表示当前时间的字符串，而不是一个对象。
+
+由构造范创建的对象有隐式的指向到构造范的"prototype"性质的引用（称作对象的原型）。进而原型可能还有
+一个隐式引用执行一个非null对象作为其原型，如此反复；这被成为原型链。当引用指向对象的一个性质时，这个
+引用是原型链上第一个拥有彼性质名的彼性质指向。换言之，检查直接提到的的一个对象是否有彼性质；如果有
+这个性质名，性质指向就是应用指向；如果没有这个性质名，其原型对象作为检查目标；如此继续。
+
+在类基的面向对象语言里，一般的，用实例承载状态，方法被类承载，继承的只是结构和行为。在ECMAScript里，
+状态和方法被对象承载，而结构、行为和状态都被继承。
+
+所有对象都不会直接特定包含其原型链共享性质和值的性质。图片1进行介绍。
+#+CAPTION: Object/Prototype Relationships
+[[file:./img/figure1.svg]]
+
+CF是构造范（也是对象）。五个对象是用new表达式创建的，记作cf1、cf2、cf3、cf4和cf5。
+每个都含有性质q1和q2。虚线表示隐式的原型关系；因此，举例而言，cf3的原型是CF_p。构造范，CF，有两个
+自由性质，分别是p1和p2，他们对于CF_p、cf1、cf2、cf3、cf4或者cf5都是不可见的。在CF_p中的性质
+"CFP1"被cf1、cf2、cf3、cf和cf5（就是没有CF）共享，正如其他在CF_p的隐式的原型链上不是q1、q2或者
+CFP1名称的性质一样。注意在CF和CF_p之间没有隐式的原型连结。
+
+不同于大多数类基语言，性质可以用赋值来动态的加入到对象上。因此，构造范不要求命名，或者赋值产出对象的
+全部/部分性质。在上面的图里，表明可以通过在CF_p中的增加新性质值，为cf1、cf2、cf3、cf4和cf5增加一个
+新的共享的性质。
+
+尽管ECMAScript对象不是类基的继承，通常基于通用构造函数、原型对象和方法的模式来定义类貌抽象。
+ECMAScript内建对象遵循这种类貌模式。从ECMAScript 2015开始，ECMAScript语言包含类定义的静态句法，
+允许程序员简洁的定义对象，与使用内建对象的类貌抽象模式一致。
+*** The Strict Variant of ECMAScript ECMAScript的严格变体
+ECMAScript语言可识别某种可能，有些语言用户希望限制使用某些特性。他们可能忧心安全，避免他们认为的
+易错特性，来强化错误检查，或者其他什么原因。为了支持，ECMAScript定义了语言的严格变体。在严格变体下
+语言排除了部分标准ECMAScript语言的句法和语义特性，修改了部分特性的语义。严格变体还定义了额外的错误
+条件，此时必须用投掷错误的方式报告，而在非严格变体时不规定为错误。
+
+ECMAScript语言的严格变体通常指语言的严格模式。在11.2.2中描述了如何在ECMAScript不同层级的源文本单元
+显示地制造严格模式的选中/使用ECMASCript的严格模式句法和语义。因为严格模式被选在句法源文本单元层面，
+严格模式只迫使本地代码，即在此源文本内的，受限。严格模式不会限制或者修改ECMAScript语义的任何方面，
+他们需要在多个源文本单元中保持操作一致。一个完整的ECMAScript程序会同时由严格模式和非严格模式ECMAScript
+源文本单元构成。此时，严格模式仅提供给定义在严格模式源文本单元的代码的执行。
+
+为了与本规范一致，ECMAScript实现必须同时实现本规范定义的完整的非限制ECMAScript语言和严格ECMAScript
+语言变体。而且，实现必须支持由非限制与严格模式源文本单元组成的整体的复杂程序。
+** Terms and Definitions
+为了本文档提供如下术语和定义。
+*** implementation-appoximated
+implementation-appoximated是由外部源定义全部或者部分的工具，但是本规范有推荐的、理想的行为。
+*** implementation-defined
+implementation-defined是由外部源定义全部或者部分的工具。
+*** host-defined
+同implementation-defined
+**** 注意 编者按：见条款4.2
+*** type 类型
+定义在条款6的数据值的集合
+*** primitive value 原始值
+条款6中定义的Undefined、Null、Boolean、Number、BigInt、Symbol或者String类型的成员。
+**** 注意 原始值用语言实现的最底层直接表示的数据。
+*** object 对象
+类型Object的成员
+**** 注意 对象是性质的库藏，有一个原型对象。原型对象可能是null。
+*** constructor 构造范
+能够创建和初始化对象的函数对象
+**** 注意 构造范的prototype性质值是用于实现继承和分享性质的对象。
+*** prototype 原型
+为其他对象提供共享性质的对象
+**** 注意 当构造范创建一个对象时，彼隐式引用构造范的prototype性质以获取其引用值。构造范的
+                  prototype性质可以用程序表达式constructor.prototype引用到，添加在对象原型上的
+                  性质被共享，通过继承，所有的对象共享此原型。此外，新对象可以用Object.create这个
+                  内建方法以显式指定原型的方式来创建。
+*** ordinary object 基本对象
+必须被所有对象支持的基本内在方法在之上是默认行为的对象。
+*** exotic object 奇异对象
+必须被所有对象支持的基本内在方法在之上不是是默认行为的对象。
+**** 注意 不是基本对象的对象都是奇异对象
+*** standard object 标准对象
+在本规范定义语义的对象
+*** built-in object 内建对象
+由ECMAScript实现规定和支持的对象
+**** 注意 标准内建对象是定义在本规范的。ECMAScript实现可以规定和支持更多种类的内建对象。
+                   内建构造范是内建对象也是构造范。
+*** undefined value
+原始值，用于变量没有被赋值时。
+*** Undefined type
+值是undefined的类型
+*** null value
+原始值，表示有意缺失对象值
+*** Null type
+值是null的类型
+*** Boolean value Boolean值
+Boolean类型的成员
+**** 注意 只有两种Boolean值，true和false。
+*** Boolean type
+原始值true和false的类型
+*** Boolean object
+Object类型的成员，是标准内建Boolean构造的实例。
+**** 注意 Boolean对象是以new表达式用Boolean构造范创建的对象，提供一个Boolean值作为参数。
+                   产出的对象有内部占位，其值是Boolean值。Boolean对象可以强转为Boolean值。
+*** String value String值
+由有序的有限个16位无符号整数序列构成的原始值。
+**** 注意 String值是String类型的成员。在序列里的每个整数值一般表示一个UTF-16文本的16位单元。
+                   然而，ECMAScript除了要求必须是16位无符号整数，没有任何其他约束或者要求。
+*** String type String类型
+所有可能String值的集合
+*** String object String对象
+Object类型的成员，是标准内建String构造范的实例。
+**** 注意 String对象是以new表达式用String构造范创建的对象，提供一个String值作为参数。
+                   产出的对象有内部占位，其值是String值。通过String构造范的函数是调用，可以将
+                   String对象强转为String值（22.1.1.1）。
+*** Number value Number值
+与双精度64位IEEE754-2019格式值一致原始值
+**** 注意 Number值是Number类型的成员，直接表示某个有理数。
+*** Number type Number类型
+所有Number值的集合，包括特殊的Not-a-Number（NAN）值、正无限大和负无限大。
+*** Number object Number对象
+Object类型的成员，是标准内建Number构造范的实例。
+**** 注意 Number对象是以new表达式用Number构造范创建的对象，提供一个Number值作为参数。
+                   产出的对象有内部占位，其值是Number值。通过Number构造范的函数是调用，可以将
+                   Number对象强转为Number值（22.1.1.1）。
+*** Infinity 无限大
+Number值，是正无限大的Number值
+*** NaN
+IEEE754-2019的Not-a-Number的Number值
+*** BigInt value
+对应任意精度整数的原始值
+*** BigInt type
+所有可能BigInt值的集合
+*** BigInt object
+Object类型的成员，是标准内建BigInt构造范的实例。
+*** Symbol value
+表示唯一的非String的对象性质键的原始值
+*** Symbol type
+所有可能Symbol值的集合
+*** Symbol object
+Object类型的成员，是标准内建Symbol构造范的实例。
+*** function
+Object类型的成员，能作为子例程被调用
+**** 注意 除了性质，函数包含可执行代码和状态，决定被调用时的行为。函数代码可以不是
+                   以ECMAScript写的。
+*** built-in function
+是函数的内建的对象
+**** 注意 内建函数包括parseInt和Math.exp。主机或者实现可以提供额外的没有描述在本规范
+                   的内建函数。
+*** property 性质
+对象的一部分，联结一个键（String值或者Symbol值）和一个值。
+**** 注意 根据性质的星是，其值可能表示为直接数据值（原始值、对象或者函数对象）或者间接的
+                   一对访问函数（get/set）。
+*** method 方法
+是性质值的函数。
+**** 注意 当函数作为对象的方法被调用时，对象被作为函数的this值。
+*** built-in method 内建方法
+是内建函数的方法
+**** 注意 标准内建函数定义在本规范里。主机或者实现可以提供额外的没有描述在本规范
+                   的内建方法。
+*** attribute 属性
+定义性质特征的内部值
+*** own property 自有性质
+对象直接包含的性质
+*** inherited property 继承性质
+对象的性质，不是对象的自有性质，而是在对象原型上的性质（自有或者继承）。
 ** 本规范的组织方式 Organization of This Specification
 本规范的剩余部分如下组织：
 
@@ -9203,7 +9394,7 @@ PropertyDefinition_[Yield, Await] :
     IdentifierReference_[?Yield, ?Await]
     CoverInitializedName_[?Yield, ?Await]
     PropertyName_[?Yield, ?Await] : AssignmentExpression_[+In, ?Yield, ?Await]
-    methodDefiniation_[?Yield, ?Await]
+    MethodDefinition_[?Yield, ?Await]
     ... AssignmentExpression_[+In, ?Yield, ?Await]
     
 PropertyName_[Yield, Await] :
@@ -12628,10 +12819,10 @@ MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
 8. 执行MakeMethod(closure, object)
 9. 返回Record { \[\[Key\]\]:propKey, \[\[Closure\]\]: closure }
 *** Runtime Semantics: MethodDefinitionEvaluation
-待参数object和enumerable
+带参数object和enumerable
 
 MethodDefinition : PropertyName ( UniqueFormalParameters ) { FunctionBody }
-1. 让methodDef是MethodDefinition带object参数的?DefinitionMethod结果
+1. 让methodDef是MethodDefinition带object参数的?DefineMethod结果
 2. 执行SetFunctionName(methodDef.\[\[Closure\]\], methodDef.\[\[Key\]\])
 3. 让desc是PropertyDescriptor { \[\[Value\]\]:methodDef.\[\[Closure\]\],
    \[\[Writable]]:true, \[\[Enumerable]]:enumerable, \[\[Configurable]]:true }。
@@ -13102,7 +13293,7 @@ ClassElementList : ClassElement
 2. 返回<< >>
 
 ClassElementList : ClassElementList ClassElement
-1. 让list是ClassElementList的NonConstructorMethodDefiniations
+1. 让list是ClassElementList的NonConstructorMethodDefinitions
 2. 如果ClassElement的ClassElementKind是NonConstructorMethod，那么
     a. 追加ClassElement到list的末端
 3. 返回list
@@ -13180,7 +13371,7 @@ ClassTail : ClassHeritage_opt { ClassBody_opt }
        最显著的区别是前述的ECMAScript源文本明显调用%Array.prototype%上的
        @@iterator方法，而DefaultConstructorFunction不会
     b. 让func是!F.\[\[GetPrototypeOf]]()
-    c. 如果哦IsConstructor(func)是false，投掷TypeError异常
+    c. 如果IsConstructor(func)是false，投掷TypeError异常
     d. 返回?Construct(func, args, NewTarget)
 4. 否则
     a. 注意：本分支行为类似于 constructor() { }
@@ -14076,6 +14267,8 @@ CyclicModuleRecord型module的具体方法Evaluate不接受参数。Evaluate将�
 
 首先考虑如下的简单模块图：
 A -> B -> C
+#+CAPTION: A simple module graph
+[[file:./img/figure2.svg]]
 
 我们先假设没有错误条件。在主机第一次调用A.Link()时，假设这会成功完
 成，而且递归的链接模块B和C，因此A.\[\[Status]] \=\= B.\[\[Status]] \=\=
@@ -14087,11 +14280,49 @@ C.\[\[Status]] == linked。这个准备可以在任何时间执行。随后当�
 比如B引入了C没有提供的东西，那么源初的A.Link()也会失败，这样A和B的
 \[\[Status]]保持unlinked，而C的\[\[Status]]变成linked。
 
-最后考虑涉及评估错误的案例。
-****** TODO [440,441]
-#+CAPTION: A cyclic module graph
-[[./img/figure2.svg]]
+最后考虑涉及评估错误的案例。如果C的InnerModuleEvaluation成功了，但是，之后，对B失败了，比如
+因为B含有抛出异常的代码，那么开始的A.Evaluate()就会失败。结果的异常会记录在A和B的
+\[\[EvaluationError]]里，他们的\[\[Status]]会是evaluated。C也会成为evaluated，与A和B不同，
+不会含有\[\[EvaluationError]]，因为他成功的完成了评估。保存异常以确保主机在重新使用A和B时，通过
+调用它们的Evaluate()方法，主机可以遇到相同的异常。（不要求主机重用CyclicModuleRecords；
+类似的，不要求主机暴露被这些方法投掷的异常对象。然而，本规范鼓励这些用法）。
 
+目前联结和评估错误的不同源于如何评估只发生一次，因此可能有副作用；因此记住是否已经评估过是很重要的，
+即使不成功。（在出错时，记住错误是明智的，因为不如此，其他子序列的Evaluate()会产生一个新的）。联结，
+则不同，是无副作用的，因此即使失败，也可以在后来重试。
+
+现在考虑不同类型的错误条件：
+#+CAPTION: A module graph with an unrsolvable module
+[[file:./img/figure2.svg]]
+
+在这种场景，模块A声明了一个对其他模块的依赖，但是没有存在那么个模块的ModuleRecord，亦即，
+HostResolveImportedModule在询问彼模块时投掷了异常。这会因很多原因发生，比如对应的资源不存在，
+又或者资源存在但是ParseModule在解析产出的源文本时投掷异常。主机可以选择通过从
+HostResovleImportedModule投掷的异常来暴露原因。不管怎样，异常会导致联结失败，跟之前一样导致
+A的\[\[Status]]保持unlinked
+
+最后考虑带环的模块图：
+#+CAPTION: A cyclic module graph
+[[file:./img/figure2.svg]]
+
+这里我们假设入口点是模块A，那么主机通过调用A.Link()进行处理，在A上执行InnerModuleLinking。这会
+回转到在B上调用InnerModuleLinking。因为是环，这又会触发A上的InnerModuleLinking，但是此刻不会有
+操作，因为A.\[\[Status]]已经是linking。B.\[\[Status]]本身保持linking，当控制器返回A且触发C上的
+InnerModuleLinking。在C.\[\[Status]]是linked后，A和B分别从linking跃迁到linked；设计成这样，是
+因为A和B是强关联组件。
+
+在成功时，评估环模块图发生类似的情景。
+
+现在考虑A存在联结错误的情况；比如，尝试从C引入一个不存在的绑定。此时，上述步骤仍会进行，包括
+从A上的第二次调用InnerModuleLinking的早期返回。然而，一旦我们解回到开始的A上的InnerModuleLinking，
+在InitializeEnvironment中失败，即紧随C.ResolveExport()。 投掷的SyntaxError异常传播到A.Link，其会
+重置在其栈上的所有模块（这些总就是那些仍在linking的模块）。因此A和B都成了unlinked。注意C保留着linked。
+
+最后，考虑A存在评估错误的情况；比如，源码投掷了异常。此时，评估时间类似上述步骤仍会发生，包含从A上
+的第二次调用InnerModuleLinking的早期返回。然而，一旦我们解回到开始的A上的InnerModuleLinking，它被
+假定失败。投掷的SyntaxError异常传播到A.Evaluate()，其会记录在其当前栈上所有模块（即仍是evaluating的
+模块）的错误。因此A和B都成了evaluated，异常被记录在A和B的\[\[EvaluationError]]上，而C保留着
+evaluated，而且没有\[\[EvaluationError]]
 **** Source Text Module Records
 SourceTextModuleRecord用于表示由使用Module做全局符号解析的ECMAScript源文
 本（条款11）定义的模型。其字段包含被模块引入的名称的已理解信息，让其
@@ -27280,7 +27511,7 @@ DataRaceFree。
 如果所有的执行都是DataRaceFree，则程序是DataRaceFree。
 
 MemoryModel保证了DataRaceFree程序的所有事件是顺序一致的。
-** Shared Memory Guidelines TODO 810-812
+** TODO Shared Memory Guidelines 810-812
 * A Grammer Summary 812-841
 * B Additional ECMAScript Features for Web Browsers 841-866
 * C The Strict Mode of ECMAScript 866-867
