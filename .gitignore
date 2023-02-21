@@ -4,3 +4,8 @@
 .DS_Store
 ecma2021/*.html
 dist
+*.aux
+*.idx
+*.log
+*.toc
+*.pdf

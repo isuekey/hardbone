@@ -1,0 +1,43 @@
+\documentclass[titlepage]{book}
+\usepackage{titlesec}
+\usepackage{makeidx}\makeindex
+\usepackage{CJKutf8}
+\title{数学分析学习}
+\author{刘翰儒}
+\date{2023年2月21日}
+\renewcommand{\contentsname}{章节目录}
+
+\includeonly{
+%  frontcover,
+%  dedication,
+%  copyright,
+%  preface,
+  chapter1,
+  chapter2,
+%  appenda,
+%  backcover,
+}
+\titleformat{\chapter}[block]{\normalfont\Huge\bfseries}{第\thechapter\ 章 }{8pt}{\Huge}
+\titleformat{\section}[runin]{\normalfont\scshape}{\thesection}{0pt}{\large}
+\titlespacing{\section}{\parindent}{*2}{\wordsep}
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+\CJKtilde
+\frontmatter
+%\include{frontcover}
+\maketitle
+%\input{dedication} \input{copyright}
+\tableofcontents
+%\include{preface}
+\mainmatter
+\include{chapter1}
+\include{chapter2}
+\appendix
+%\include{appenda}
+\backmatter
+\bibliographystyle{apalike}
+\addcontentsline{toc}{chapter}{Bibliography}
+\printindex
+%\include{backcover}
+\end{CJK*}
+\end{document}
