@@ -9,6 +9,7 @@
 :UNNUMBERED: 1
 :END:
 将来会使用LaTex进行处理。
+我用不好LaTex，改成简单的html吧。
 * 约定 
 :PROPERTIES:
 :UNNUMBERED: 1

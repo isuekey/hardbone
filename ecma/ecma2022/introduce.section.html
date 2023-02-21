@@ -1,0 +1,30 @@
+<section>
+  <h1>Introduction 介绍</h1>
+  <p>本ECMA标准定义了ECMAScript2021语言。这是第12版ECMAScript语言规范。从1997年第一版发布，ECMAScript已经成长为世界最广法的通用编程语言。它最知名的用途是作为浏览器嵌入的语言，但是它也广泛用于服务器和嵌入式应用。</p>
+  <p>ECMAScript基于几个先行技术，最有名的是JavaScript（NetScape）和JScript（Microsoft）。这个语言是被Brendan Eich引入到NetScape的，最初出现在其公司的Navigator 2.0浏览器里。它出现在NetScape之后的所有浏览器里，和Microsoft的Internet Explorer 3.0及之后的浏览器。</p>
+  <p>ECMAScript语言规范的开发是从1996年11月开始的。第一版ECMA规范是在1997年7月被Ecma大会通过。</p>
+  <p>1997版ECMA标准通过加速手续提交给ISO/IEC JTC 1来采纳，在1998年4月作为ISO/IEC 16262国际规范被通过。1998年6月的ECMA大会第二版的ECMA-262以保持与ISO/IEC 16262一致。第一版与第二版的变动就是排版方式。</p>
+  <p>第三版的标准引入了强力的正则表达式、更好的字符串处理、新的控制语句、try/catch异常处理、更贴切的错误定义、数字输出格式和语言未来增长预期的微小变动。第三版的ECMAScript标准被ECMA大会于1999年12月采纳，并在2002年6月发布为ISO/IEC 16262:2002。</p>
+  <p>在第三版发布后，ECMAScript连同WorldWideWeb被广泛采纳，ECMAScript成为编程语言，被有网页浏览器作为基础来支持。第四版作了意义深远的工作。然而这些工作没有完成，也没有发布为第四版，但是部分内容被吸收进第六版的开发工作。</p>
+  <p>第五版的ECMAScript（作为ECMA-262 5^th发布）将其语言规范的解释作为浏览器实现的实际准则，并添加了对从第三版开始的新特性的支持。这些特性包括访问性质、对象的反射创建与注入、性质属性的程序控制、额外的数组操作函数、JSON对象编码格式支持、以及强化错误检查和程序安全的严格模式。第五版被ECMA大会于2009年12月采纳。</p>
+  <p>第五版通过加速手续提交给ISO/IEC JTC 1来采纳，被通过为ISO/IEC 16262:2011国际规范。ECMAScript版本5.1标准吸取了少量改进，与ISO/IEC 16262:2011一致。5.1版被ECMA大会于2011年6月采纳。</p>
+  <p>第六版工作的专注开发开始于2009年，同时第五版正在准备发行。然而，自从1999年第三版发布以来的显著体验和语言增强的设计努力先于第六版。真情实感，第六版的完成是15年努力的巅峰。这一版的目标包括为大型程序提供更好的支持，库创建和将ECMAScript作为其他语言的编译目标。它的部分主要增强包括模型、类定义、文法块圈（scope）、遍历器和生成器、异步程序承诺、范式解构，和尾调用优化。内建的ECMAScript库被扩展，以便支持更多的数据抽象，包括映射、集合、和二进制数值数组，还在字符串和正则表达式中支持了Unicode支持字符。这些内建内容还可以通过子类进行扩展。第六版提供了正规的、可增长的语言和库增强的基础。第六版被大会于2015年6月采纳。</p>
+  <p>ECMAScript 2016是基于TC39的按年发行收尾和开启开发进程的第一个ECMAScript版本。在GitHub上，一个基于ECMAScript 2015源文档建立的简单文本源文档作为后续开发的基础。在此标准开发的那年，有成百计的获取请求和问题被送交，表示有千计的问题修复、编辑修复和其他改进。另外若干软件工具被开发出来以帮助此努力，包括Ecmarkup、Ecmarkdown和Grammarkdown。ES2016还包括支持了新的指数元算符，在Array.prototype上增加了一个新的方法includes。</p>
+  <p>ECMAScript 2017引入了AsyncFunctions、SharedMemory和Atomics，以及一些小的语言和包增强、问题修复和版本更新。Async函数通过提供承诺-返回函数句法改善了异步程序体验。SharedMemory和Atomics引入了新的内存模型，允许多个施动者程序使用原子操作进行通讯，确保了即使在并行CPU上也有良好定义的执行顺序。还包括在Object上新的静态方法：Object.values、Object.entries和Object.getOwnPropertyDescriptors。</p>
+  <p>ECMAScript 2018引入了对异步遍历的支持，通过AsyncIterator协议和异步生成器。还包括四个新的正则表达式特性：dotAll标记、命名捕获、Unicode性质转义和后检断言。最后，他加入了对象剩余和展开性质。</p>
+  <p>ECMAScript 2019引入了少量新的内建函数：用于扁平数组在Array.prototype上的flat和flatMap，用于直接从Object.entries返回值转换成新对象的Object.fromEntries，用良好命名的在String.prototype上的trimStart和trimEnd替换广泛实现的非标准内建方法String.prototype.trimLeft和trimRight。另外它引入了少量句法和语义的细微调整。句法调整包括可选catch参数，和允许U+2028（LINE SEPARATOR）与U+2029（PARAGRAPHSEPARATOR）在字符串字面量里以与JSON保持一致。其他的调整包括要求Array.prototype.sort是健壮排序，要求JSON.stringify不管何种输入编码都返回合规UTF-8结果，明确Function.prototype.toString的要求，返回对应的原始源文本或者标准占位内容。</p>
+  <p>ECMAScript 2020，第11版，为字符串引入了matchAll方法，产出一个由全局正则表达式产生的所有匹配对象的遍历器；import()，用动态标记异步引入Module的句法；BigInt，支持任意精度整数工作的新数字基础量；Promise.allSettled，新的，不会短路的Promise组合器；globalThis，访问全局this值的通用途径；为模块内提供了export * as ns from "module"句法；增长了for-in遍历顺序的标准；import.meta，在Module里主机流行的对星，提供了此Module的上下文信息；还增加了两种语言特性，以改善处理"nullish"值（null或者undefined）的工作：nullish coalescing，值选择操作符；和可选链，性质访问与函数调用操作符，如果访问或者调用的值是nullish的，操作会短路。</p>
+  <p>ECMAScript 2021，第12版，引入了replaceAll方法，适用字符串上；Promise.any，Promise组合器，在某个值fulfilled时短路；AggregateError，新的错误类型，表示一次过程上的多个错误；逻辑赋值操作（??=,&&=,||=）；WeakRef，用于不会组织垃圾回收的引用方式；和FinalizationRegistry，用于在目标对象被垃圾回收时，管理清理操作执行的注册和注销；数字分割字面量（1_000）；和Array.prototype.sort被调整成可靠的。</p>
+  <p>ECMAScript 2022，第13版，引入了顶层的await，允许在module的顶层使用此关键词；新的类元素：public和private实例字段，public和private的static字段，private实例方法和访问性质，以及private static方法与访问性质；类内部的静态块，以在每个类评估实例化时执行；#x in obj句法，检测对象上的私有字段；通过/d标记，正则表达式匹配执行索引，为被匹配字符串提供了开始和结束索引；Error对象上的cause性质，用于在错误中记录原因链；为String、Array和TypedArray实例提供了at方法，允许相对索引；和Object.hasOwn，是Objet.prototype.hasOwnProperty的简化被选。</p>
+  <p>许多代表组织的个人在ECMA TC39内为本版和之前版本的开发作出了显著贡献。另外，一个活力四射的社区已经合并了TC39的ECMAScript成果。这个社区已经复核了多个草稿，提交了以千计bug报告，执行了实现检测，贡献了测试用例，并培训世界范围的ECMAScript开发者社区。很不幸，不能在这里将为此成果贡献过的每个人和组织罗列出来。</p>
+  <pre>
+Allen Wirfs-Brock
+ECMA-262, Project Editor, 6^th Edition
+
+Brian Terlson
+ECMA-262, Project Editor, 7^th through 10th Editions
+
+Jordan Harband
+ECMA-262, Project Editor, 10^th through 12th Editions
+  </pre>
+</section>

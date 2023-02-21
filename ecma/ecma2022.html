@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <title>Standar ECMA-262 13th Edition June 2022</title>
+    <link href="./ecma2022.css" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div class="ecma262-cover">
+      Standar ECMA-262
+    </div>
+    <div class="ecma262-copy-right">
+    </div>
+    <section class="ecma262-copy-right-alternative padding-horizontal-8px padding-bottom-16px">
+      <h1 class="font-size-1.25 font-weight-normal">ALTERNATIVE COPYRIGHT NOTICE AND COPYRIGHT LICENSE</h1>
+      <span class="display-block">© 2022 Ecma International</span><br/>
+      <p>By obtaining and/or copying this work, <wbr/>you (the licensee) agree that you have read, <wbr/>understood, <wbr/>and will comply with the following terms and conditions. <wbr/>Permission under Ecma’s copyright to copy, modify, <wbr/>prepare derivative works of, <wbr/>and distribute this work, <wbr/>with or without modification, <wbr/>for any purpose and without fee or royalty is hereby granted, <wbr/>provided that you include the following on ALL copies of the work<wbr/> or portions thereof, <wbr/>including modifications:</p>
+      <p>This document may be copied, <wbr/>published and distributed to others, <wbr/>and certain derivative works of it maybe prepared, <wbr/>copied, <wbr/>published, <wbr/>and distributed, <wbr/>in whole or in part, <wbr/>provided that the above copyright notice and this Copyright License and Disclaimer are included on all such copies and derivative works. <wbr/>The only derivative works that are permissible under this Copyright License and Disclaimer are:</p>
+      <i class="display-block">(i)The full text of this <span class="font-size-1.125">ALTERNATIVE COPYRIGHT NOTICE AND COPYRIGHT LICENSE </span>in a location viewable to users of the redistributed or derivative work.</i><br/>
+      <i class="display-block">(ii) Any pre-existing intellectual property disclaimers, <wbr/>notices, <wbr/>or terms and conditions. <wbr/>If none exist, <wbr/>the Ecma alternative copyright notice should be included.</i><br/>
+      <i class="display-block">(iii) Notice of any changes or modifications, <wbr/>through a copyright statement on the document such as <wbr/><q>This document includes material copied from or derived from <wbr/>[title and URI of the Ecma document]. <wbr/>Copyright © Ecma International.
+          <p class="title-normal font-size-1.25 font-style-italic">Disclaimers</p>
+          <p>THIS WORK IS PROVIDED “AS IS,” <wbr/>AND COPYRIGHT HOLDERS MAKE <wbr/>NO REPRESENTATIONS OR WARRANTIES, <wbr/>EXPRESS OR IMPLIED, <wbr/>INCLUDING BUT NOT LIMITED TO, <wbr/>WARRANTIES OF MERCHANTABILITY OR <wbr/>FITNESS FOR ANY PARTICULAR PURPOSE <wbr/>OR THAT THE USE OF <wbr/>THE DOCUMENT WILL <wbr/>NOT INFRINGE ANY THIRD PARTY PATENTS, <wbr/>COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.</p>
+          <p>COPYRIGHT HOLDERS WILL NOT <wbr/>BE LIABLE FOR ANY DIRECT, <wbr/>INDIRECT, <wbr/>SPECIAL OR <wbr/>CONSEQUENTIAL DAMAGES ARISING <wbr/>OUT OF ANY <wbr/>USE OF THE DOCUMENT.</p>
+          <i>The name and trademarks of copyright <wbr/>holders may <wbr/>NOT be used <wbr/>in advertising or <wbr/>publicity pertaining to the work <wbr/>without specific, <wbr/>written prior permission. <wbr/>Title to copyright in <wbr/>this work will at <wbr/>all times remain with <wbr/>copyright holders.</q></i></i>
+    </section>
+    <slot w3-include-html="./ecma2022/introduce.section.html"></slot>
+    <h1>ECMAScript® 2022 Language Specification</h1>
+    
+    <script type="text/javascript">
+      const w3tag = "w3-include-html";
+      function includePage() {
+        const includedTemplates = document.getElementsByTagName('slot');
+        console.log('includedTemplates', includedTemplates);
+        Array.from(includedTemplates).filter(template => {
+          const file = template.getAttribute(w3tag);
+          return !!file;
+        }).forEach(template => {
+          const file = template.getAttribute(w3tag);
+          const http = new XMLHttpRequest();
+          http.onreadystatechange = function() {
+            if(!this.readStatus == 4) return;
+            if(this.status == 200) {
+              template.innerHTML = this.responseText;
+              console.log('this', template, this);
+              return;
+            }
+            template.removeAttribute(w3tag);
+            includePage();
+          }
+          http.open('GET', file, true);
+          http.send();
+        });
+        console.log(includedTemplates);
+      }
+      includePage();
+    </script>
+    
+  </body>
+</html>
