@@ -1,4 +1,4 @@
-\documentclass[titlepage]{book}
+\documentclass[titlepage,oneside,openany]{book}
 \usepackage{titlesec}
 \usepackage{makeidx}\makeindex
 \usepackage{CJKutf8}
@@ -6,7 +6,7 @@
 \author{刘翰儒}
 \date{2023年2月21日}
 \renewcommand{\contentsname}{章节目录}
-
+\renewcommand{\clearpage}{}
 \includeonly{
 %  frontcover,
 %  dedication,
@@ -14,9 +14,11 @@
 %  preface,
   chapter1,
   chapter2,
+  chapter3,
 %  appenda,
 %  backcover,
 }
+
 \titleformat{\chapter}[block]{\normalfont\Huge\bfseries}{第\thechapter\ 章 }{8pt}{\Huge}
 \titleformat{\section}[runin]{\normalfont\scshape}{\thesection}{0pt}{\large}
 \titlespacing{\section}{\parindent}{*2}{\wordsep}
@@ -30,8 +32,12 @@
 \tableofcontents
 %\include{preface}
 \mainmatter
+\newpage
 \include{chapter1}
+\newpage
 \include{chapter2}
+\newpage
+\include{chapter3}
 \appendix
 %\include{appenda}
 \backmatter

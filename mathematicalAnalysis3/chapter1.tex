@@ -1,10 +1,11 @@
 \chapter{实数系与复数系}
-\section*{引导}为啥引入实数
+\chapter*{引导}为啥引入实数
 \section{例子}方程 \[ p^2 = 2 \] 没有有理数解。因为有理数可以\( p=m/n \)这种方式表示，其中m及n都是整数，而且可以选的不全是偶数。如果有p满足方程，那么\(m^2 = 2 * n^2\)。因此\(m^2\)是偶数，m是偶数，\(m^2\)是4的倍数，因此\(n^2\)也是偶数，n也就是偶数。这与之前的选择矛盾。
 \section{评注}
 \section{定义} 集合
 \section{定义} 在第一章，Q表示所有有理数的集合。
-\section*{有序集}
+\subparagraph*{}
+\chapter*{有序集}
 \section{定义} 序
 \section{定义} 有序集
 \section{定义} 上界，下界。上有界，下有界
@@ -12,7 +13,8 @@
 \section{例子} 
 \section{定义} 最小上界性
 \section{定理} 最小上界性集S的子集E，$E \subset S$，E不空，且E下有界，则$ _{inf}E \in S$
-\section*{域}
+\subparagraph*{}
+\chapter*{域}
 \section{定义} 域
 \section{评注} 一些简写
 \section{命题} 加法公理蕴含的一些陈述
@@ -20,7 +22,8 @@
 \section{命题} 域公理蕴含的一些陈述
 \section{定义} 有序域
 \section{命题} 有序域公理蕴含的一些陈述
-\section*{实数域}
+\subparagraph*{}
+\chapter*{实数域}
 \section{定理}有最小上界性的有序域R存在。同时R可以包含着Q作为其子域。
 \paragraph{}R的元叫做实数。
 \subparagraph{}首先R是定义的。是在有理数上添加了无限和任意的概念扩展来。证明里用到了有理数，使用了无限/任意的概念，而实际上无限位不循环的有理数，就不是有理数。因为添加的是无限和任意的概念，因此实数不仅包含代数数，也包含超越数。
@@ -32,9 +35,11 @@
 \section{定义} 实数$x > 0$，整数$n > 0$，有且只有一个实数y使得$y > 0$且$y^n = x$。
 \section*{推论}
 \section{十进小数}
-\section*{广义实数域}
+\subparagraph*{}
+\chapter*{广义实数系}
 \section{定义}引入了$ +\infty, -\infty $
-\section*{复数域}
+\subparagraph*{}
+\chapter*{复数域}
 \section{定义}复数
 x=(a, b) y=(c, d)
 x+y=(a + c, b + d)
@@ -51,12 +56,15 @@ xy=(ac-bd, ad + bc)
 \section{记号} 求和记法 $$ x_1 + x_2 + ... + x_n = \sum_{j=1}^{n}x_j $$
 \section{定理} Schwarz不等式。
 如果$ a_1,a_2,...,a_n $及$ b_1,b_2,...,b_n $都是复数，那么 $$ |\sum_{j=1}^{n}(a_j\overline{b}_j)|^2 \leq \sum_{j=1}^{n}|a_j|^2 \sum_{j=1}^{n}|b_j|^2$$
-\section*{欧氏空间}
-\section{定义} 正整数k，R^k
+\subparagraph*{}
+\chapter*{欧氏空间}
+\section{定义}正整数k，$ R^k $
 \section{定义} $ x,y,z \in R^k $，而a是实数，那么有些算式。
-\section{评注} R^k可以看作是第二章的度量空间。R^1和R^2
-\section*{附录}
-\section*{习题}除了明确说明，这里提到的数都是实数
+\section{评注} $ R^k $可以看作是第二章的度量空间。$ R^1 $和$ R^2 $
+\subparagraph*{}
+\chapter*{附录}
+\subparagraph*{}
+\chapter*{习题}除了明确说明，这里提到的数都是实数
 \subsection*{1}如果$ r(r \ne 0) $是有理数，而x是无理数，证明r+x及rx是无理数
 \paragraph{证明}反证法很容易。r+x及rx都是实数。如果是有理数，会推论出x是有理数的结论。
 \subsection*{2} 不存在平方为12的有理数。
@@ -69,7 +77,7 @@ xy=(ac-bd, ad + bc)
 \subparagraph{} (d) $x\ne 0$,由(c)有$\frac{1}{x}x=1 \Rightarrow x=\frac{1}{\frac{1}{x}}$
 \subsection*{4} E是某有序集的非空子集，$\alpha$是E的下界，而$\beta$是E的上界，证明$\alpha \le \beta$
 \paragraph{证明}令$x \in E$,则$ \alpha \le x $且$x \le \beta$,因此$\alpha \le \beta$
-\subsection*{5} 设A是非空实数集，下有界。令-A是所有-x的集，$x\in A$，求证$_{inf}A=-_{sup}(-A)$
+\subsection*{5} 设A是非空实数集，下有界。令-A是所有-x的集，$x\in A$，求证$$_{inf}A=-_{sup}(-A)$$
 \paragraph{证明} 令$a=_{inf}A$，则$a\le x \Rightarrow -a \ge -x$，因此-a是-A的上界。如果$-b < -a \Rightarrow b > a $，b不是A的下界，于是有$x < b, x\in A \Rightarrow -b < -x $即-b不是-A的上界，因此-a是-A的最小上界，即$_{inf}A=-_{sup}(-A)$
 \subsection*{6}
 \paragraph{证明}

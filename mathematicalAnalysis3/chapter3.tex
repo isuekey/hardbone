@@ -1,0 +1,98 @@
+\chapter{数列与级数}
+\chapter*{收敛序列}
+\section{定义} 度量空间X中的序列$\{p_n\}$叫做收敛。如果有一个点$p \in X$,满足：对于任意给定$\epsilon > 0$，有一个正整数N，使得$n \ge N$时，$d(p_n, p) < \epsilon$（这里d时X的距离）。
+\paragraph{}$\{p_n\}$收敛于p，或者说p是$\{p_n\}$的极限。写作$p_n \to p$或者$$\lim_{n \to \infty}{p_n} = p $$
+\paragraph{}如果$\{p_n\}$不收敛，就说它发散。
+\paragraph{} 根据定义，收敛不仅依赖序列，还依赖X，需要点$p \in X$。
+\section{定理} 设$\{p_n\}$是度量空间X中的序列
+\paragraph{a} $\{p_n\}$ 收敛于$p \in X$，当且仅当p点的每个邻域包含$\{p_n\}$的除有限项以外的一切项。
+\paragraph{b} 如果$p \in X, p' \in X, \{p_n\}$收敛于p又收敛于$p'$，那么$p' = p$
+\paragraph{c} 如果$\{p_n\}$收敛，$\{p_n\}$必有界
+\paragraph{d} 如果$E \subset X$，而p是E的极限点，那么E中有一个序列$\{p_n\}$，使得$$p = \lim_{n\rightarrow \infty}{p_n}$$
+\section{定理} 假定$\{s_n\},\{t_n\}$是复数序列，而且$$\lim_{n \to \infty}{s_n} = s, \lim_{n \to \infty}{t_n} = t$$，那么
+\paragraph{a} $\lim_{n \to \infty}{s_n + t_n} = s + t$
+\paragraph{b} 对于任何数c, $$ \lim_{n \to \infty}{cs_n} = cs, \lim_{n \to \infty}{ct_n} = ct$$
+$$(c) \lim_{n \to \infty}{s_nt_n} = st$$
+\paragraph{d} 只要$s_n \ne 0 (n = 1, 2, 3, ...)$且$s \ne 0$，有$$\lim_{n \to \infty}{\frac{1}{s_n}} = \frac{1}{s}$$
+\section{定理}
+\paragraph{a} 假定$x_n \in R^k (n = 1, 2, 3, ...)$而 $x_n = (a_{1,n}, ..., a_{k,n})$。那么序列$\{x_n\}$收敛于$x = (a1, ..., ak) $,当且仅当$$ \lim_{n \to \infty}{a_{j,n}} = a_j (1 \le j \le k) $$
+\paragraph{b} 即定$\{x_n\}, \{y_n\}$是$R^k$中序列，${\beta}_n$是实数序列，并且$x_n \to x, y_n \to y, {\beta}_n \to \beta$，那么$$\lim_{n\to \infty}{(x_n + y_n)} = x + y, \lim_{n\to \infty}{(x_n \bullet y_n)} = x \bullet y, \lim_{n \to \infty}{{\beta}_nx_n} = {\beta}x$$
+\subparagraph*{}
+\chapter*{子序列}
+\section{定义} 设有序列$\{p_n\}$，取正整数序列$\{n_k\}$，使$n_1 < n_2 < n_3 < \cdots$，那么$\{p_{n_i}\}$便叫做$\{p_n\}$的子序列，如果$\{p_{n_i}\}$收敛，就把它的极限叫做$\{p_n\}$的部分极限
+\section{定理}
+\paragraph{a} 如果$\{p_n\}$是紧度量空间X中的序列，那么$\{p_n\}$由某个子序列，收敛到X中的某个点
+\paragraph{b} $R^k$中的每个有界序列含有收敛的子序列
+\section{定理} 度量空间X中的序列$\{p_n\}$的部分极限组成X的闭子集。
+\subparagraph*{}
+\chapter*{Cauchy 序列}
+\section{定义} 度量空间X中的序列$\{p_n\}$的叫做Cauchy序列，如果对于任意$\epsilon > 0$，存在正整数N，只要$n \ge N$和$m \ge N$便有$d(p_n, p_m) < \epsilon$
+\section{定义} 设E是度量空间X的子集，又设S是一切形式为$d(p, q)$的实数集，这里$p \in E, q \in E$。数$_{sup}S$叫做E的直径，记作$_{diam}E$
+\section{定理} 
+\paragraph{a} 如果E是度量空间X中的集，$\overline{E}$是E的闭包，那么$$ _{diam}\overline{E} = _{diam}E $$
+\paragraph{b} 如果$\{ K_n \}$是X中的紧集的序列，并且$ K_n \supset K_{n+1} (n= 1, 2, 3, \dots)$，有若$$ \lim_{n \to \infty} {_{diam}K_n} = 0$$，那么$$\bigcap_1^{\infty}K_n$$由一个点组成。
+\section{定理}
+\paragraph{a} 在度量空间中，收敛序列是Cauchy序列
+\paragraph{b} 如果X是紧度量空间，并且$\{p_n\}$是X中的Cauchy序列，那么$\{p_n\}$收敛于X的某个点。
+\paragraph{c} 在$R^k$中，每个Cauchy序列收敛。
+\section{定义} 如果度量空间X中的每个Cauchy序列在X中收敛，就说它是完备的。
+\section{定义} 称实数序列$\{ s_n \}$为
+\paragraph{a} 单调递增的， 如果$s_n \le s_{n+1} ( n = 1, 2, 3, ... ) $;
+\paragraph{b} 单调递减的， 如果$s_n \ge s_{n+1} ( n = 1, 2, 3, ... ) $;
+\section{定理} 单调序列$\{ s_n \}$收敛，当且仅当它是有界的。
+\subparagraph*{}
+\chapter*{上极限于下极限}
+\section{定义} 设$\{ s_n \}$是有下列性质的实数序列：对于任意的实数M，有一个正整数N，而$n \ge N$时有$s_n \ge M$，我们将之写作$s_n \to +\infty $。类似的对于任意的实数M，有一个正整数N，而$n \ge N$时有$s_n \le M$，我们将之写作$s_n \to -\infty $
+\section{定义} 设$\{ s_n \}$是实数序列。E是所有可能的子序列$\{ s_{n_k} \}$的极限x（在扩大了的实数系里， $s_{n_k} \to x $）组成的集。E含有定义3.5所规定的部分极限，可能还有$+\infty, -\infty$两数。
+\paragraph{} 根据定义1.8和1.23，令$$s^* = _{sup}E, $$ $$s_* = _{inf}E.$$
+\paragraph{} $s^*$和$s_*$分别叫做$\{s_n\}$的上极限和下极限。记作$$ \lim_{n\to \infty} {_{sup}s_n} = s^*,  \lim_{n \to \infty}{_{inf}s_n} = s_* $$
+\section{定理} 设$\{s_n\}$是实数序列，E和$s^*$的意义与定义3.16中的一致，那么$s^*$有以下两个性质：
+\paragraph{a} $s^* \in E$
+\paragraph{b} 如果$x > s^*$，那么就有正整数N，在$n \ge N$时，有$s_n < x $。此外$s^*$是唯一具有性质a和b的数。
+\paragraph{} 类似的，$s_*$也有类似结论。
+\section{例}
+\paragraph{a} 设$\{s_n\}$是包含一切有理数的序列，那么每个实数是部分极限，而且$$ \lim_{n\to \infty} {_{sup}s_n} = +\infty,  \lim_{n \to \infty}{_{inf}s_n} = -\infty $$
+\paragraph{b} 设$s_n = (-1)^n/[1 + (1/n)]$，则 $$ \lim_{n\to \infty} {_{sup}s_n} = 1,  \lim_{n \to \infty}{_{inf}s_n} = -1 $$
+\paragraph{c} 对于实数序列$\{s_n\}$，$$ \lim_{n\to \infty} {s_n} = s$$，当且仅当$$ \lim_{n\to \infty} {_{sup}s_n} = \lim_{n\to \infty} {_{inf}s_n} = s$$
+\section{定理} 如果N是固定的正整数，当$n \ge N$时$s_n \le t_n$，那么$$ \lim_{n\to \infty} {_{inf}s_n} \le \lim_{n\to \infty} {_{inf}t_n},$$ $$ \lim_{n\to \infty} {_{sup}s_n} \le \lim_{n\to \infty} {_{sup}t_n}.$$
+\subparagraph{}
+\chapter*{一些特殊的序列}
+\section{定理}
+\paragraph{a} $p > 0$时$$\lim_{n \to \infty}\frac{1}{n^p} = 0$$
+\paragraph{b} $p > 0$时$$\lim_{n \to \infty}\sqrt[n]{p} = 1$$
+\paragraph{c} $$\lim_{n \to \infty}\sqrt[n]{n} = 1$$
+\paragraph{d} $p > 0$, 且a是实数时$$\lim_{n \to \infty}\frac{n^a}{(1 + p)^n} = 0$$
+\paragraph{e} $|x| < 1$时$$\lim_{n \to \infty} x^n = 0 $$
+\chapter*{级数}
+\section{定义}设有序列$\{a_n\}$，我们用$$\sum_{n=p}^{q}{a_n} (p \le q)$$表示$a_p + a_{p+1} + \cdots + a_q $。结合$\{a_n\}$，做成序列$\{s_n\}$,其中$$s_n = \sum_{k=1}^{n}{a_k} $$。我们也用 $a_1 + a_2 + a_3 + \cdots $作为$\{s_n\}$的符号表达式，或者简单记作$$\sum_{n=1}^{\infty}{a_n} \qquad (4)$$记号(4)被称作无穷级数或者级数，$s_n$被叫做该级数的部分和。如果$s_n$收敛于s，我们说级数收敛，并记作$$\sum_{n=1}^{\infty}{a_n} = s $$。s叫做该级数的和。s是部分和的序列的极限，而不是简单用加法得到的。有时候为了方便，也会用$$\sum_{n=0}^{\infty}{a_n} \qquad (5)$$形式的级数，如果没有歧义的话，或者4、5的区别不重要，可以只写成$\sum{a_n}$
+\section{定理} $\sum{a_n}$收敛，当且仅当对于任意的$\epsilon > 0$，存在整数N，使得$m \ge n \ge N$时$$ \left| \sum_{k=n}^{m}{a_k} \right| \le \epsilon \qquad (6)$$。特别的,当$m=n$时，可以写作$$|a_n | \le \epsilon \qquad (n \ge N)$$
+\section{定理} 如果$\sum{a_n}$收敛，那么$$\lim_{n \to \infty} {a_n} = 0$。反过来则未必。
+\section{定理} 如果各项不是负数（必然是实数）的级数收敛，当且仅当它的部分和构成有界数列。
+\section{定理} 
+\paragraph{a} 如果$N_0$是某个固定的正整数，当$n \ge N_0$是，$| a_n | \le C_n$而且$\sum{c_n}$收敛，那么级数$\sum{a_n}$也收敛
+\paragraph{b} 如果$n \ge N_0$时$a_n \ge d_n \ge 0$而且$\sum{d_n}$发散，那么$\sum{a_n}$发散。
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\section{}
+\section{}
+\section{}
+\section{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\chapter*{}
+\section{}
+\section*{}
+\paragraph{}
+\subparagraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{0}

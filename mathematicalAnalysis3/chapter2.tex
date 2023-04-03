@@ -1,68 +1,317 @@
 \chapter{基础拓扑}
-\section*{有限集、可数集和不可数即}
+\chapter*{有限集、可数集和不可数集}
 \section{定义}映射
 \section{定义}映满，1-1映射
 \section{定义}等价
 \section{定义}有限、无限、可数、不可数，至多可数
 \section{例}
-\section{评注}
-\section{定义}序列
+\section{评注} 一个有限集不可能与其真子集等价，然而对于无限集，则是可能的。
+\section{定义} 定义在一切正整数集J上的函数叫做一个序列。
+如果$ n \in J, f(n)= x_n $,习惯上把序列f用符号${x_n}$表示，或者用$x_1, x_2, x_3, ...$来表示，f的值，即元素$x_n$，叫做这个序列的向。
 \section{定理}可数集A的每个无限子集也是可数集
 \section{定义}A和$\Omega$都是集，$ a \in A $，与$\Omega$的子集联系着，记作$E_a$。用$\{E_a\}$指以
 $E_a$为元素的集，一般称作一组集。许多集$E_a$的并S，记作$$ S = \bigcup_{\alpha \in A }E_{\alpha} $$
-如果A由整数$1,2,...,n$组成，又写作$$ S=\bigcup_{m=1}^nE_m $$ 或者 $$ S = E_1 \cup E_2 \cup .... \cup E_n $$ ，如果A是一切正整数的集，通常记作 $$ S = \bigcup_{m=1}^{\infty}E_m $$。这里$\infty$仅仅表示可数组来取并。类还有交集的记法 $\cap$
+如果A由整数$1,2,...,n$组成，又写作$$ S=\bigcup_{m=1}^nE_m $$ 或者 $$ S = E_1 \cup E_2 \cup .... \cup E_n $$ ，如果A是一切正整数的集，通常记作 $$ S = \bigcup_{m=1}^{\infty}E_m $$。这里$\infty$仅仅表示可数组来取并。类还有交集的记法 $\cap$，许多集$E_a$的交集P，是$ x \in P $，当且仅当对一切$ \alpha \in A $，有 $ x \in E_a $。记作 $ P = \bigcap_{\alpha \in A}E_{\alpha}$
 \section{例}
 \section{评注}集的交和并非常类似和与积。
 \section{定理}$\{E_n\} n=1,2,3,...$是可数集组成的序列，令$$ S=\bigcup_{n=1}^{\infty}E_n$$，S是可数集的
-\section*{推论}
-\section{定理} 
+\section*{推论} 假定A是至多可数的，并且对应于$ \alpha \in A $的$B_{\alpha}$是至多可数的。
+令$$ T = \bigcup_{\alpha \in A}{B_{\alpha}} $$，那么T是至多可数的。
+\section{定理} 设A是可数集，$B_n$是一切n元组$(a_1, a_2, ..., a_n)$的集，这里$ a_k \in A (k = 1, ..., n)$，并且$a_1, a_2, ..., a_n $不一定不相同，那么B是可数的。
 \section*{推论}一切有理数的集是可数集
 \section{定理}A是由数码0和1组成的一切序列的集，集A是不可数的。
-\section*{度量空间}
+\subparagraph*{}
+\chapter*{度量空间}
+\section{定义} 设X是一个集，元素叫做点，如果X的任意两点$p$和$q$，联系与一个实数$d(p, q)$，叫做$p$到$q$的距离，符合条件：
+\paragraph{a} 如果$p \ne q$，那么$d(p, q) > 0, d(p, p) = 0$
+\paragraph{b} $ d(p, q) = d(q, p) $
+\paragraph{c} 对于任意$ r \in X, d(p, q) \le d(p, r) + d(r, q) $
+\paragraph*{} 就称X是一个度量空间。
+\section{例} 重要的度量空间：复平面$R^2$和欧氏空间$R^k$，特别是$R^1$（实数轴）。\\$R^k$中，距离定义为$$ d(x,y) = \vert x - y \vert  (x, y \in R ^k) $$
+\section{定义} 开区间；闭区间；k-方格；中心点在x点，半径为r的开（或者闭）球；凸集
 \section{定义}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section{}
-\section*{}
+\paragraph{a} 点p的邻域$N_r(p)$，r是$N_r(p)$的半径
+\paragraph{b} 集合E的极限点
+\paragraph{c} 结合E的孤立点
+\paragraph{d} E是闭的
+\paragraph{e} p是E的
+\paragraph{f} E是开的集合
+\paragraph{g} E的余集（记作$E^c$）
+\paragraph{h} E是完全的
+\paragraph{i} E是有界的
+\paragraph{j} E是在X中稠密 
+\section{定理} 邻域比是开集 
+\section{定理} 如果p是E的极限点，则p的每个邻域都有E的无限个点。
+\section*{推论} 有限的点集没有极限点
+\section{例}
+\paragraph{a} 满足$|z| < 1 $的复数z的集
+\paragraph{b} 满足$|z| \le 1 $的复数z的集
+\paragraph{c} 一个有限集
+\paragraph{d} 一切整数的集
+\paragraph{e} 由数$1/n (n=1, 2, 3, ....)$组成的集
+\paragraph{f} 一切复数的集
+\paragraph{g} 开区间(a, b)
+\section{定理} 设$ \{ E_{\alpha} \}$是若干（有限个或者无限个）集$E_{\alpha}$的一个组，那么$$ ( \bigcup_{\alpha}E_{\alpha} )^c = \bigcap_{\alpha} ( E_{\alpha}^c ) $$
+\section{定理} E是开集当且今当它的余集是闭集。
+\section*{推论} F是闭集当且今当F的余集的是开集。
+\section{定理}
+\paragraph{a} 任意一组开集$\{ G_a \}$的并$ \bigcup_aG_a $是开集
+\paragraph{b} 任意一组闭集$\{ F_a \}$的交$ \bigcap_aF_a $是闭集
+\paragraph{c} 任意一组有限个开集$\{ G_1, G_2, ..., G_n \}$的并$ \bigcup_{i=1}^nG_i $是开集
+\paragraph{d} 任意一组有限个闭集$\{ F_1, F_2, ..., F_n \}$的交$ \bigcap_{i=1}^nF_i $是闭集
+\section{例子}
+\section{定义} X是度量空间，$ E \subset X $, $ E^{'} $表示E在X中的所有极限点组成的集，那么，把$ \overline{E} = E \cup E^{'} $叫做E的闭包。
+\section{定理} X是度量空间，且$ E \subset X $那么
+\paragraph{a} $\overline{E}$闭
+\paragraph{b} $E = \overline{E}$当且仅当E闭
+\paragraph{c} 如果闭集F， $ F \subset X $且$E \subset F $，那么$\overline{E} \subset F$
+\section{定理} 设E是不空实数集，上有界，令$ y = _{sup}E $，那么$ y \in \overline{E} $，因此如果E闭，则$y \in E $
+\section{评注} 开子集
+\section{定理} 设 $ Y \subset X $，Y的子集E关于Y是开的，当且仅当X有某个开子集G，使得$ E = Y \cap G $
+\subparagraph*{}
+\chapter*{紧集}
+\section{定义} 开覆盖：设E是度量空间X里的一个子集，E的开覆盖值的是X的一组开子集$\{ G_{\alpha} \}$，使得$$ E \subset \bigcup_{\alpha}G_{\alpha} $$
+\section{定义} 紧的：
+\section{定理} 设$ K \subset Y \subset X $，那么K关于X是紧的当且仅当K关于Y是紧的。
+\section{定理} 凡度量空间的紧子集都是闭集
+\section{定理} 凡紧集的闭子集都是紧集
+\section*{推论} 如果F是闭的而K是紧的，那么$ F\cap K $是紧的。
+\section{定理} 如果$\{ K_{\alpha} \}$是度量空间X的一组紧子集，任意有限个子集的交集不为空，那么$\bigcap K_{\alpha} $也不是空集。
+\section*{推论} 设$\{ K_{\alpha} \}$是非空紧集序列，且$ K_n \supset K_{n+1} ( n = 1, 2, 3, ... ) $，那么$$ \bigcap_{n=1}^{\infty}K_n $$是非空的
+\section{定理} 设E是紧集K的无限子集，那么E在K中有极限点。
+\section{定理} 设$\{ I_n \}$是$R^1$中的闭区间序列，且$ I_n \supset I_{n+1} ( n = 1, 2, 3, ... ) $，那么$$ \bigcap_{n=1}^{\infty}I_n $$是非空的
+\section{定理} 设k是正整数，如果$\{ I_n \}$是k-方格的序列，并且$ I_n \supset I_{n+1} ( n = 1, 2, 3, ... ) $，那么$$ \bigcap_{n=1}^{\infty}I_n $$是非空的
+\section{定理}每个k-方格是紧集
+\section{定理}如果$R^k$中一个集E具有下列三个性质之一，那么也具有其他两个性质：
+\paragraph{a} E是闭且有界的
+\paragraph{b} E是紧的
+\paragraph{c} E的每个无限子集在E内有极限点。
+\section{定理(Weierstrass)} $R^k$中每个有界无限子集在$R^k$中有极限点
+\subparagraph*{}
+\chapter*{完全集}
+\section{定理} 令P是$R^k$中非空完全集，那么P是不可数的。
+这里的证明很奇怪，没有用到R的不可数性。然后就可举出一个反例，也同时适用证明过程，但是结论有问题。
+\paragraph{}可证Q是度量空间。
+\paragraph{}如果Q中一切满足$ 1 \le x \le 2 $组成的集合T。
+\paragraph{}Q在R内稠密，可证T是Q内的闭集（无理数不是Q的点，T的极限点都是T的点）。
+\paragraph{}T是Q内的完全集。
+\paragraph{}T是可数的。
+\section*{推论}每个闭区间$[a,b](a < b)$是不可数的。
+\section{Cantor集} 在$R^1$确实存在完全集，不含有是开区间的子集。
+\subparagraph*{}
+\chapter*{连通集}
+\section{定义} 分离的。连通集。
+\section{评注} 不相交与分离
+\section{定理} 实数轴$R^1$的子集E是连通的，当且仅当它有以下性质：如果$x \in E, y \in E $并且$x < z < y$，那么$ z \in E $
+\subparagraph*{}
+\chapter*{习题}
+\section*{1} 空集是任何集的子集。
+空集与子集的概念不冲突。但是与非子集概念冲突（需要空集有元素）。因此空集是任何集的子集。
+\section*{2} 不全为零的整数$a_0, a_1, ..., a_n$，而复数z满足 $$ a_0z^n + a_1z^{n-1} + ... + a_{n-1}z + a_n = 0 $$，就说z是一个代数数。
+\section*{3} 如不存在，代数数可数，有理数可数，会导致实数可数。
+\section*{4} 所有无理数构成的集是否可数？不可数。
+\section*{5} 三个极限点的有界集合。$\{ 1/n, 1+1/n, 2+1/n | n\in J \} $
+\section*{6} 求证$E^{'}$是闭集，E与$\overline{E}$有相同的极限点。E与$E^{'}$是否总有相同的极限点
+\paragraph{} 设$E^{'^c}$为A，$p \in A$，则p不是E的极限点，且p必然有一邻域与$E^{'}$无交集（否则会与极限点每个邻域有E的无限个点冲突）。因此p是A的内点，A是开集，因此$E^{'}$是闭集
+\paragraph{} 因为$ E \subset \overline{E} $，因此E的极限点也是$\overline{E}$的极限点。如果$\overline{E}$的某个极限点p不是E的极限点，则$p \in E^{'^c}$且p是$E^{'}$的极限点，这与$E^{'}$是闭集矛盾。
+\subsection*{}E与$E^{'}$不一定总有相同的极限点。$\{1, 1/2, 1/3, ....\}$集B的极限点是0，$B^{'}$没有极限点。
+\section*{7} $A_1, A_2, A_3, ...$是某度量空间的子集
+\subsection*{a 如果$ B_n = \bigcup_{i=1}^n{A_i}$，证明 $\overline{B_n}=\bigcup_{i=1}^n\overline{A_i}, n = 1, 2, 3, ... $ }
+n是有限的，如果p是 $B_n $ 的极限点，则p的某个邻域必然含有某个A的无限个点，因此p是那个A的极限点。
+如果p是某个A的极限点，则p必然是 $B_n $ 的极限点
+\subsection*{b 如果$ B_n = \bigcup_{i=1}^{\infty}A_i$，证明 $\overline{B} \supset \bigcup_{i=1}^{\infty}\overline{A_i} $}
+如果p是某个A的极限点，则p必然是$B_n$的极限点。
+n是无限的，如果p是$B_n$的极限点，则p的某个邻域未必含有某个A的无限个点。
+举例A是$[2,3] \cup \{1/n\}$的集合,$\overline{B}$含有1，而左侧每个集合都不含有0（这里其实有问题，因为在无穷时，这里边界0的概念模糊，自由心证吧）。
+\section*{8} 是否每个开集$E \subset R^2 $的每个点一定是E的极限点？闭子集如何呢？
+\paragraph{}开集的每个点p都有一邻域V是E的子集。$R^2$上的邻域有无限点，因此必是E的极限点。
+\paragraph{}闭子集则未必，因为有限的集也是闭集。
+\section*{9}令$E^{\circ}$是E所有内点组成的集。
+\paragraph{a}$E^{\circ}$是开集，需要证明$E^{\circ c}$是闭集。$E^{\circ c}$的极限点p，若p是$E^{\circ}$的点，则p有邻域$N_r(P) \subset E \Rightarrow N_{r/2}(P) \subset E^{\circ}, r > 0$，即有邻域$N_{r/2}(P)$与$E^{\circ c}$无交集，这与p是极限点矛盾。所以p是$E^{\circ c}$的点，$E^{\circ c}$是闭集。$E^{\circ}$是开集。
+\paragraph{b} E是开集等价于$E^{\circ} = E$
+\subparagraph{}若$E^{\circ} = E$，则E是开集。
+\subparagraph{}若E是开集，若$p \in E^{\circ} \Rightarrow p \in E \Rightarrow  E^{\circ} \subset E$
+\subparagraph{}若$p \in E$，b必是E的内点，因此$p \in E^{\circ} => E \subset E^{\circ}$。所以$ E^{\circ} = E $
+\paragraph{c} 若$G \subset E$且G是开集，则$G\subset E^{\circ}$
+\subparagraph{} G的点p有邻域$N_r(p) \subset G => N_r(p) \subset E$，即p也是E的内点，$ p \in E^{\circ}$，所以$G\subset E^{\circ}$
+\paragraph{d}$E^{\circ c} = \overline{E^c} = E^c \cup E^{c'}$
+\subparagraph{} 点$p \in E^{\circ c}$，则p任意邻域$N_r(p) \not \subset E$（否则p是E的内点），$N_r(p) \cap E^c$不空，令点$q \in N_r(p) \cap E^c$，如果$p=q \Rightarrow p \in E^c$;如果$p \ne q$，则p是$E^c$的极限点，有$p \in \overline{E^c}$。所以$E^{\circ c} \subset \overline{E^c}$。
+\subparagraph{} 点$p \in \overline{E^c}$，则p的任意邻域$N_r(p) \cap E^c$非空（否则易证矛盾），即$N_r(p) \not \subset E$，p不是E的内点，$p \notin E^{\circ} \Rightarrow p \in E^{\circ c}$。所以$\overline{E^c} \subset E^{\circ c}$
+\subparagraph{} $E^{\circ c} = \overline{E^c}$
+\paragraph{e} $E^{\circ}$与${\overline{E}}^{\circ}$是否总一样。
+\subparagraph{} 不是的
+\subparagraph{} 若E是$[1,2]$之间的有理数，则$E^{\circ}$是$(1,2)$上的有理数，而$\overline{E}^{\circ}$是$(1,2)$上的实数。显然不是。
+\paragraph{f} $\overline{E}$与$\overline{E^{\circ}}$是否总一样。
+\subparagraph{} 不是。如果E有孤立点p，显然$p \notin \overline{E^{\circ}}$，但是$p \in \overline{E}$
+\section*{10} X是无穷集，$p \in X, q \in X $，定义如果$ p \ne q => d(p,q)=1; p = q => d(p,q) = 0$
+\paragraph{} $d(p, q) = d(q, p)$
+\paragraph{} $ r \in X, r=p=q \Rightarrow d(p, r) + d(r, q) = 0 + 0 = d(p,q); r \ne p=q \Rightarrow d(p, r) + d(r, q) = 1 + 1 > 0 = d(p, q); r=p \ne q \Rightarrow d(p, r) + d(r, q) = 0 + 1 = 1 = d(p, q); r = q \ne p 同 r=p \ne q; r \ne p \ ne q \Rightarrow d(p, r) + d(r, q) = 1 + 1 > 1 = d(p, q) $ 所以d是一个度量
+\paragraph{} 任何子集E都是开集，因为p点r<1的邻域只有一个点p，即$N_r(p) \subset E$
+\paragraph{} 没有闭集。r<1的邻域里没有其他点。
+\paragraph{} 有限集是紧集。
+\section*{11} $ x \in R^1, y \in R^1$, 定义 $$d_1(x, y) = (x - y) ^2 ,$$ $$ d_2(x, y) = \sqrt{| x - y |} ,$$ $$ d_3(x,y) = | x^2 - y^2 |, $$ $$ d_4(x,y) = | x - 2y |, $$ $$ d_5(x,y) = \frac{|x-y|}{1 + | x - y| } . $$
+1,2,5显然都有d(x, y) = d(y, x)，且$x \ne y, d(x,y) > 0; x = y, d(x,y) = 0$
+\paragraph{$d_1$}不是。$ r \in R^1, d_1(x, r) + d_1(r, y) = x^2 - 2xr + r^2 + r^2 - 2ry + y^2 = (x - y)^2 + 2r^2 - 2xr - 2ry + 2xy = (x - y)^2 + (r-x)(r-y) \not \ge (x - y)^2 = d_1(x, y) $，比如 $ x = 1, y = 2, r = 1.5$则$d_1(x, y) = 1 > d_1(x,r) + d_1(r,y) = d_1(1, 1.5) + d(1.5, 2) = 0.25 + 0.25 = 0.5 $。
+\paragraph{$d_2$}是。$$ r \in R^1, d_2(x, r) + d_2(r, y) = \sqrt{| x - r|} + \sqrt{|r - y|} = $$ $$ \sqrt{|x-r| + |r-y| + 2\sqrt{|x-r|}\sqrt{|r-y|}} \ge \sqrt{|x -y| + 2\sqrt{|x-r|}\sqrt{|r-y|}} \ge $$ $$ \sqrt{|x -y |} = d_2(x, y)$$
+\paragraph{$d_3$}不是。$ x=-y \Rightarrow d_3(x,y) = 0 $
+\paragraph{$d_4$}不是。 $x=2, y = 1时，d_4(x, y)=0 \ne d_4(y, x) = 3$
+\paragraph{$d_5$}是。$$ r \in R^1, d_5(x, r) + d_5(r, y) = \frac{|x-r|}{1 + | x - r|} + \frac{|r-y|}{1 + |r - y|} = $$ $$\frac{|x-r|(1+|r-y|) + |r-y|(1 + |x-r|)}{(1 + |x-r|)(1 + |r-y|)} = $$ $$ \frac{|x-r| +|xr -xy - r^2 + ry| + |r - y| + |xr - r^2 -xy + ry|}{1 + |r - y| + |x - r| + |xr - xy - r^2 + ry|}$$
+\subparagraph{}令$$ f(a) = \frac{a}{1+a}, a_1>a_2>0 \Rightarrow f(a_1) - f(a_2) = $$ $$ \frac{a_1+a_1a_2 - a_2 - a_1a_2}{1+a_1+a_2+a_1a_2} > 0 \Rightarrow f(a_1) > f(a_2)$$
+\subparagraph{}$|r-y| + |x -r| + |xr-xy - r^2 + ry| \ge |x - y| > 0$
+\subparagraph{}$$\frac{|x-r| +|xr -xy - r^2 + ry| + |r - y| + |xr - r^2 -xy + ry|}{1 + |r - y| + |x - r| + |xr - xy - r^2 + ry|} \ge $$ $$ \frac{|x-r| +|xr -xy - r^2 + ry| + |r - y|}{1 + |r - y| + |x - r| + |xr - xy - r^2 + ry|} \ge \frac{|x-y|}{1 + |x - y|} = d_5(x, y)$$
+\section*{12} $K \subset R^1 $由0和$1/n ( n = 1, 2, 3, ...)$组成的集，证明K是紧集
+\paragraph{} 设$I_m (m=1, 2, 3, ...)$是0与$1/n (n = m, m+1, m+2, ...)$组成的集，则$$ I_1 \supset I_2 \supset I_3 ...$$，
+\paragraph{} 设$\{ G_a\}$是K的一组开覆盖。如果某个$G_a \supset I_m$，显然只需要再有有限几个就可以覆盖K.
+\paragraph{} $I_n$不能被$\{G_a\}$的任何有限子组盖住
+\paragraph{} 如果$x \in I_n$，那么 $| x - 0 | \le 1/n$
+\paragraph{} 在$I_n$内存在一点$x^*$，和某个a，满足$x^* \in G_a$，因为$G_a$是开的，存在$r > 0$，在n足够大时$( n > 1/r )$，使得$|x^* - 0| < r$。因此$I_n \subset G_a$，这与无任何有限子组盖住矛盾。
+\section*{13} 构造一个实数的紧急，其极限点是可数集。12题中的K扩展到每个非负整数间就满足要求。
+\section*{14} 给开区间(0,1)造一个没有有限子覆盖的实例
+\paragraph{} 由$I_n = (1/(3n), 1/n) (n=1, 2, 3, ...)$组成的集$G = \bigcup_{n=1}^{\infty}{I_n}$
+\paragraph{} $ 0 < r < 1 , 1/(3n) < r < 1/n \Rightarrow 1/(3r) < n < 1/r$，在$ 2/(3r) > 1 \Rightarrow r < 2/3 $时，一定由整数r存在。在$2/3 \le r < 1$时，$ 1/3 < 1/(3r) \le 1/2,  1 < 1/r < 3/2$，此时n=1即可满足。因此$(0,1) \subset G$
+\paragraph{} 任意给定的n都可以取$ r \le 1/(3n)$使其在覆盖之外，所以没有有限子集满足覆盖。
+\section*{15} 度量空间X的一组紧子集$\{K_a\}$，任意有限个集的交不空，那么$\cap{K_a}$不空。将紧子集换成闭子集或者有界子集，都不成立。
+\paragraph{换成闭的} $I_n = x >=n, n = 1, 2, 3, ...; \bigcap^{\infty}{I_n}$满足题设，但是只有广义实数的$\infty$满足结果
+\paragraph{换成有界} $I_0=(-1, 0) \cup (0, 1); I_n=(-1/n, 1/n), n=1, 2, 3, ...; G = \bigcap_{i=1}^{\infty}{I_i} $，则G满足题设，但是G是空集。
+\section*{16} 有理数Q看成度量空间，$d(p, q) = |p - q|$。令E是满足$2 < p^2 < 3, p \in Q$组成的集。？E有界闭集，E不是紧集；E是否为Q的开集。
+\paragraph{} 显然E有界$q=0, M= 3$即可。
+\paragraph{} E的极限点p，若$p \notin E$，因为是有理数，不妨假设$p > 3^{1/2}$ 则$ a = d(p, 3^{1/2})$，显然$r < a$时，$ N_r(p) \cap E = \emptyset$，这与p是E极限点矛盾。其他情况类似证明。因此E的极限点都是E的点，E是闭集。
+\paragraph{} 以$2^{1/2}, 3^{1/2}$为边界，很容易构造无限开覆盖。
+\paragraph{} E是Q的开集。任意$$p > 0, p \in E, z = min(d(p, 3^{1/2}), d(p, 2^{1/2})) \Rightarrow N_z(p) \subset E $$, $p < 0$时类似，证毕。
+\section*{17} 令E是所有$x \in [0, 1]$，其中小数展开式是4和7的，E是否可数？E是否在$[0,1]$稠密？E是否紧集？E是否完全?
+\paragraph{} 不可数。因为存在4和7的任意无限序列。
+\paragraph{} 不稠密。$ r = 1, r \in [0, 1] \Rightarrow r \notin E$，r也不是E的极限点。
+\paragraph{} 不是紧集。令$I_n=(7 * 10^{-n} - 5*10^{-n -1}, 7 * 10^{-n} + 5* 10^{-n -1}), n=1, 2, 3, ....$则$G=\bigcup_{n=1}^{\infty}I_n $仅能覆盖以7开始的序列，且任意有限子集无法覆盖全以7为首的序列。
+\paragraph{} 这里其实是混乱的，因为无限这个概念边界，自由心证的利害。
+\paragraph{} 不完全。$ r= 0.4, r \in [0, 1], r\in E,N_{0.01}(r) \cap E = \emptyset $，因此r不是E的极限点。
+\section*{18} $r^1$中是否存在不含有有理数的不空完全集？
+\paragraph{} 从有限进行推导的话，是不存在的。因为有理数在$R^1$中稠密，$R^1$上的不空完全集会导致某个有理数q是集合的极限点。
+\paragraph{} 直接从无限进行的话会发现Cantor集方式构造的集，都是孤立点。也不是不空完全集。
+\section*{19}
+\subsection*{a 令A及B是度量空间X的不交闭集，证明他们是分离的}
+\paragraph{} A,B是闭集，因此$A=\overline{A}, B=\overline{B}, A\cap B=\emptyset \Rightarrow A \cap \overline{B} = \emptyset , B \cap \overline{A} = \emptyset$，于是A与B分离
+\subsection*{b 不交开集也是分离的}
+\paragraph{} A,B是开集，且$A\cap B = \emptyset$。不妨假设由点$p \in \overline{A} \cap B \Rightarrow p \in (A^{'}\cup A)\cap B \Rightarrow p \in (A \cap B) \cup (A^{'} \cap B) \Rightarrow p \in (A^{'} \cap B)$,因为p是B内点，所以存在$r>0, N_r(p) \subset B$，又p是A的极限点，因此有点$q \in N_r(p), q \in A, q \ne p $，因此$q \in A, q \in B $,这与$A \cap B = \emptyset$矛盾。p点不存在，即$\overline{A} \cap B = \emptyset$，同理$ A \cap \overline{B} = \emptyset$，A与B分离证毕。
+\subsection*{c 固定$p\in X, \delta > 0$，定义A为由满足$d(p,q) < \delta$的一切$q \in X$组成的集，而B为满足$d(p, q) > \delta$的一切$q\in X$组成的集，证明A与B分离}
+\paragraph{} 令点$q \in B \Rightarrow h = d(p, q) > \delta$，令$s = h - \delta, w \in N_s(q) \Rightarrow h = d(p, q) \le d(p,w) + d(w, q) < h - \delta + d(p, w) \Rightarrow d(p, w) > \delta \Rightarrow w \in B \Rightarrow N_s(q) \subset B$，B是开集。又因为A是开集，$A\cap B = \emptyset$，A与B分离。
+\subsection*{d 至少含有两个点的连通度量空间是不可数的，提示用(c)}
+% 不知道怎么证明，因为序和度量不能混为一谈。
+% 如果是可数集，p和q两个不同点，以$\delta = d(p,q)$构建c中的集和A与B
+% 反复思考与复习，证明如下。
+\paragraph{} 连通集是无法拆分成两个分离子集的并，这里并没有限制拆分方式
+\paragraph{} 连通集X，有两个点p与q，且$p \ne q$
+\paragraph{} 如果是可数集，不妨假设序中$p < q, h = d(p, q)$，存在$0 < r < h$，使得不存在点$x \in X, d(p, x) = r$，否则$N_r(p) \cap X$不可数，这与假设矛盾。因此X可以按照c，根据p与r，分为A和B两个集，显然A与B不空，且$A \cap B = \emptyset $，按照c，X不联通，这与题设矛盾。
+\section*{20} 连通集的闭包和连通集的内部是否总是连通集。
+\paragraph{} 连通集E
+\paragraph{} $\overline{E}$是否总是连通集，是的。
+\subparagraph{} 因为E连通，$\overline{E}= E \cup E^{'}$，则任意点$p\in E^{'}\cap E^c$构成的集和与E连通。因此$\overline{E}$连通。
+\paragraph{} $E^{\circ}$是否总是连通集
+\subparagraph{} $R^2$上开球$S_1 = N_1(0,0), S_2 = N_1(3,0)$，线段L$[(1,0), (2,0)]$，$E = S_1 \cup S_2 \cup L$，E是连通的，但是E的内部显然不是连通的
+\section*{21} 令A及B是某个$R^k$的分离子集，给定$a \in A, b \in B$，且对$t \in R^1$定义$$p(t) = (1 - t)a + tb$$命$A_0=p^{-1}(A), B_0=p^{-1}(B)$[于是$t \in A_0$当且仅当$p(t) \in A$]
+\paragraph{a $A_0,B_0$是$R^1$中的分离子集}
+\subparagraph{} $t_1 \ne t_2, t_1 \in R, t_2 \in R, \Rightarrow p(t_1) - p(t_2) = (1-t_1 -1 + t_2)a + (t_1 - t_2)b = (t_2-t_1)a + (t_1 - t_2)b = (t_2-t_1)(a - b) \ne 0$，因此$p(t)$是t的1-1映射。
+\subparagraph{} $H = \overline{A_0} \cap B_0 \iff G= \overline{p(A_0)} \cap p(B_0)$，A与B分离，因此G为空集，H也就是空集。
+\subparagraph{} 同理$\overline{B_0} \cap A_0$是空集。证毕。
+\subparagraph{} 上面的证明很含糊，难以信服。
+\subparagraph{} $A_0 \subset R^1, B_0 \subset R^1$，不妨假设点$q \in \overline{A_0} \cap B_0$，若至少$ q \in  A_0^{'} \cap B_0$存在，则任意实数$r>0$有点$t_a \in N_r(q) \cap A_0, t_a \ne q, q \in B_0 \Rightarrow p(q) - p(t_a) = (1-q)a+qb - (1-t_a)a-t_ab = (q - t_a)(b - a), p(q) \in A, p(t_a) \in B$，明显有$p(t_a)$就是A的一个极限点，这与AB分离矛盾，所以q不存在。$ \overline{A_0} \cap B_0 = \emptyset $
+\subparagraph{} 同理$\overline{B_0} \cap A_0 = \emptyset$。证毕。
+\paragraph{b 存在$t_0\in(0, 1)$使得$p(t_0) \notin A\cup B$}
+\subparagraph{} 这里是为连续的概念作准备的。
+\subparagraph{} $p(0) = a \in A, p(1) = b \in B$
+\subparagraph{} 因此$ 0 \in A_0, 1 \in B_0$，令$0 \in [0,1] \cap A_0 = E_a, 1 \in [0,1] \cap B_0 = E_b$, $E_a$与$E_b$不连通，令$E=E_a \cup E_b$，存在数t，$0 < t < 1, t\notin E \subset [0, 1]$
+\subparagraph{} p(t)不是A或B的点，证毕。
+\paragraph{c 证明$R^k$中的凸子集是连通集} 
+\subparagraph{} $R^k$中的凸子集E满足，任意$x \in E,y \in E, 0 < \lambda < 1$,有$t = \lambda x + (1- \lambda)y, t \in E$
+\subparagraph{} 因为如果不是连通集，意味着存在不空集AB，$E = A\cup B$，且AB分离。那么让$x \in A, y \in B$，存在$\lambda \in (0, 1)$使得$t = \lambda x + (1 - \lambda) y, t \notin A \cup B = E$，这与凸集定义矛盾。
+\subparagraph{} 因此凸子集是连通集。
+\section*{22} 含有可数稠密子集的度量空间叫做可分的，证明$R^k$是可分的。
+\paragraph{} $R^k$上所有有理数坐标构成的点集$Q^k$，显然$Q^k$是可数的
+\paragraph{} 因为在Q在R上稠密，各个维度上稠密，容易证明有$Q^k$在$R^k$上稠密。
+\paragraph{} $R^k$是可分的。
+\section*{23} X的一组开子集$\{V_{\alpha}\}$叫做X的一个基，如果以下的事实成立：对于每个$x\in X$和X的每个含x的开集G，总有某个$\alpha$使得$x \in V_{\alpha} \subset G$，换言之，X的每个开集必是$\{V_{\alpha}\}$中某些集的并。证明每个可分度量空间有可数基。
+\paragraph{} 根据提示。
+\paragraph{} 可分度量空间X存在可数稠密子集T，以T的点为中心t，取一切有理数为半径q的邻域$N_q(t)$，记作$V(t,q)$。
+\paragraph{} t可数，q可数，显然由一切$V(t,q)$组成的集和是可数的。
+\paragraph{} 基于有理数与R稠密的证明，当$x \in X, x \in G$时，有某个$$x \in V(q,r), V(q,r) \subset G$$
+\paragraph{} 简单来说：$ x \in G$,G是开集，因此存在$r>0, N_r(x) \subset G$，T稠密，因此x要么是T的点，要么T的极限点，都不妨在$N_{r/4}(x)$里找到一个t，使得$t \in T$，至少某个有理数半径q使得$ r/4 < q < r/2, d(t,x) < r/4 < q \Rightarrow x \in V(t, q)$, 点$w \in V(t,q) , d(x, w) \le d(x, t) + d(w, t) < r/4 + r/2 < r \Rightarrow w \in G \Rightarrow V(t,q) \subset G$，证毕。
+\section*{24} 令X是个度量空间，其中每个无限子集有极限点，证明X是可分的。
+\paragraph{提示} 固定$\delta > 0$
+\paragraph{题目不严谨 我错了} 每个无限子集有极限点$\{0\} \cup \{1/n | n=1,2,3,4,...\}$的每个无限子集有极限点0。
+\paragraph{} X可分是说X上有可数的稠密子集。
+\paragraph{} E在X上稠密，是说X的点要么是E的点，要么是E的极限点。
+\paragraph{根据提示证明} 如果X没有无限子集，X是有限的，自然是可分的。
+\paragraph{} 每个无限子集有极限点，因此X是有界的。
+\paragraph{} 固定$\delta > 0$，取X上的某个极限点$x_1$。取$$x_2, d(x_1,x_2) \ge \delta ,$$在给定$x_1, x_2, ..., x_n$, 取点$x_{n+1}$不在任意$N_{\delta}(x_i) , i = 1, 2, 3, ..., n$内。则$$d(x_{n}, x_{n+1}) \ge \delta$$，这种x是有限的，否则将构成X的一个无限子集，却没有极限点，这不符合题设。即存在某个正整数M，使得$$ X \subset \bigcup_{i=1}^{M}N_{\delta}(x_i) $$，这些$x_i$记作第1层点，点记作$g1$，半径记作$r1=\delta$，有$$ X \subset \bigcup^{G1}N_{r1}(g1) $$
+\paragraph{} 同理每个$N_{\delta}(x_i)$可以被有限个$N_{\delta / 2}(x_{ij})$覆盖，记作第2层点$G2$，\\点记作$g2$，半径记作$r2=\delta/2$，有$$ X \subset \bigcup^{G2}N_{r2}(g2) $$
+\paragraph{} 构造过程符合数学归纳法，可以重复进行。
+\paragraph{} 其中某i层点Gi,其点记作$gi$,半径$ri=\delta/2^{i-1}$,有$$ X \subset \bigcup^{Gi}N_{ri}(gi) $$
+\paragraph{} 最终这些x构成一个可数集G。
+\paragraph{} X的任意一点p，如果p不是X的极限点，p一定是G的点。因为p的某个邻域$r> 0$没有X的其它点。
+\paragraph{} 如果$r >= \delta$，显然$p \in G$
+\paragraph{} 若$ 0 < r < \delta$, 存在i使得$0 < \delta/(2^{i+1}) \le r < \delta/2^{i} $，根据构造过程，p要么是第i层的某个gi，要么是第i+1层的某个g(i+1)。
+\paragraph{} p是X的极限点，且不是G的点。任意$r>0$根据构造可以找到某个gi使得$q \in N_{ri}(gi), 0 < ri < r, q \ne gi$，因此p是G的极限点。
+\paragraph{} 因此G在X上稠密。G又是可数的。
+\paragraph{} X是可分的。
+\section*{25} 证明紧度量空间K有可数基，因此K必是可分的。
+\paragraph{提示} 对于每个正整数n，存在有限个半径为$ 1/n $的邻域，它们的并覆盖了K
+\paragraph{} 对于每个正整数n，半径$ 1/n $，不妨取点$ x_1 \in X, N_r(x_1) $后。取点$ x_2 $，有$ d(x_1, x_2) \ge 1/n$，邻域$N_r(x_2)$。已有$x_1, x_2, ..., x_n$时，取点$$x_{n+1} \notin \bigcup_{i=1}^nN_r(x_i)$$，其邻域为$N_r(x_{n+1})$，这样就形成一组开集$\{N_r(x_i)\}$，因为K是紧度量空间，所以$\{N_r(x_i)\}$只有有限个。
+\paragraph{} 邻域是开集。此每个n都一组有限个开集覆盖了K。
+\paragraph{} 这些邻域，记作$V_a$组成的集显然是可数。
+\paragraph{证明这些集和构成基} 
+\paragraph{} $ x \in$开集G，且$ G \subset K$，那么存在$ r > 0$，使得$N_r(x) \subset G$。存在n使得$ 0 < 1/n < r/2 $，和某个点p，以$1/n$为半径的邻域$V_a$，有$x \in V_a$。
+\paragraph{} 点$q \in V_a \Rightarrow d(x, q) \le d(x,p) + d(p, q) < r/2 + r/2 = r $，因此$V_a$的点都是$N_r(x)$的点，因此$ x \in V_a \subset G$
+\paragraph{} 这些可数的邻域构成了K的一个基。即K有可数基。
+\paragraph{证明K可分} 可分是说有稠密可数子集
+\paragraph{} $V_a$的中心点$c_a$，所有$c_a$构成的集和CQ，是可数的。
+\paragraph{} 点$p \in K$。要么p是CQ的点。
+\paragraph{} 如果p不是CQ的点，则任意$r>0$，都可以找到一个n，使得$ 0 < 1/n < r$，对应的某个点$c_a$和邻域$ V_a$，使得$p \in V_a, p \ne c_a \Rightarrow c_a \in N_r(p), c_a \ne p$，即p是CQ的极限点。
+\paragraph{} CQ在K上稠密。因此K是可分的。证毕。
+\section*{26} 设X是这样一个度量空间，其中每个无限子集有极限点，证明X是紧的。
+\paragraph{提示} 由习题23及24，X有可数集。因此X的每个开覆盖必有可数子覆盖$\{G_n\}$,\\$n=1, 2,3,...$。如果没有$\{G_n\}$的有限子组能够覆盖X，那么$G_1 \cup ... \cup G_n$的余集$F_n$不空，然而$\cap F_n$是空集。如果E是这样的集，它含有$F_n$的一个点，考察E的极限点，会有矛盾。
+\paragraph{证明} 题目24表明X是可分的。题目23表明X有可数基。
+\paragraph{} 每个无限子集有极限点，证明X是紧的。
+\paragraph{} 这个有问题的。没法证明了。
+\section*{27} 度量空间X中的点p的叫做$E \subset X$的凝点，如果p的每个邻域含有E的不可数无穷多个点。设$E \subset R^k$，且E不可数，命P为E的所有凝点的集，证明P完全，并且E中最多有可数多个点不再P中。即证明$P^c \cap E$最多可数。
+\paragraph*{提示}令$\{V_n\}$是$R^k$的可数基，而令W是这样一些$V_n$的并，对于他们$E\cap V_n$至多可数，并证明$P=W^c$
+\paragraph{} 点$q \in P^c$，那么如果任意$\delta > 0, N_{\frac{\delta}{2}}(q) \cap P \ne \emptyset$，则$N_{\delta}(q)$中有E的不可数个点，q是E的凝点。因此存在$r > 0$使得$N_r(q)$与P不相交，即$N_r(q) \subset P^c$，因此q是$P^c$的内点，$P^c$是开集。故P是闭集。
+\paragraph{} 点$p \in P$，所以p是E的凝点，即p的任意半径r的邻域里有E的不可数个点，则$ N_{r/4}(p) $存在E的点q，$p \ne q, N_r(q)$中有E的不可数点（否则令$\delta = r - d(p,q), N_{\delta}(p)$中只有可数个E的点，这与凝点矛盾。）即p的邻域总是有其他点$q\in P, q \ne p$，因此p是P的极限点。
+\paragraph{} 点$p \in P$，且p不是P的极限点，会导致矛盾。某个$r > 0, N_r(p) \cap P = p $，按照上述方法考察q，要这么这种q是至多可数的，要么没有q，值会导致p不是凝点（邻域只有至多可数个点）。（没有想明白。）
+\paragraph{} 因此P是闭集，P的点都是P的极限点，P是完全集
+\paragraph{} $P^c \cap E$至多可数，这个感觉是，不知道怎么证明。
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\section*{28} 证明可分度量空间的每个闭子集是一个完全集（可能是空集）和一个至多可数集的并。
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\section*{29} 证明$R^1$中的每个开集是至多可数个不相交的开区间的并。
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\section*{30} 仿照2.43证明$$R^k = \bigcup_1^{\infty} F_n$$，这里$F_n$是$R^k$的闭子集。那么至少有一个$F_n$具有非空的内部
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
+\paragraph{}
